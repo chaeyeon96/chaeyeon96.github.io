@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multiscale Interactome · Pipeline · Study Wiki</title>
+<meta name="description" content="2021 Ruiz - Multiscale Interactome의 계산 흐름. Toy example과 설명 그림은 직접 작성한 교육용이며 논문 결과가 아니다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a> › <a href="/papers/2021-ruiz-multiscale-interactome/">Multiscale Interactome (Ruiz 2021)</a></p>
+    <div class="paper-meta">
+      <span class="badge badge-sage">Pipeline</span>
+      <span class="badge">Nature Communications</span>
+      <span>2021</span>
+      <span class="muted">method</span>
+      
+    </div>
+    <h1 class="note-title">Multiscale Interactome · Pipeline</h1>
+    <p class="paper-full-title">Identification of disease treatment mechanisms through the multiscale interactome — Ruiz et al.</p>
+    <p class="lead">2021 Ruiz - Multiscale Interactome의 계산 흐름. Toy example과 설명 그림은 직접 작성한 교육용이며 논문 결과가 아니다.</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1038/s41467-021-21770-8" rel="noopener">원문 (DOI)</a>
+      
+      <a class="btn btn-small btn-soft" href="/papers/2021-ruiz-multiscale-interactome/">논문 정리로</a>
+      <span class="license">License · CC BY 4.0</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/statistics-and-ml/">Statistics &amp; ML</a></div>
+    <div class="note-body"><h2 id="0-overview">0. Overview</h2>
+<pre class="mermaid">flowchart LR
+ A[&quot;Curated targets, diseases, PPI, GO&quot;] --&gt; B[&quot;Typed network&quot;]
+ B --&gt; C[&quot;Source/sink transformation&quot;] --&gt; D[&quot;Biased transition matrix&quot;]
+ D --&gt; E[&quot;Restart power iteration&quot;] --&gt; F[&quot;Drug–disease ranking&quot;]
+ E --&gt; G[&quot;Top-k subgraph / TI&quot;]
+ F --&gt; H[&quot;Held-out indication benchmark&quot;]
+ G --&gt; I[&quot;CMap / PharmGKB checks&quot;]
+</pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Question</th>
+<th>Paper term</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>어떤 근거의 관계를 연결하는가?</td>
+<td>Multiscale interactome</td>
+</tr>
+<tr>
+<td>2</td>
+<td>서로 다른 node type으로 어떻게 이동하는가?</td>
+<td>Diffusion profile</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Drug를 어떤 기준으로 순위 매기는가?</td>
+<td>Similarity / cross-validation</td>
+</tr>
+<tr>
+<td>4</td>
+<td>어떤 경로를 explanation으로 읽는가?</td>
+<td>Induced subgraph</td>
+</tr>
+<tr>
+<td>5</td>
+<td>어떤 gene이 양쪽에 중요한가?</td>
+<td>Treatment importance</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="1-network-and-labels">1. Network and labels</h2>
+<h3 id="task">Task</h3>
+<p>ID를 통일하고 experimental/curated relations를 통합한다.</p>
+<h3 id="input-→-output">Input → Output</h3>
+<p>DrugBank IDs, Entrez gene IDs, UMLS disease IDs, GO terms → typed graph와 approved-pair labels.</p>
+<h3 id="intuition">Intuition</h3>
+<p>서로 다른 database의 같은 사람을 이름만으로 중복 집계하지 않도록 식별자를 맞추는 과정이다.</p>
+<h3 id="details">Details</h3>
+<p>DisGeNET에서는 curated associations만 사용하고 therapeutic 관계를 제거해 circularity를 줄인다. PPI는 human physical interaction의 direct experimental evidence로 제한한다. GO는 experimental evidence를 선택하고 physical-interaction-derived annotation, expression-pattern inference, computational/electronic annotation 등을 제외한다. GO function edges는 regulates/positively regulates/negatively regulates/part of/is a를 허용한다.</p>
+<p>Approved pairs는 FDA-approved treatment에 해당하는 관계만 남기고 prevention/diagnosis 등의 indication과 infectious-agent target에 의존하는 treatment를 제외한다. 최종 5,926 pairs는 <strong>graph의 treatment edge로 넣는 입력과 구분되는 evaluation labels</strong>다.</p>
+<h3 id="toy-example">Toy example</h3>
+<p>숫자는 설명용: database A의 (drug D, disease X)와 B의 같은 pair는 합집합에서 1개다. 두 database가 있다는 이유만으로 두 번의 독립 clinical validation이 되는 것은 아니다.</p>
+<h3 id="related-figures">Related figures</h3>
+<p>Figure 1A–B; Supplementary Figure 1, Data 1–6.</p>
+<h2 id="2-biased-transition-and-restart">2. Biased transition and restart</h2>
+<h3 id="task-1">Task</h3>
+<p>Node type의 중요도를 먼저 정하고 그 type 안의 이웃으로 확률을 나눈다.</p>
+<h3 id="input-→-output-1">Input → Output</h3>
+<p>Graph, weights W, source s → stationary row vector r.</p>
+<h3 id="intuition-1">Intuition</h3>
+<p>갈림길의 ‘protein 방향’과 ‘function 방향’을 먼저 고른 뒤 그 방향의 개별 길을 고른다. 이웃 수가 많은 type이 무조건 모든 확률을 가져가지는 않는다.</p>
+<h3 id="details-1">Details</h3>
+<p>Edge를 양방향으로 만든 뒤 관심 drug/disease를 no-in-edge source로, 나머지 drug/disease를 no-out-edge sink로 만든다. 다른 drug/disease를 경유하는 walk는 허용하지 않는다.</p>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>p</mi><mi>t</mi></msub><mo>=</mo><mfrac><msub><mi>w</mi><mi>t</mi></msub><mrow><munder><mo>∑</mo><mrow><mi>u</mi><mo>∈</mo><msub><mi>T</mi><mi>i</mi></msub></mrow></munder><msub><mi>w</mi><mi>u</mi></msub></mrow></mfrac><mo separator="true">,</mo><mspace width="2em"/><msub><mi>M</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><mfrac><msub><mi>p</mi><mi>t</mi></msub><msub><mi>n</mi><mrow><mi>i</mi><mo separator="true">,</mo><mi>t</mi></mrow></msub></mfrac><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">p_t={w_t\over\sum_{u\in T_i}w_u},\qquad M_{ij}={p_t\over n_{i,t}}.
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.1934em;vertical-align:-1.0858em;"></span><span class="mord"><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1076em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1786em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">u</span><span class="mrel mtight">∈</span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3281em;"><span style="top:-2.357em;margin-left:-0.1389em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3998em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0269em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">u</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.0269em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.0858em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">M</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">ij</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.0797em;vertical-align:-0.9721em;"></span><span class="mord"><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1076em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.9721em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span><span class="mord">.</span></span></span></span></span></p>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>는 node i의 이웃 type 집합, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mrow><mi>i</mi><mo separator="true">,</mo><mi>t</mi></mrow></msub></mrow><annotation encoding="application/x-tex">n_{i,t}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7167em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span>는 type t 이웃 수다. Sink 집합 J의 확률 질량을 restart vector s로 되돌린다.</p>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>r</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></msup><mo>=</mo><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><mi>α</mi><mo stretchy="false">)</mo><mi>s</mi><mo>+</mo><mi>α</mi><mrow><mo fence="true">(</mo><msup><mi>r</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo></mrow></msup><mi>M</mi><mo>+</mo><mi>s</mi><munder><mo>∑</mo><mrow><mi>j</mi><mo>∈</mo><mi>J</mi></mrow></munder><msubsup><mi>r</mi><mi>j</mi><mrow><mo stretchy="false">(</mo><mi>k</mi><mo stretchy="false">)</mo></mrow></msubsup><mo fence="true">)</mo></mrow><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">r^{(k+1)}=(1-\alpha)s+\alpha\left(r^{(k)}M+s\sum_{j\in J}r_j^{(k)}\right).
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.938em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">r</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.938em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mbin mtight">+</span><span class="mord mtight">1</span><span class="mclose mtight">)</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mclose">)</span><span class="mord mathnormal">s</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:3.6em;vertical-align:-1.55em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.05em;"><span class="pstrut" style="height:5.6em;"></span><span style="width:0.875em;height:3.6em;"><svg xmlns="http://www.w3.org/2000/svg" width="0.875em" height="3.6em" viewBox="0 0 875 3600"><path d="M863,9c0,-2,-2,-5,-6,-9c0,0,-17,0,-17,0c-12.7,0,-19.3,0.3,-20,1
+c-5.3,5.3,-10.3,11,-15,17c-242.7,294.7,-395.3,682,-458,1162c-21.3,163.3,-33.3,349,
+-36,557 l0,84c0.2,6,0,26,0,60c2,159.3,10,310.7,24,454c53.3,528,210,
+949.7,470,1265c4.7,6,9.7,11.7,15,17c0.7,0.7,7,1,19,1c0,0,18,0,18,0c4,-4,6,-7,6,-9
+c0,-2.7,-3.3,-8.7,-10,-18c-135.3,-192.7,-235.5,-414.3,-300.5,-665c-65,-250.7,-102.5,
+-544.7,-112.5,-882c-2,-104,-3,-167,-3,-189
+l0,-92c0,-162.7,5.7,-314,17,-454c20.7,-272,63.7,-513,129,-723c65.3,
+-210,155.3,-396.3,270,-559c6.7,-9.3,10,-15.3,10,-18z"/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">r</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.938em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mclose mtight">)</span></span></span></span></span></span></span></span></span><span class="mord mathnormal" style="margin-right:0.109em;">M</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">s</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.05em;"><span style="top:-1.8557em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span><span class="mrel mtight">∈</span><span class="mord mathnormal mtight" style="margin-right:0.0962em;">J</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.4304em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0448em;"><span style="top:-2.4231em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span></span></span><span style="top:-3.2198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.413em;"><span></span></span></span></span></span></span><span class="mclose"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.05em;"><span class="pstrut" style="height:5.6em;"></span><span style="width:0.875em;height:3.6em;"><svg xmlns="http://www.w3.org/2000/svg" width="0.875em" height="3.6em" viewBox="0 0 875 3600"><path d="M76,0c-16.7,0,-25,3,-25,9c0,2,2,6.3,6,13c21.3,28.7,42.3,60.3,
+63,95c96.7,156.7,172.8,332.5,228.5,527.5c55.7,195,92.8,416.5,111.5,664.5
+c11.3,139.3,17,290.7,17,454c0,28,1.7,43,3.3,45l0,9
+c-3,4,-3.3,16.7,-3.3,38c0,162,-5.7,313.7,-17,455c-18.7,248,-55.8,469.3,-111.5,664
+c-55.7,194.7,-131.8,370.3,-228.5,527c-20.7,34.7,-41.7,66.3,-63,95c-2,3.3,-4,7,-6,11
+c0,7.3,5.7,11,17,11c0,0,11,0,11,0c9.3,0,14.3,-0.3,15,-1c5.3,-5.3,10.3,-11,15,-17
+c242.7,-294.7,395.3,-681.7,458,-1161c21.3,-164.7,33.3,-350.7,36,-558
+l0,-144c-2,-159.3,-10,-310.7,-24,-454c-53.3,-528,-210,-949.7,
+-470,-1265c-4.7,-6,-9.7,-11.7,-15,-17c-0.7,-0.7,-6.7,-1,-18,-1z"/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">.</span></span></span></span></span></p>
+<p>α는 <strong>continue probability</strong>이며 restart는 1−α다. 초기 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>i</mi></msub><mo>=</mo><mn>1</mn><mi mathvariant="normal">/</mi><mi mathvariant="normal">∣</mi><mi>V</mi><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">r_i=1/|V|</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1/∣</span><span class="mord mathnormal" style="margin-right:0.2222em;">V</span><span class="mord">∣</span></span></span></span>, 종료는 L1 change≤10⁻⁶, 매 step total probability는 1이다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Optimal multiscale setting</th>
+<th style="text-align:right">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>wdrug / wdisease / wprotein</td>
+<td style="text-align:right">3.21 / 3.54 / 4.40</td>
+</tr>
+<tr>
+<td>whigher / wlower / wfunction</td>
+<td style="text-align:right">2.10 / 4.49 / 6.58</td>
+</tr>
+<tr>
+<td>α</td>
+<td style="text-align:right">0.860</td>
+</tr>
+<tr>
+<td>Comparison</td>
+<td style="text-align:right">Correlation-based distance/similarity</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="toy-example-1">Toy example</h3>
+<p>숫자는 설명용: protein 이웃 2개, function 이웃 1개이며 weights가 각각 2와 1이면 type 확률은 2/3와 1/3이고 각 이웃 확률은 모두 1/3이다. 모든 weights를 10배 해도 확률은 같다.</p>
+<p>Source A→B→sink C의 toy graph에서 α=0.8이면 stationary r는 약 (0.409836,0.327869,0.262295)다; C의 질량도 매 step A로 돌려야 합이 1을 유지한다. 실제 논문 graph의 결과는 아니다.</p>
+<h3 id="related-figures-1">Related figures</h3>
+<p>Figure 1C; 직접 작성한 설명 그림은 아래 Validation section.</p>
+<h2 id="3-ranking-and-evaluation">3. Ranking and evaluation</h2>
+<h3 id="task-2">Task</h3>
+<p>Disease별로 drug profile similarity를 계산해 approved treatment를 얼마나 위에 놓는지 평가한다.</p>
+<h3 id="input-→-output-2">Input → Output</h3>
+<p>Drug/disease profiles + held-out labels → ranked drugs, AUROC/AP/Recall@50.</p>
+<h3 id="intuition-2">Intuition</h3>
+<p>정답 목록을 학습에 모두 보여 주지 않고 일부 drug를 통째로 숨긴 뒤 ranking을 평가한다.</p>
+<h3 id="details-2">Details</h3>
+<p>L1, L2, Canberra, cosine, correlation 비교와 두 visitation-based metric을 시험한다. Distance는 부호를 바꿔 높은 값이 비슷함을 뜻하게 한다. 5-fold split 단위는 <strong>drug</strong>다. Disease별 AUROC의 median, AP와 Recall@50의 <strong>mean</strong>을 구한 뒤 held-out performance를 folds에 걸쳐 평균한다.</p>
+<p>Hyperparameter sweep은 486 combinations: drug/disease/protein weights [3,9], higher/lower [1.5,4.5], α [0.85,0.9], function weight=higher+lower; seven comparison metrics. Training-fold median AUROC 평균으로 선택한다. Supplementary Note 2의 wider sweep은 560 combinations, weights [1,100], α [0.667,1.0]이며 성능 개선은 없었다.</p>
+<p>Baseline은 protein Jaccard, 17 functional-overlap variants, degree/size-matched 1,000 permutations의 PPI proximity, molecular-only diffusion을 포함한다.</p>
+<h3 id="toy-example-2">Toy example</h3>
+<p>숫자는 설명용: 세 disease의 AP가 (0.1,0.2,0.9)이면 mean=0.4이고 median=0.2다. 원문은 AP에 mean을 쓰므로 둘을 바꾸면 다른 결과가 된다.</p>
+<h3 id="related-figures-2">Related figures</h3>
+<p>Figure 2A–C; Supplementary Figures 4–8.</p>
+<h2 id="4-explanation-and-expression-check">4. Explanation and expression check</h2>
+<h3 id="task-3">Task</h3>
+<p>Profile의 주요 node를 압축하고 별도 expression evidence와 비교한다.</p>
+<h3 id="input-→-output-3">Input → Output</h3>
+<p>Top-ranked nodes → subgraph; matched-condition CMap pairs → similarity association.</p>
+<h3 id="intuition-3">Intuition</h3>
+<p>전체 지도를 다 보여 주는 대신 주요 정거장을 보여 주되, 잘라 낸 지도가 전체 network는 아니라는 점을 기억한다.</p>
+<h3 id="details-3">Details</h3>
+<p>Drug와 disease profile 각각의 top k=10 protein/function nodes로 subgraph를 유도하고 isolated components를 제거한다. Supplementary Figures 16–18은 top 20 rank를 보완한다.</p>
+<p>CMap은 Level 5 measured landmark genes만 쓰며, 같은 cell/dose/exposure-time의 signature pair만 비교한다. Drug QC는 inter-cell connectivity≥0.4, aggregated TAS≥0.3, touchstone membership. Signature QC는 distil_cc_q75≥0.2, pct_self_rank_q25≤0.1, exemplar, TAS≥0.35, replicates≥3이며 남은 signature 중 가장 높은 TAS를 선택한다.</p>
+<p>Expression similarity는 up/down top 25 gene sets의 Jaccard 평균이다:</p>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>S</mi><mrow><mi>e</mi><mi>x</mi><mi>p</mi><mi>r</mi></mrow></msub><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mrow><mo fence="true">(</mo><mfrac><mrow><mi mathvariant="normal">∣</mi><msub><mi>U</mi><mn>1</mn></msub><mo>∩</mo><msub><mi>U</mi><mn>2</mn></msub><mi mathvariant="normal">∣</mi></mrow><mrow><mi mathvariant="normal">∣</mi><msub><mi>U</mi><mn>1</mn></msub><mo>∪</mo><msub><mi>U</mi><mn>2</mn></msub><mi mathvariant="normal">∣</mi></mrow></mfrac><mo>+</mo><mfrac><mrow><mi mathvariant="normal">∣</mi><msub><mi>D</mi><mn>1</mn></msub><mo>∩</mo><msub><mi>D</mi><mn>2</mn></msub><mi mathvariant="normal">∣</mi></mrow><mrow><mi mathvariant="normal">∣</mi><msub><mi>D</mi><mn>1</mn></msub><mo>∪</mo><msub><mi>D</mi><mn>2</mn></msub><mi mathvariant="normal">∣</mi></mrow></mfrac><mo fence="true">)</mo></mrow><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">S_{expr}={1\over2}\left({|U_1\cap U_2|\over|U_1\cup U_2|}+{|D_1\cap D_2|\over|D_1\cup D_2|}\right).
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0576em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight">x</span><span class="mord mathnormal mtight">p</span><span class="mord mathnormal mtight" style="margin-right:0.0278em;">r</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="mord"><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">2</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord"><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">∣</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">U</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∪</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">U</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">∣</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">U</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∩</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">U</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">∣</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">D</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∪</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">D</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">∣</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">D</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∩</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">D</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">.</span></span></span></span></span></p>
+<h3 id="toy-example-3">Toy example</h3>
+<p>숫자는 설명용: up-set overlap/union=2/4, down-set=1/5이면 similarity=(0.5+0.2)/2=0.35. 반대 방향의 up-vs-down overlap을 같은 방향 similarity로 더하지 않는다.</p>
+<h3 id="related-figures-3">Related figures</h3>
+<p>Figure 2D–H; Supplementary Figures 16–18.</p>
+<h2 id="5-treatment-importance">5. Treatment importance</h2>
+<h3 id="task-4">Task</h3>
+<p>Drug와 disease 양쪽에서 자주 방문되는 gene을 우선순위화한다.</p>
+<h3 id="input-→-output-4">Input → Output</h3>
+<p>두 profiles → gene-wise TI와 treatment 내 percentile rank.</p>
+<h3 id="intuition-4">Intuition</h3>
+<p>한쪽에서만 중요한 정거장보다 두 경로가 함께 의존하는 정거장을 찾는다.</p>
+<h3 id="details-4">Details</h3>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>T</mi><mi>I</mi><mo stretchy="false">(</mo><mi>i</mi><mo>∣</mo><mi>c</mi><mo separator="true">,</mo><mi>d</mi><mo stretchy="false">)</mo><mo>=</mo><msubsup><mi>r</mi><mi>i</mi><mrow><mo stretchy="false">(</mo><mi>c</mi><mo stretchy="false">)</mo></mrow></msubsup><msubsup><mi>r</mi><mi>i</mi><mrow><mo stretchy="false">(</mo><mi>d</mi><mo stretchy="false">)</mo></mrow></msubsup><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">TI(i\mid c,d)=r_i^{(c)}r_i^{(d)}.
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span><span class="mopen">(</span><span class="mord mathnormal">i</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∣</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">c</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">d</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.3217em;vertical-align:-0.2769em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0448em;"><span style="top:-2.4231em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.2198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight">c</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2769em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0448em;"><span style="top:-2.4231em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.2198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight">d</span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2769em;"><span></span></span></span></span></span></span><span class="mord">.</span></span></span></span></span></p>
+<p>PharmGKB의 efficacy/dosage/metabolism/pharmacokinetics/toxicity 관련 triplets를 승인 treatment로 제한한다. 1,223 positives와 동수의 unknown triplets를 비교한다. 같은 disease의 두 drug에 대한 비교는 gene별 가능한 triplets가 100개 이상인 경우에 평가한다.</p>
+<h3 id="toy-example-4">Toy example</h3>
+<p>숫자는 설명용: gene A의 drug/disease 방문확률이 (0.2,0.3)이면 TI=0.06, gene B가 (0.5,0.01)이면 0.005다. Drug profile만 보면 B가 크지만 joint importance는 A가 크다.</p>
+<h3 id="related-figures-4">Related figures</h3>
+<p>Figure 3; Supplementary Data 9.</p>
+<h2 id="notation-discrepancies">Notation discrepancies</h2>
+<ul>
+<li>기존 노트의 drug–protein edge 8,565를 Methods의 8,568로 수정했다.</li>
+<li>기존 노트의 ‘모든 metric의 disease median’은 부정확했다; AUROC median, AP/Recall mean이다.</li>
+<li>Printed optimized higher+lower=2.10+4.49=6.59지만 function=6.58로 적혀 있다. 반올림/원값 차이 가능성이 있으므로 그대로 별도 기록하며 code의 원값을 확인한다.</li>
+<li>α를 restart probability로 바꾸어 쓰면 반대 walk가 된다. 이 원문에서는 continue probability다.</li>
+</ul>
+<h2 id="validation-and-reproduction">Validation and reproduction</h2>
+<p>Toy calculations는 Python으로 재계산하며 실제 network benchmark를 재현한 것이 아니다.</p>
+<p><a href="https://www.nature.com/articles/s41467-021-21770-8">Original Methods</a>, <a href="https://github.com/snap-stanford/multiscale-interactome">official code/data</a>, Supplementary Notes 1–5와 Figures 1–18.</p>
+<p>원문 전체 Methods의 data construction·evaluation과 Supplementary Notes를 확인했다. Database row-level 재구성, code 실행, 모든 baseline의 exhaustive reproduction은 별도 작업이다.</p>
+<h2 id="explanatory-figure">Explanatory figure</h2>
+<p>설명 그림 (직접 작성). 숫자는 설명용이며 논문 결과가 아니다. Python으로 toy 계산과 확률 합/threshold를 검산했다.</p>
+<img class="note-img" src="/files/2021-ruiz-multiscale-interactome-pipeline-diffusion.png" alt="2021 Ruiz - Multiscale Interactome Pipeline diffusion" loading="lazy" style="max-width:900px">
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#0-overview">0. Overview</a></li><li class="toc-l2"><a href="#1-network-and-labels">1. Network and labels</a></li><li class="toc-l3"><a href="#task">Task</a></li><li class="toc-l3"><a href="#input-→-output">Input → Output</a></li><li class="toc-l3"><a href="#intuition">Intuition</a></li><li class="toc-l3"><a href="#details">Details</a></li><li class="toc-l3"><a href="#toy-example">Toy example</a></li><li class="toc-l3"><a href="#related-figures">Related figures</a></li><li class="toc-l2"><a href="#2-biased-transition-and-restart">2. Biased transition and restart</a></li><li class="toc-l3"><a href="#task-1">Task</a></li><li class="toc-l3"><a href="#input-→-output-1">Input → Output</a></li><li class="toc-l3"><a href="#intuition-1">Intuition</a></li><li class="toc-l3"><a href="#details-1">Details</a></li><li class="toc-l3"><a href="#toy-example-1">Toy example</a></li><li class="toc-l3"><a href="#related-figures-1">Related figures</a></li><li class="toc-l2"><a href="#3-ranking-and-evaluation">3. Ranking and evaluation</a></li><li class="toc-l3"><a href="#task-2">Task</a></li><li class="toc-l3"><a href="#input-→-output-2">Input → Output</a></li><li class="toc-l3"><a href="#intuition-2">Intuition</a></li><li class="toc-l3"><a href="#details-2">Details</a></li><li class="toc-l3"><a href="#toy-example-2">Toy example</a></li><li class="toc-l3"><a href="#related-figures-2">Related figures</a></li><li class="toc-l2"><a href="#4-explanation-and-expression-check">4. Explanation and expression check</a></li><li class="toc-l3"><a href="#task-3">Task</a></li><li class="toc-l3"><a href="#input-→-output-3">Input → Output</a></li><li class="toc-l3"><a href="#intuition-3">Intuition</a></li><li class="toc-l3"><a href="#details-3">Details</a></li><li class="toc-l3"><a href="#toy-example-3">Toy example</a></li><li class="toc-l3"><a href="#related-figures-3">Related figures</a></li><li class="toc-l2"><a href="#5-treatment-importance">5. Treatment importance</a></li><li class="toc-l3"><a href="#task-4">Task</a></li><li class="toc-l3"><a href="#input-→-output-4">Input → Output</a></li><li class="toc-l3"><a href="#intuition-4">Intuition</a></li><li class="toc-l3"><a href="#details-4">Details</a></li><li class="toc-l3"><a href="#toy-example-4">Toy example</a></li><li class="toc-l3"><a href="#related-figures-4">Related figures</a></li><li class="toc-l2"><a href="#notation-discrepancies">Notation discrepancies</a></li><li class="toc-l2"><a href="#validation-and-reproduction">Validation and reproduction</a></li><li class="toc-l2"><a href="#explanatory-figure">Explanatory figure</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/papers/2021-ruiz-multiscale-interactome/"><span class="kind-dot kind-paper"></span>Multiscale Interactome (Ruiz 2021)</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

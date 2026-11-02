@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SHAP (Shapley Additive Explanations) · Study Wiki</title>
+<meta name="description" content="모델의 예측 하나를 각 feature의 기여도(SHAP value)로 나누어 설명하는 방법. 게임 이론의 Shapley value에 기반한다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/statistics-and-ml/">Statistics &amp; ML</a></p>
+    <h1 class="note-title">SHAP (Shapley Additive Explanations)</h1>
+    <p class="lead">모델의 예측 하나를 각 feature의 기여도(SHAP value)로 나누어 설명하는 방법. 게임 이론의 Shapley value에 기반한다.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#machine-learning</span><span class="chip chip-tag">#explainability</span><span class="chip chip-tag">#game-theory</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p>여러 선수(feature)가 팀플레이로 점수(예측값)를 냈을 때, &quot;이 점수 중 누구 덕이 얼마인가&quot;를 공정하게 나눠 주는 계산기입니다. 어떤 feature를 빼 봤을 때 예측이 크게 떨어지면 그 feature의 기여도가 큽니다.</p>
+<h2 id="자세히">자세히</h2>
+<h3 id="원리">원리</h3>
+<ul>
+<li><strong>Shapley value</strong> (일반 지식): feature <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span>가 들어갈 수 있는 모든 feature 조합(coalition)에 대해, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span>를 넣었을 때와 뺐을 때의 예측 차이(marginal contribution)를 가중 평균한다.</li>
+<li>모든 feature의 SHAP value를 더하면 &quot;이 샘플의 예측값 − 전체 평균 예측값&quot;이 된다(additivity). 그래서 예측을 깔끔하게 분해할 수 있다.</li>
+<li>부호도 의미가 있다: 양수면 예측을 올린 feature, 음수면 내린 feature.</li>
+</ul>
+<h3 id="tree-shap">Tree SHAP</h3>
+<ul>
+<li>모든 조합을 다 계산하면 feature 수에 대해 지수적으로 비싸다.</li>
+<li><strong>Tree SHAP</strong>은 random forest, gradient boosting 같은 <strong>트리 기반 모델</strong>의 구조를 따라 내려가며 이 값을 빠르고 정확하게 계산하는 알고리즘이다.</li>
+</ul>
+<h3 id="해석-순서">해석 순서</h3>
+<ol>
+<li>샘플(환자) 하나하나에 대해 feature별 SHAP value를 계산</li>
+<li>같은 그룹(예: 같은 질병 환자 전체)에 대해 평균 → &quot;이 질병 진단에 공통으로 중요한 feature&quot;</li>
+<li>생물학적으로 말이 되는 feature가 상위에 오는지 확인 → 모델이 답만 맞히는 게 아니라 의미 있는 신호를 보고 있다는 근거</li>
+</ol>
+<h2 id="논문별-활용">논문별 활용</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2025-zaslavsky-mal-id/">2025 Zaslavsky - Mal-ID</a> (Model 3): 서열 단위 점수를 V gene × isotype 그룹별로 평균 낸 값이 2단계 random forest의 입력이었고, 이 2단계 모델에 Tree SHAP을 적용했다.
+<ul>
+<li>COVID-19: <strong>IGHV1-24</strong>, IGHV2-70과 <strong>IgG</strong> 그룹의 기여도가 가장 컸다.</li>
+<li>Lupus: <strong>IGHV4-34</strong>와 <strong>IgA</strong> 그룹이 중요했다.</li>
+<li>SHAP은 ESM-2 embedding 자체가 아니라 환자 수준 예측을 하는 2단계 모델에 적용했다는 점이 핵심.</li>
+</ul>
+</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/integrated-gradients/">Integrated Gradients</a>: 신경망용 attribution 방법</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/confusion-matrix/">Confusion Matrix</a></li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2025-heimberg-scimilarity/">2025 Heimberg - SCimilarity</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l3"><a href="#원리">원리</a></li><li class="toc-l3"><a href="#tree-shap">Tree SHAP</a></li><li class="toc-l3"><a href="#해석-순서">해석 순서</a></li><li class="toc-l2"><a href="#논문별-활용">논문별 활용</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/confusion-matrix/"><span class="kind-dot kind-concept"></span>Confusion Matrix</a></li><li><a href="/concepts/integrated-gradients/"><span class="kind-dot kind-concept"></span>Integrated Gradients (IG)</a></li><li><a href="/papers/2025-zaslavsky-mal-id/"><span class="kind-dot kind-paper"></span>Mal-ID (Zaslavsky 2025)</a></li><li><a href="/papers/2025-heimberg-scimilarity/"><span class="kind-dot kind-paper"></span>SCimilarity (Heimberg 2025)</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

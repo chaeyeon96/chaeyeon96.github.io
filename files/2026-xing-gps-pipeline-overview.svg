@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="1432" viewBox="0 0 1120 1432" role="img" aria-labelledby="title desc">
+  <title id="title">GPS Pipeline overview</title>
+  <desc id="desc">Four phases of the GPS pipeline: training, prediction, screening, and optimization with interpretation. LINCS data train GPS with RCL. GPS predicts expression signatures for a compound library. The predicted signatures and a disease signature are scored by Z-RGES to select candidates. MolSearch designs analogs, followed by synthesis, experiments, and SGAR analysis.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#7c879b" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <style>
+      text { font-family: 'Segoe UI', 'Malgun Gothic', Arial, sans-serif; }
+      .eyebrow { font-size: 17px; font-weight: 600; letter-spacing: 2px; fill: #738096; }
+      .phase-title { font-size: 27px; font-weight: 650; fill: #25334b; }
+      .phase-number { font-size: 20px; font-weight: 700; text-anchor: middle; }
+      .card-title { font-size: 25px; font-weight: 650; fill: #25334b; }
+      .body { font-size: 21px; fill: #56657d; }
+      .tag { font-size: 15px; font-weight: 700; letter-spacing: 1.3px; }
+      .connector-label { font-size: 18px; font-weight: 600; fill: #65738a; text-anchor: middle; }
+      .connector { fill: none; stroke: #7c879b; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; marker-end: url(#arrow); }
+      .input { stroke-width: 1.6; stroke-dasharray: 6 5; }
+      .card { fill: #ffffff; stroke: #dce3ed; stroke-width: 1.5; }
+    </style>
+  </defs>
+
+  <rect width="1120" height="1432" rx="24" fill="#f5f7fb"/>
+  <text x="48" y="51" class="eyebrow">GPS / RESEARCH WORKFLOW</text>
+  <text x="1072" y="51" text-anchor="end" class="eyebrow" style="font-size:15px;letter-spacing:1px">XING ET AL. · CELL 2026</text>
+  <text x="48" y="106" font-size="43" font-weight="700" fill="#20304a">Structure → signature → therapeutics</text>
+  <text x="48" y="145" font-size="21" fill="#65738a">Train once. Predict expression. Rank candidates. Design and interpret.</text>
+
+  <!-- Phase backgrounds -->
+  <rect x="48" y="184" width="1024" height="252" rx="22" fill="#eef3fc" stroke="#d9e4f6"/>
+  <rect x="48" y="492" width="1024" height="252" rx="22" fill="#edf7f4" stroke="#d5e9e2"/>
+  <rect x="48" y="800" width="1024" height="252" rx="22" fill="#fcf5e9" stroke="#efdfc4"/>
+  <rect x="48" y="1108" width="1024" height="252" rx="22" fill="#f3effa" stroke="#e2d9f1"/>
+
+  <!-- Dependencies between phases: GPS model and expression signatures -->
+  <path d="M 896 408 V 454 Q 896 464 886 464 H 570 Q 560 464 560 474 V 572" class="connector"/>
+  <text x="730" y="453" class="connector-label">Trained GPS model</text>
+  <path d="M 896 716 V 762 Q 896 772 886 772 H 570 Q 560 772 560 782 V 880" class="connector"/>
+  <text x="730" y="761" class="connector-label">Predicted expression signatures</text>
+  <path d="M 896 1024 V 1070 Q 896 1080 886 1080 H 74 Q 64 1080 64 1090 V 1250 Q 64 1260 74 1260 H 80" class="connector"/>
+  <text x="560" y="1069" class="connector-label">Selected hit → analog design</text>
+
+  <!-- 01 Training -->
+  <rect x="80" y="208" width="46" height="40" rx="12" fill="#dae6fb"/>
+  <text x="103" y="235" class="phase-number" fill="#4267aa">01</text>
+  <text x="142" y="237" class="phase-title">Training</text>
+  <text x="1040" y="235" text-anchor="end" font-size="18" fill="#58729c">Learn from measured perturbations</text>
+
+  <rect x="80" y="264" width="288" height="144" rx="15" fill="#f7faff" stroke="#a9bde0" class="input"/>
+  <text x="100" y="291" class="tag" fill="#5876ab">INPUT DATA</text>
+  <text x="100" y="325" class="card-title">LINCS L1000</text>
+  <text x="100" y="356" class="body">Phase I</text>
+  <text x="100" y="386" class="body">Drug × gene Z-scores</text>
+
+  <path d="M 374 336 H 408" class="connector"/>
+  <rect x="416" y="264" width="288" height="144" rx="15" class="card"/>
+  <text x="436" y="291" class="tag" fill="#5876ab">STEP 1</text>
+  <text x="436" y="325" class="card-title">Data preparation</text>
+  <text x="436" y="356" class="body">Replicate weighting</text>
+  <text x="436" y="386" class="body">Z → up / none / down</text>
+
+  <path d="M 710 336 H 744" class="connector"/>
+  <rect x="752" y="264" width="288" height="144" rx="15" class="card"/>
+  <text x="772" y="291" class="tag" fill="#5876ab">STEPS 2–3</text>
+  <text x="772" y="325" class="card-title">GPS + RCL</text>
+  <text x="772" y="356" class="body">ECFP4 + GO → 3-class</text>
+  <text x="772" y="386" class="body">Robust label learning</text>
+
+  <!-- 02 Prediction -->
+  <rect x="80" y="516" width="46" height="40" rx="12" fill="#d3ebe2"/>
+  <text x="103" y="543" class="phase-number" fill="#347960">02</text>
+  <text x="142" y="545" class="phase-title">Prediction</text>
+  <text x="1040" y="543" text-anchor="end" font-size="18" fill="#4f7c6c">Apply GPS to new compounds</text>
+
+  <rect x="80" y="572" width="288" height="144" rx="15" fill="#f6fcf9" stroke="#9fc8b8" class="input"/>
+  <text x="100" y="599" class="tag" fill="#44866e">INPUT DATA</text>
+  <text x="100" y="633" class="card-title">Compound Library</text>
+  <text x="100" y="664" class="body">ZINC</text>
+  <text x="100" y="694" class="body">6,857,774 compounds</text>
+
+  <path d="M 374 644 H 408" class="connector"/>
+  <rect x="416" y="572" width="288" height="144" rx="15" class="card"/>
+  <text x="436" y="599" class="tag" fill="#44866e">STEP 4</text>
+  <text x="436" y="633" class="card-title">GPS prediction</text>
+  <text x="436" y="664" class="body">4 cell lines</text>
+  <text x="436" y="694" class="body">Merge by median</text>
+
+  <path d="M 710 644 H 744" class="connector"/>
+  <rect x="752" y="572" width="288" height="144" rx="15" class="card"/>
+  <text x="772" y="599" class="tag" fill="#44866e">OUTPUT</text>
+  <text x="772" y="633" class="card-title">Gene signature</text>
+  <text x="772" y="664" class="body">P &gt; 0.95</text>
+  <text x="772" y="694" class="body">Up / down gene sets</text>
+
+  <!-- 03 Screening -->
+  <rect x="80" y="824" width="46" height="40" rx="12" fill="#f2e2c5"/>
+  <text x="103" y="851" class="phase-number" fill="#977033">03</text>
+  <text x="142" y="853" class="phase-title">Screening</text>
+  <text x="1040" y="851" text-anchor="end" font-size="18" fill="#927348">Find compounds that reverse disease</text>
+
+  <rect x="80" y="880" width="288" height="144" rx="15" fill="#fffbf4" stroke="#d6bb8c" class="input"/>
+  <text x="100" y="907" class="tag" fill="#99743e">INPUT DATA</text>
+  <text x="100" y="941" class="card-title">Disease Signature</text>
+  <text x="100" y="972" class="body">HCC</text>
+  <text x="100" y="1002" class="body">284 up / 91 down genes</text>
+
+  <path d="M 374 952 H 408" class="connector"/>
+  <rect x="416" y="880" width="288" height="144" rx="15" class="card"/>
+  <text x="436" y="907" class="tag" fill="#99743e">STEP 5</text>
+  <text x="436" y="941" class="card-title">Z-RGES scoring</text>
+  <text x="436" y="972" class="body">Disease reversal score</text>
+  <text x="436" y="1002" class="body">More negative = better</text>
+
+  <path d="M 710 952 H 744" class="connector"/>
+  <rect x="752" y="880" width="288" height="144" rx="15" class="card"/>
+  <text x="772" y="907" class="tag" fill="#99743e">STEP 6</text>
+  <text x="772" y="941" class="card-title">Candidate selection</text>
+  <text x="772" y="972" class="body">Top 2,000 → clusters</text>
+  <text x="772" y="1002" class="body">18 compounds tested</text>
+
+  <!-- 04 Optimization and interpretation -->
+  <rect x="80" y="1132" width="46" height="40" rx="12" fill="#e5daf5"/>
+  <text x="103" y="1159" class="phase-number" fill="#7a58a3">04</text>
+  <text x="142" y="1161" class="phase-title">Optimization &amp; Interpretation</text>
+
+  <rect x="80" y="1188" width="288" height="144" rx="15" class="card"/>
+  <text x="100" y="1215" class="tag" fill="#8260a8">STEP 7</text>
+  <text x="100" y="1249" class="card-title">MolSearch</text>
+  <text x="100" y="1280" class="body">MCTS · analog design</text>
+  <text x="100" y="1310" class="body">Optimize Z-RGES</text>
+
+  <path d="M 374 1260 H 408" class="connector"/>
+  <rect x="416" y="1188" width="288" height="144" rx="15" class="card"/>
+  <text x="436" y="1215" class="tag" fill="#8260a8">VALIDATION</text>
+  <text x="436" y="1249" class="card-title">Synthesis &amp; assays</text>
+  <text x="436" y="1280" class="body">Designed analogs</text>
+  <text x="436" y="1310" font-size="23" font-weight="650" fill="#74529b">MSU45302</text>
+
+  <path d="M 710 1260 H 744" class="connector"/>
+  <rect x="752" y="1188" width="288" height="144" rx="15" class="card"/>
+  <text x="772" y="1215" class="tag" fill="#8260a8">STEP 8</text>
+  <text x="772" y="1249" class="card-title">SGAR</text>
+  <text x="772" y="1280" class="body">Activity-associated genes</text>
+  <text x="772" y="1310" font-size="23" font-weight="650" fill="#74529b">→ UHRF1</text>
+
+  <!-- Legend -->
+  <rect x="48" y="1387" width="26" height="18" rx="4" fill="none" stroke="#98a6bc" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="85" y="1402" font-size="17" fill="#6e7c91">Input data</text>
+  <rect x="216" y="1387" width="26" height="18" rx="4" fill="#fff" stroke="#b5c0d0" stroke-width="1.5"/>
+  <text x="253" y="1402" font-size="17" fill="#6e7c91">Processing / output</text>
+  <text x="1072" y="1402" text-anchor="end" font-size="17" fill="#7e899b">Illustrative overview · HCC workflow</text>
+</svg>

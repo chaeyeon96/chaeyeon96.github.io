@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hit-to-Lead Optimization · Study Wiki</title>
+<meta name="description" content="Screening에서 찾은 hit의 structure를 조금씩 바꿔, potency, selectivity, drug-like property가 더 좋은 lead로 만드는 과정.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/ai-drug-discovery/">AI Drug Discovery</a></p>
+    <h1 class="note-title">Hit-to-Lead Optimization</h1>
+    <p class="lead">Screening에서 찾은 hit의 structure를 조금씩 바꿔, potency, selectivity, drug-like property가 더 좋은 lead로 만드는 과정.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#medicinal-chemistry</span><span class="chip chip-tag">#optimization</span><span class="chip chip-tag">#drug-discovery</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p>Screening으로 &quot;어느 정도 효과가 있는&quot; compound를 찾았다면, 그 뼈대(scaffold)를 유지한 채 곁가지를 바꿔 가며 더 강하고, 더 안전하고, 더 잘 녹는 버전을 만드는 단계입니다.</p>
+<h2 id="자세히">자세히</h2>
+<p><strong>Drug discovery 단계에서의 위치</strong> (일반 지식)</p>
+<pre><code>Target/phenotype 선정 → Screening → Hit → (Hit-to-Lead) → Lead → (Lead optimization) → Candidate → Preclinical → Clinical
+</code></pre>
+<ul>
+<li><strong>Hit</strong>: screening에서 재현성 있게 활성을 보인 compound. 보통 μM 수준.</li>
+<li><strong>Lead</strong>: 활성, selectivity, property가 개선되어 본격적인 최적화를 할 가치가 있는 compound.</li>
+</ul>
+<p><strong>무엇을 개선하나</strong> (일반 지식)</p>
+<ul>
+<li><strong>Potency</strong>: 더 낮은 <a class="wikilink wikilink-concept" href="/concepts/ic50/">IC50</a></li>
+<li><strong>Selectivity</strong>: 정상 cell이나 off-target에 대한 영향 줄이기</li>
+<li><strong>ADMET</strong>: absorption, distribution, metabolism, excretion, toxicity</li>
+<li><strong>Physicochemical property</strong>: solubility, cLogP, 분자량 등</li>
+</ul>
+<p><strong>어떻게 하나</strong></p>
+<ul>
+<li>Analog를 설계·합성하고 측정해 <strong>SAR</strong>(structure–activity relationship)을 쌓는다. &quot;이 부분을 바꾸면 활성이 이렇게 변한다&quot;는 규칙이다.</li>
+<li>최근에는 computational optimization이 analog 설계를 돕는다. 예: <a class="wikilink wikilink-concept" href="/concepts/monte-carlo-tree-search/">Monte Carlo Tree Search</a>, generative model, reinforcement learning. (일반 지식)</li>
+<li>여러 목표를 동시에 맞춰야 해서 <strong>multi-objective optimization</strong> 문제가 된다.</li>
+</ul>
+<h2 id="왜-중요한가">왜 중요한가</h2>
+<ul>
+<li>Screening hit은 대부분 그대로 약이 되지 못한다. 이 단계에서 실제 개발 가능성이 결정된다.</li>
+<li>AI drug discovery 논문을 볼 때 &quot;hit만 찾았는가, 최적화까지 했는가&quot;는 중요한 차이다.</li>
+</ul>
+<h2 id="논문별-활용">논문별 활용</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a>: 두 번의 hit-to-lead를 보여 준다.
+<ul>
+<li><strong>Niclosamide analog</strong>: solubility와 hepatocyte toxicity 문제를 ZINC analog 탐색으로 개선 → Cpd.5260420 (Figure 3G–H)</li>
+<li><strong>PB56874852 → MSU45302</strong>: <strong>MolSearch</strong>(MCTS 기반 2-stage multi-objective optimization)로 Z-RGES를 개선하는 analog를 설계. Furan을 halobenzene으로 바꾸고 CF₃를 더해 IC50을 약 4 μM에서 sub-μM으로 낮췄다 (Figure 4F–G). 저자들은 compound synthesis, optimization, validation까지 수행한 점을 기존 AI drug design 연구와의 차이로 든다.</li>
+</ul>
+</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/virtual-screening/">Virtual Screening</a>: hit을 찾는 이전 단계</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/monte-carlo-tree-search/">Monte Carlo Tree Search</a>: computational optimization 방법의 예</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/ic50/">IC50</a>: potency 지표</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/mechanism-of-action/">Mechanism of Action</a>: 최적화 방향을 정하는 데 도움</li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l2"><a href="#왜-중요한가">왜 중요한가</a></li><li class="toc-l2"><a href="#논문별-활용">논문별 활용</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/compound-library/"><span class="kind-dot kind-concept"></span>Compound Library</a></li><li><a href="/concepts/ecfp/"><span class="kind-dot kind-concept"></span>ECFP</a></li><li><a href="/papers/2026-xing-gps/"><span class="kind-dot kind-paper"></span>GPS (Xing 2026)</a></li><li><a href="/papers/2026-xing-gps-pipeline/"><span class="kind-dot kind-pipeline"></span>GPS Pipeline 따라가기</a></li><li><a href="/concepts/ic50/"><span class="kind-dot kind-concept"></span>IC50</a></li><li><a href="/concepts/mechanism-of-action/"><span class="kind-dot kind-concept"></span>Mechanism of Action (MoA)</a></li><li><a href="/concepts/molecular-fingerprint/"><span class="kind-dot kind-concept"></span>Molecular Fingerprint</a></li><li><a href="/concepts/monte-carlo-tree-search/"><span class="kind-dot kind-concept"></span>Monte Carlo Tree Search (MCTS)</a></li><li><a href="/concepts/virtual-screening/"><span class="kind-dot kind-concept"></span>Virtual Screening</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

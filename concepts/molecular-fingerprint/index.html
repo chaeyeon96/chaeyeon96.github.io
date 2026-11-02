@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Molecular Fingerprint · Study Wiki</title>
+<meta name="description" content="Molecule의 structure를 0과 1로 이루어진 고정 길이 vector로 바꾼 표현. Computer가 molecule을 비교하고 학습할 수 있게 해 준다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/ai-drug-discovery/">AI Drug Discovery</a></p>
+    <h1 class="note-title">Molecular Fingerprint</h1>
+    <p class="lead">Molecule의 structure를 0과 1로 이루어진 고정 길이 vector로 바꾼 표현. Computer가 molecule을 비교하고 학습할 수 있게 해 준다.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#chemistry</span><span class="chip chip-tag">#molecular-representation</span><span class="chip chip-tag">#cheminformatics</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p>Molecule을 &quot;이런 부분 구조가 있다(1) / 없다(0)&quot; 체크리스트로 바꾼 것입니다. 체크리스트가 비슷하면 구조가 비슷한 molecule입니다.</p>
+<pre><code>Molecule → [0 1 0 0 1 1 0 ... 1]   (예: 1024 또는 2048 bit)
+</code></pre>
+<h2 id="자세히">자세히</h2>
+<p><strong>종류</strong> (일반 지식)</p>
+<ul>
+<li><strong><a class="wikilink wikilink-concept" href="/concepts/ecfp/">ECFP (Extended-Connectivity Fingerprint)</a></strong>, Morgan fingerprint: 각 atom 주변을 반경을 넓혀 가며 본 부분 구조를 hashing해 bit로 표시.
+<ul>
+<li>숫자는 <strong>diameter</strong>를 뜻한다. ECFP4 = 반경 2, <strong>ECFP6 = 반경 3</strong>. 클수록 더 큰 부분 구조까지 반영.</li>
+</ul>
+</li>
+<li><strong>MACCS keys</strong>: 미리 정해 둔 166개 부분 구조의 유무.</li>
+<li>그 밖에 atom pair, topological fingerprint 등.</li>
+</ul>
+<p><strong>유사도 계산</strong> (일반 지식)</p>
+<ul>
+<li>두 fingerprint의 <strong>Tanimoto similarity</strong> = 공통 1의 수 / 둘 중 하나라도 1인 수. 0~1 사이.</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/virtual-screening/">Virtual Screening</a>에서 &quot;알려진 active compound와 비슷한 것 찾기&quot;(ligand-based screening)의 기본 도구다.</li>
+</ul>
+<p><strong>Learned representation과 비교</strong></p>
+<ul>
+<li>Graph neural network(GNN)나 transformer로 molecule embedding을 <strong>학습</strong>하는 방법도 있다.</li>
+<li>그러나 data가 적거나 noise가 많으면 단순한 fingerprint가 여전히 강력한 baseline이다.</li>
+</ul>
+<h2 id="왜-중요한가">왜 중요한가</h2>
+<ul>
+<li>ML model에 molecule을 넣는 가장 간단하고 빠른 방법이다.</li>
+<li>수백만 개 library compound를 빠르게 비교하고 clustering할 수 있다.</li>
+<li>한계: 3D 구조나 conformation 정보가 없고, hashing 때문에 서로 다른 부분 구조가 같은 bit에 겹칠 수 있다(bit collision). (일반 지식)</li>
+</ul>
+<h2 id="논문별-활용">논문별 활용</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a>: GPS의 compound input이 structural fingerprint다 (Figure 1A). GNN이나 transformer 기반 embedding이 fingerprint보다 낫지 않았다 (Tables S2–S4). Figure 2G에서는 ECFP6로 본 chemical space에서 compound가 <strong>같은 target</strong>끼리 모였지만, 예측 expression으로 보면 <strong>같은 pathway</strong>끼리 모였다. ZINC library가 training compound와 다른 chemical space를 덮는지도 fingerprint 기반 t-SNE로 확인 (Figure 2K).</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/ecfp/">ECFP</a>: atom 주변 환경으로 만드는 circular fingerprint의 생성 원리와 사용법</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/virtual-screening/">Virtual Screening</a>: fingerprint similarity로 후보를 찾는 ligand-based 방식</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/compound-library/">Compound Library</a>: fingerprint로 바꿔 다루는 대상</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/hit-to-lead-optimization/">Hit-to-Lead Optimization</a>: analog 탐색에 structural similarity를 쓴다</li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l2"><a href="#왜-중요한가">왜 중요한가</a></li><li class="toc-l2"><a href="#논문별-활용">논문별 활용</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/compound-library/"><span class="kind-dot kind-concept"></span>Compound Library</a></li><li><a href="/concepts/ecfp/"><span class="kind-dot kind-concept"></span>ECFP</a></li><li><a href="/papers/2026-xing-gps/"><span class="kind-dot kind-paper"></span>GPS (Xing 2026)</a></li><li><a href="/papers/2026-xing-gps-pipeline/"><span class="kind-dot kind-pipeline"></span>GPS Pipeline 따라가기</a></li><li><a href="/concepts/monte-carlo-tree-search/"><span class="kind-dot kind-concept"></span>Monte Carlo Tree Search (MCTS)</a></li><li><a href="/concepts/virtual-screening/"><span class="kind-dot kind-concept"></span>Virtual Screening</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

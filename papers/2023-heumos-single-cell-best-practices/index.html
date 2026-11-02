@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Single-cell Best Practices (Heumos 2023) · Study Wiki</title>
+<meta name="description" content="scRNA-seq를 비롯한 single-cell modality별 분석 단계마다 어떤 방법을 고르면 좋은지 benchmark 근거로 정리한 review. 온라인 책 Single-cell Best Practices의 논문판이다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a></p>
+    <div class="paper-meta">
+      
+      <span class="badge">Nature Reviews Genetics</span>
+      <span>2023</span>
+      <span class="muted">review</span>
+      
+    </div>
+    <h1 class="note-title">Single-cell Best Practices (Heumos 2023)</h1>
+    <p class="paper-full-title">Best practices for single-cell analysis across modalities — Heumos et al.</p>
+    <p class="lead">scRNA-seq를 비롯한 single-cell modality별 분석 단계마다 어떤 방법을 고르면 좋은지 benchmark 근거로 정리한 review. 온라인 책 Single-cell Best Practices의 논문판이다.</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1038/s41576-023-00586-w" rel="noopener">원문 (DOI)</a>
+      
+      
+      <span class="license">License · unknown</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/single-cell-analysis/">Single-cell Analysis</a></div>
+    <div class="note-body"><h2 id="background">Background</h2>
+<ul>
+<li>Single-cell 분석 도구가 수백 개로 늘어나 단계마다 무엇을 써야 할지 고르기 어렵다.</li>
+<li>이 review는 preprocessing → cell-level 분석 → gene-level 분석 → multimodal 분석 순서로, 각 단계의 권장 방법과 근거(benchmark)를 정리한다.</li>
+</ul>
+<h2 id="핵심-내용-옛-노트에-정리된-부분">핵심 내용 (옛 노트에 정리된 부분)</h2>
+<h3 id="filtering-low-quality-cells-and-noise-correction">Filtering low-quality cells and noise correction</h3>
+<ul>
+<li>대부분의 분석은 &quot;droplet 하나 = 온전한 cell 하나&quot;라고 가정한다. 이 가정은 low-quality cell, cell-free RNA 오염(ambient RNA), 여러 cell이 한 droplet에 들어간 doublet 때문에 자주 깨진다 (Fig. 2a).</li>
+<li>Detected gene 수가 적고, count depth가 낮고, mitochondrial count 비율이 높은 cell은 low-quality cell로 본다. 세포막이 깨진 dying cell일 수 있기 때문이다.</li>
+<li>세 지표를 따로 보지 말고 함께 봐야 한다. 예를 들어 MT 비율이 높은 cell이 실제로는 호흡이 활발한 cell일 수도 있다.</li>
+<li>자세한 방법은 <a class="wikilink wikilink-concept" href="/concepts/cell-quality-control/">Cell Quality Control</a>, <a class="wikilink wikilink-concept" href="/concepts/cellbender/">CellBender</a>에 정리했다.</li>
+</ul>
+<div class="callout callout-note">
+<div class="callout-title"><span class="callout-icon" aria-hidden="true">✎</span>정리 범위</div>
+<div class="callout-body">
+<p>옛 노트에는 QC 부분만 있었다. 나머지 단계(normalization, integration, annotation, DE, compositional analysis 등)의 권장 사항은 <a class="wikilink wikilink-concept" href="/concepts/scrna-seq-workflow/">scRNA-seq Workflow</a>와 각 개념 페이지에 이미 나뉘어 들어가 있다.</p>
+</div></div>
+<h2 id="data-and-code">Data &amp; Code</h2>
+<ul>
+<li>온라인 책: sc-best-practices.org (일반 지식)</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/scrna-seq-workflow/">scRNA-seq Workflow</a> · <a class="wikilink wikilink-concept" href="/concepts/cell-quality-control/">Cell Quality Control</a> · <a class="wikilink wikilink-concept" href="/concepts/cellbender/">CellBender</a> · <a class="wikilink wikilink-concept" href="/concepts/rna-seq-normalization/">RNA-seq Normalization</a> · <a class="wikilink wikilink-concept" href="/concepts/batch-correction/">Batch Correction</a> · <a class="wikilink wikilink-concept" href="/concepts/cell-type-annotation/">Cell Type Annotation</a> · <a class="wikilink wikilink-concept" href="/concepts/differential-abundance-analysis/">Differential Abundance Analysis</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#background">Background</a></li><li class="toc-l2"><a href="#핵심-내용-옛-노트에-정리된-부분">핵심 내용 (옛 노트에 정리된 부분)</a></li><li class="toc-l3"><a href="#filtering-low-quality-cells-and-noise-correction">Filtering low-quality cells and noise correction</a></li><li class="toc-l2"><a href="#data-and-code">Data &amp;amp; Code</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/batch-correction/"><span class="kind-dot kind-concept"></span>Batch Correction</a></li><li><a href="/concepts/cell-quality-control/"><span class="kind-dot kind-concept"></span>Cell Quality Control</a></li><li><a href="/concepts/cell-type-annotation/"><span class="kind-dot kind-concept"></span>Cell Type Annotation</a></li><li><a href="/concepts/cellbender/"><span class="kind-dot kind-concept"></span>CellBender</a></li><li><a href="/concepts/differential-abundance-analysis/"><span class="kind-dot kind-concept"></span>Differential Abundance Analysis</a></li><li><a href="/concepts/rna-seq-normalization/"><span class="kind-dot kind-concept"></span>RNA-seq Normalization</a></li><li><a href="/concepts/scrna-seq-workflow/"><span class="kind-dot kind-concept"></span>scRNA-seq Workflow</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Psoriasis GWAS scDRS (Jo 2026) · Study Wiki</title>
+<meta name="description" content="Psoriasis meta-GWAS를 skin single-cell data에 연결해 disease-relevant cell subtype과 therapeutic target 후보를 우선순위화했다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a></p>
+    <div class="paper-meta">
+      
+      <span class="badge">Nature Communications</span>
+      <span>2026</span>
+      <span class="muted">disease-study</span>
+      
+    </div>
+    <h1 class="note-title">Psoriasis GWAS scDRS (Jo 2026)</h1>
+    <p class="paper-full-title">Integration of GWAS and single-cell analysis for psoriasis identifies disease-associated cell subtypes and therapeutic targets — Jo et al.</p>
+    <p class="lead">Psoriasis meta-GWAS를 skin single-cell data에 연결해 disease-relevant cell subtype과 therapeutic target 후보를 우선순위화했다.</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1038/s41467-026-77309-2" rel="noopener">원문 (DOI)</a>
+      
+      
+      <span class="license">License · CC BY-NC-ND 4.0</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/single-cell-analysis/">Single-cell Analysis</a><a class="chip chip-link" href="/sections/ai-drug-discovery/">AI Drug Discovery</a></div>
+    <div class="note-body"><h2 id="background">Background</h2>
+<p>GWAS locus는 disease association을 알려 주지만 어느 cell state에서 어떤 gene이 작동하는지 바로 답하지 않는다. 이 연구는 skin cell atlas, genetic evidence와 치료 전후 expression을 연결해 target 가설의 맥락을 좁힌다.</p>
+<h2 id="data">Data</h2>
+<p>새 sample을 sequencing하지 않고 기존 cohort·공개·협력 data를 분석했다. UKB GWAS는 저자들이 수행했으며, meta-GWAS·scDRS·network는 계산 결과이지 새로운 실측 assay가 아니다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>종류</th>
+<th>Dataset</th>
+<th>규모</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GWAS</td>
+<td>UK Biobank</td>
+<td>408,619명 (환자 13,079)</td>
+</tr>
+<tr>
+<td>GWAS</td>
+<td>FinnGen r10</td>
+<td>407,876명 (환자 10,312)</td>
+</tr>
+<tr>
+<td>GWAS</td>
+<td>Stuart et al.</td>
+<td>44,161명 (환자 15,967)</td>
+</tr>
+<tr>
+<td>GWAS</td>
+<td>23andMe</td>
+<td>271,029명 (환자 16,120)</td>
+</tr>
+<tr>
+<td>scRNA-seq</td>
+<td>Ma et al.</td>
+<td>환자 14, 정상 8 (병변 14, 비병변 11, 정상 8)</td>
+</tr>
+<tr>
+<td>scRNA-seq</td>
+<td>Francis et al.</td>
+<td>Risankizumab(IL-23 억제제) 치료 0, 3, 14일, 환자 5명</td>
+</tr>
+<tr>
+<td>scRNA-seq</td>
+<td>Kim et al.</td>
+<td>치료 28주차 (외부 검증)</td>
+</tr>
+<tr>
+<td>Spatial</td>
+<td>Castillo et al.</td>
+<td>정상 7, 병변 14</td>
+</tr>
+<tr>
+<td>eQTL / drug</td>
+<td>GTEx, eQTLGen, Open Targets</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="computed-outputs">Computed outputs</h3>
+<ul>
+<li>총 1,131,685명 meta-GWAS (self-report 진단은 Duffy's adjustment로 보정). Independent risk locus 125개, 그중 17개는 새로 보고.</li>
+<li>피부 cell을 major 10개, subtype 55개로 나누고 cell마다 scDRS score 계산.</li>
+<li>위치, MAGMA, TWAS, colocalization, scExp 다섯 가지 filter와 SMR/HEIDI association filtering로 치료 target gene 50개 선정.</li>
+<li>Keratinocyte, myeloid, T cell의 hdWGCNA module과 치료 중 ligand–receptor 변화.</li>
+</ul>
+<h2 id="figure-1-·-study-overview">Figure 1 · Study overview</h2>
+<p><strong>Context</strong> · 먼저 genetic discovery와 cellular interpretation의 연결을 정리한다. 최종 target은 단일 test 결과가 아니라 여러 evidence filter를 통과한 후보라는 점이 중요하다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2026-jo-psoriasis-gwas-scdrs-fig1.webp" alt="2026 Jo - Psoriasis GWAS scDRS Fig1" loading="lazy"><span class="figure-credit">Figure: Jo et al., Nature Communications (2026) · CC BY-NC-ND 4.0</span></span></p>
+<p><strong>Overview · Evidence integration</strong></p>
+<ul>
+<li><strong>목적</strong>: 어떤 순서로 locus에서 target 후보로 이동하는가?</li>
+<li><strong>Data &amp; method</strong>: 4 GWAS meta-analysis, skin atlas, scDRS, prioritization과 treatment data를 통합했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: GWAS·single-cell·후보 gene·treatment mapping의 흐름을 따른다.</li>
+<li><strong>결과와 의미</strong>: Cellular context를 붙인 50개 후보를 제시하며 약물 효능을 직접 검증한 screen은 아니다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Genetics → cell relevance → target prioritization → treatment-associated programs의 흐름이다.</p>
+</blockquote>
+<h2 id="figure-2-·-psoriasis-loci-and-local-heritability">Figure 2 · Psoriasis loci and local heritability</h2>
+<p><strong>Context</strong> · 전체 설계를 세운 뒤 genetic association이 어느 genomic region에 있는지 확인한다. 유의 SNP의 존재와 local heritability는 서로 다른 정보다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2026-jo-psoriasis-gwas-scdrs-fig2.webp" alt="2026 Jo - Psoriasis GWAS scDRS Fig2" loading="lazy"><span class="figure-credit">Figure: Jo et al., Nature Communications (2026) · CC BY-NC-ND 4.0</span></span></p>
+<p><strong>Karyotype · Independent signals</strong></p>
+<ul>
+<li><strong>목적</strong>: 새로운 susceptibility loci와 추가 발견 여지가 어디에 있는가?</li>
+<li><strong>Data &amp; method</strong>: Meta-GWAS에 GCTA-COJO와 LAVA를 적용했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: Known locus는 yellow circle, unreported는 cyan square이며 region color는 local heritability다.</li>
+<li><strong>결과와 의미</strong>: 125 independent loci 중 17개가 새로 보고됐고, 유의 SNP가 없는 region에서도 polygenic signal을 검토한다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · MHC exclusion과 LD structure를 고려해야 nearby signal을 새 locus로 오해하지 않는다.</p>
+</blockquote>
+<h2 id="figure-3-·-genetic-correlation-and-enrichment">Figure 3 · Genetic correlation and enrichment</h2>
+<p><strong>Context</strong> · Locus 목록만으로 relevant tissue나 shared biology를 알 수 없다. Heritability enrichment와 다른 phenotype의 genetic correlation을 분리해 검사한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2026-jo-psoriasis-gwas-scdrs-fig3.webp" alt="2026 Jo - Psoriasis GWAS scDRS Fig3" loading="lazy"><span class="figure-credit">Figure: Jo et al., Nature Communications (2026) · CC BY-NC-ND 4.0</span></span></p>
+<p><strong>A · Tissue and cell enrichment</strong></p>
+<ul>
+<li><strong>목적</strong>: Psoriasis association이 어떤 functional annotations에 몰리는가?</li>
+<li><strong>Data &amp; method</strong>: Expression/chromatin annotations에 stratified LDSC를 적용했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: Dashed FDR threshold와 top-ten bars를 읽는다.</li>
+<li><strong>결과와 의미</strong>: Immune-related context를 지지하지만 특정 cell의 causal 역할을 단독 확정하지 않는다.</li>
+</ul>
+<p><strong>B · Cross-trait correlation</strong></p>
+<ul>
+<li><strong>목적</strong>: 다른 질환·trait와 genetic architecture를 공유하는가?</li>
+<li><strong>Data &amp; method</strong>: 113 curated GWAS와 LDSC genetic correlation을 계산했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: Point는 rg, error bar는 95% CI이며 multiple-testing 기준을 통과한 결과다.</li>
+<li><strong>결과와 의미</strong>: Shared genetics는 한 disease가 다른 disease를 유발한다는 뜻이 아니다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Functional enrichment와 cross-trait rg는 후속 cell 분석의 방향을 제공한다.</p>
+</blockquote>
+<h2 id="figure-4-·-cell-level-disease-relevance">Figure 4 · Cell-level disease relevance</h2>
+<p><strong>Context</strong> · Broad tissue enrichment를 피부의 구체적인 subtype으로 좁힌다. 많이 존재하는 cell과 genetic-risk genes를 과도하게 발현하는 cell은 다를 수 있다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2026-jo-psoriasis-gwas-scdrs-fig4.webp" alt="2026 Jo - Psoriasis GWAS scDRS Fig4" loading="lazy"><span class="figure-credit">Figure: Jo et al., Nature Communications (2026) · CC BY-NC-ND 4.0</span></span></p>
+<p><strong>A–C · Atlas and annotation</strong></p>
+<ul>
+<li><strong>목적</strong>: 비교할 cell populations는 무엇인가?</li>
+<li><strong>Data &amp; method</strong>: Ma et al. NS/PN/PP scRNA에 QC·SCT·Harmony와 marker annotation을 적용했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: UMAP, marker dot plot, major-type별 subtype을 함께 읽는다.</li>
+<li><strong>결과와 의미</strong>: 10 major types와 55 subtypes가 후속 disease relevance 분석의 기준이 된다.</li>
+</ul>
+<p><strong>D · Tissue abundance</strong></p>
+<ul>
+<li><strong>목적</strong>: 어떤 subtype이 lesion에 상대적으로 많은가?</li>
+<li><strong>Data &amp; method</strong>: Lesion/non-lesion observed-to-expected ratio와 10,000 permutations를 계산했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: 음수 표기는 non-lesion enrichment이며 유의성은 FDR&lt;0.05다.</li>
+<li><strong>결과와 의미</strong>: Composition enrichment는 scDRS의 disease association과 별개다.</li>
+</ul>
+<p><strong>E · Association and heterogeneity</strong></p>
+<ul>
+<li><strong>목적</strong>: Subtype 평균 및 내부 variation에 genetic relevance가 있는가?</li>
+<li><strong>Data &amp; method</strong>: MAGMA-derived gene weights와 matched controls로 scDRS를 계산했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: 바깥 bar는 subtype association, 안쪽은 within-subtype heterogeneity이며 FDR&lt;0.10을 강조한다.</li>
+<li><strong>결과와 의미</strong>: Myeloid/T cells뿐 아니라 keratinocyte와 endothelial subsets의 relevance를 구분한다.</li>
+</ul>
+<p><strong>F–H · Continuous states</strong></p>
+<ul>
+<li><strong>목적</strong>: Subtype 안의 어느 state가 높은 relevance를 가지는가?</li>
+<li><strong>Data &amp; method</strong>: Keratinocyte trajectory/velocity와 myeloid/T-cell scDRS를 표시했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: F의 cell-level p-value와 G/H의 z-scaled score는 동일 축이 아니다.</li>
+<li><strong>결과와 의미</strong>: Risk-associated expression은 cell-type label보다 세밀한 state에 집중될 수 있다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · scDRS는 cell의 개인별 유전적 위험 점수도, 그 cell의 causality 검정도 아니다.</p>
+</blockquote>
+<h2 id="figure-5-·-target-prioritization">Figure 5 · Target prioritization</h2>
+<p><strong>Context</strong> · Disease-relevant cell을 얻었으므로 어느 gene을 우선 검토할지 정한다. 여러 근거의 일치도를 사용하되 각 filter의 가정을 유지한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2026-jo-psoriasis-gwas-scdrs-fig5.webp" alt="2026 Jo - Psoriasis GWAS scDRS Fig5" loading="lazy"><span class="figure-credit">Figure: Jo et al., Nature Communications (2026) · CC BY-NC-ND 4.0</span></span></p>
+<p><strong>Evidence matrix · Candidate genes</strong></p>
+<ul>
+<li><strong>목적</strong>: 어떤 gene이 여러 independent-looking evidence를 함께 만족하는가?</li>
+<li><strong>Data &amp; method</strong>: Proximity, MAGMA, TWAS, coloc, expression 중 ≥4 criteria를 통과한 110 genes에 SMR/HEIDI와 tractability를 적용했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: 각 evidence column과 Open Targets tier를 따로 읽는다.</li>
+<li><strong>결과와 의미</strong>: 50개는 prioritization 후보이지 임상 효능·안전성이 확정된 targets가 아니다; HEIDI 표기 문제는 Limitations 참조.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · 필터를 통과했다는 사실과 causal mechanism의 실험적 증명은 다르다.</p>
+</blockquote>
+<h2 id="figure-6-·-treatment-associated-co-expression-programs">Figure 6 · Treatment-associated co-expression programs</h2>
+<p><strong>Context</strong> · 후보 gene이 실제 cell programs 안에서 어떻게 묶이고 치료 중 어떻게 변하는지 묻는다. Discovery network와 treatment mapping은 서로 다른 dataset이다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2026-jo-psoriasis-gwas-scdrs-fig6.webp" alt="2026 Jo - Psoriasis GWAS scDRS Fig6" loading="lazy"><span class="figure-credit">Figure: Jo et al., Nature Communications (2026) · CC BY-NC-ND 4.0</span></span></p>
+<p><strong>A–E · Co-expression modules</strong></p>
+<ul>
+<li><strong>목적</strong>: 후보들이 어떤 program과 subtype에 집중되는가?</li>
+<li><strong>Data &amp; method</strong>: Ma et al. data에 hdWGCNA를 적용하고 module eigengene/kME를 계산했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: A의 gene counts, B/C의 ME와 pseudotime, D의 subtype enrichment, E의 connectivity를 구분한다.</li>
+<li><strong>결과와 의미</strong>: Keratinocyte/myeloid/T-cell modules를 통해 후보들의 공동 expression 맥락을 정리한다.</li>
+</ul>
+<p><strong>F–G · Therapy time course</strong></p>
+<ul>
+<li><strong>목적</strong>: Risankizumab 후 program이 어떻게 변하는가?</li>
+<li><strong>Data &amp; method</strong>: Francis et al. 5 patients의 baseline 및 Day 3/14 samples에 modules를 project했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: Day 0 non-lesion baseline으로 중심화했고 mean/95% CI의 replicate는 patient다.</li>
+<li><strong>결과와 의미</strong>: 치료 연관 변화이며 각 candidate gene을 개별 억제한 효과는 아니다.</li>
+</ul>
+<p><strong>H–I · Correlated programs and pathways</strong></p>
+<ul>
+<li><strong>목적</strong>: 함께 변하는 module은 어떤 기능을 공유하는가?</li>
+<li><strong>Data &amp; method</strong>: 20 samples의 ME correlation과 pathway enrichment를 분석했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: Module correlation edges와 FDR&lt;0.10 pathway를 읽는다.</li>
+<li><strong>결과와 의미</strong>: Cross-cell-type program coordination의 가설을 제시하지만 correlation edge를 직접 ligand–receptor 결합으로 읽지 않는다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · 환자 반복측정, module projection, 개별 target intervention을 구분한다.</p>
+</blockquote>
+<h2 id="analysis-guide">Analysis guide</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Confirmed settings</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Meta-GWAS</td>
+<td>METAL inverse-variance weighting; MAF≥1%; hg19 harmonization; COJO p&lt;5×10⁻⁸, 10-Mb window, 10,000 European UKB LD reference</td>
+</tr>
+<tr>
+<td>Loci</td>
+<td>Independent SNP ±1 Mb; prior GWAS Catalog snapshot 2025-10-02</td>
+</tr>
+<tr>
+<td>Cell QC</td>
+<td>UMI≥500, genes≥100, mitochondrial≤10%; UMI MAD outliers/doublets removal; SCT, Harmony top 30 PCs, main clustering top 20 Harmony components</td>
+</tr>
+<tr>
+<td>scDRS</td>
+<td>v1.0.2; MAGMA weights and technical-noise weighting; mitochondrial percentage and NS/PN/PP covariates; 10,000 controls; type FDR&lt;0.1</td>
+</tr>
+<tr>
+<td>Candidate filter</td>
+<td>Proximity, MAGMA, TWAS, PP.H4&gt;0.8, expression in ≥10% cells of relevant types; ≥4/5 criteria; MHC excluded</td>
+</tr>
+<tr>
+<td>hdWGCNA</td>
+<td>v0.4.1; metacells k=25; lowest soft power with scale-free fit&gt;0.8; Pearson kME</td>
+</tr>
+<tr>
+<td>Treatment</td>
+<td>Reference mapping and module projection; patient-level pseudobulk; independent week-28 data separately annotated</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="scdrs-interpretation">scDRS interpretation</h3>
+<p>일반적인 직관은 weighted expression을 matched gene-set null과 비교하는 것이다:</p>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>S</mi><mi>c</mi></msub><mo>=</mo><munder><mo>∑</mo><mrow><mi>g</mi><mo>∈</mo><mi>G</mi></mrow></munder><msub><mi>w</mi><mi>g</mi></msub><msub><mi>X</mi><mrow><mi>c</mi><mi>g</mi></mrow></msub><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">S_c=\sum_{g\in G}w_gX_{cg}.
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0576em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4804em;vertical-align:-1.4304em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.05em;"><span style="top:-1.8557em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0359em;">g</span><span class="mrel mtight">∈</span><span class="mord mathnormal mtight">G</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.4304em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0269em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0359em;">g</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0785em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">c</span><span class="mord mathnormal mtight" style="margin-right:0.0359em;">g</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mord">.</span></span></span></span></span></p>
+<p>이 식은 <strong>설명용 요약</strong>이며 scDRS의 모든 normalization을 표현하지 않는다. <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>w</mi><mi>g</mi></msub></mrow><annotation encoding="application/x-tex">w_g</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7167em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0269em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0359em;">g</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span>를 MAGMA z-score만으로 정의하면 technical-noise weighting을 빠뜨린다. 또한 단순 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo>=</mo><mo stretchy="false">(</mo><mi>S</mi><mo>−</mo><mi>μ</mi><mo stretchy="false">)</mo><mi mathvariant="normal">/</mi><mi>σ</mi></mrow><annotation encoding="application/x-tex">z=(S-\mu)/\sigma</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.044em;">z</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0576em;">S</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">μ</span><span class="mclose">)</span><span class="mord">/</span><span class="mord mathnormal" style="margin-right:0.0359em;">σ</span></span></span></span>만 계산하는 것과 실제 scDRS의 control normalization·Monte Carlo calibration은 다르다. 재현에는 원 tool을 사용한다.</p>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li>European GWAS와 skin data의 결과를 다른 ancestry나 PBMC에 바로 일반화하지 않는다.</li>
+<li>scDRS는 GWAS-implicated genes의 expression enrichment이며 cell causality나 개인의 genetic risk를 직접 측정하지 않는다.</li>
+<li>GWAS/MAGMA/TWAS/coloc은 일부 입력을 공유하므로 5개 filter를 완전히 독립적인 5회 검증으로 세지 않는다.</li>
+<li><strong>HEIDI direction discrepancy</strong>: 원문 Methods는 HEIDI를 ‘passed’라고 하면서 p&lt;0.01을 적었다. 일반적으로 작은 HEIDI p는 heterogeneity/linkage 가능성의 근거이므로 통과 기준으로 그대로 구현하지 않는다; Supplementary Data 17/code 또는 저자 확인이 필요하다.</li>
+<li>Figure 5 legend의 ‘nearest gene’과 Methods의 ‘COJO SNP 10 kb 이내’는 동등한 규칙이 아니다. 실제 candidate table의 정의를 우선 확인한다.</li>
+<li>Nominal P&lt;0.05로 거른 MultiNicheNet 결과와 FDR-controlled 결과를 구분한다. Spatial co-localization도 직접 interaction의 증명이 아니다.</li>
+</ul>
+<h2 id="data-and-code">Data &amp; Code</h2>
+<ul>
+<li><a href="https://www.nature.com/articles/s41467-026-77309-2">Original article / Methods / figures</a></li>
+<li><a href="https://github.com/martinjzhang/scDRS">scDRS official implementation</a></li>
+<li>23andMe full summary statistics는 data transfer agreement가 필요한 자료다; 모두 무제한 public이라고 표시하지 않는다.</li>
+<li>Main Methods와 여섯 figure legends를 확인했다. Supplementary figure PDF는 확보했고, HEIDI와 gene-prioritization의 row-level Supplementary Data audit는 아직 남아 있다.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li>
+<p><a class="wikilink wikilink-concept" href="/concepts/gene-set-scoring/">Gene Set Scoring</a> (scDRS도 일종의 gene set score) · <a class="wikilink wikilink-concept" href="/concepts/co-expression-network-analysis/">Co-expression Network Analysis</a> (hdWGCNA) · <a class="wikilink wikilink-concept" href="/concepts/cell-cell-communication/">Cell-Cell Communication</a> · <a class="wikilink wikilink-concept" href="/concepts/drug-repurposing/">Drug Repurposing</a></p>
+</li>
+<li>
+<p><a class="wikilink wikilink-concept" href="/concepts/colocalization/">Colocalization</a></p>
+</li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#background">Background</a></li><li class="toc-l2"><a href="#data">Data</a></li><li class="toc-l3"><a href="#computed-outputs">Computed outputs</a></li><li class="toc-l2"><a href="#figure-1-·-study-overview">Figure 1 · Study overview</a></li><li class="toc-l2"><a href="#figure-2-·-psoriasis-loci-and-local-heritability">Figure 2 · Psoriasis loci and local heritability</a></li><li class="toc-l2"><a href="#figure-3-·-genetic-correlation-and-enrichment">Figure 3 · Genetic correlation and enrichment</a></li><li class="toc-l2"><a href="#figure-4-·-cell-level-disease-relevance">Figure 4 · Cell-level disease relevance</a></li><li class="toc-l2"><a href="#figure-5-·-target-prioritization">Figure 5 · Target prioritization</a></li><li class="toc-l2"><a href="#figure-6-·-treatment-associated-co-expression-programs">Figure 6 · Treatment-associated co-expression programs</a></li><li class="toc-l2"><a href="#analysis-guide">Analysis guide</a></li><li class="toc-l3"><a href="#scdrs-interpretation">scDRS interpretation</a></li><li class="toc-l2"><a href="#limitations">Limitations</a></li><li class="toc-l2"><a href="#data-and-code">Data &amp;amp; Code</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/cell-cell-communication/"><span class="kind-dot kind-concept"></span>Cell-Cell Communication (CCC)</a></li><li><a href="/concepts/co-expression-network-analysis/"><span class="kind-dot kind-concept"></span>Co-expression Network Analysis</a></li><li><a href="/concepts/colocalization/"><span class="kind-dot kind-concept"></span>Colocalization</a></li><li><a href="/concepts/drug-repurposing/"><span class="kind-dot kind-concept"></span>Drug Repurposing</a></li><li><a href="/concepts/gene-set-scoring/"><span class="kind-dot kind-concept"></span>Gene Set Scoring</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

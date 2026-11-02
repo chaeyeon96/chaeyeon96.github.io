@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PANDA (2013 Glass) · Study Wiki</title>
+<meta name="description" content="Motif, PPI, co-expression의 서로 다른 근거를 message passing으로 조정해 condition-specific TF–gene network를 추정한다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a></p>
+    <div class="paper-meta">
+      
+      <span class="badge">PLoS ONE</span>
+      <span>2013</span>
+      <span class="muted">method</span>
+      
+    </div>
+    <h1 class="note-title">PANDA (2013 Glass)</h1>
+    <p class="paper-full-title">Passing Messages between Biological Networks to Refine Predicted Interactions — Glass et al.</p>
+    <p class="lead">Motif, PPI, co-expression의 서로 다른 근거를 message passing으로 조정해 condition-specific TF–gene network를 추정한다.</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1371/journal.pone.0064832" rel="noopener">원문 (DOI)</a>
+      <a class="btn btn-small btn-soft" href="/papers/2013-glass-panda-pipeline/">Pipeline 따라가기</a>
+      
+      <span class="license">License · CC BY</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/single-cell-analysis/">Single-cell Analysis</a><a class="chip chip-link" href="/sections/statistics-and-ml/">Statistics &amp; ML</a></div>
+    <div class="note-body"><div class="callout callout-tip">
+<div class="callout-title"><span class="callout-icon" aria-hidden="true">✦</span>Pipeline</div>
+<div class="callout-body">
+<p>모델식·설정값·손계산 예시는 <a class="wikilink wikilink-pipeline" href="/papers/2013-glass-panda-pipeline/">2013 Glass - PANDA (Pipeline)</a>에 있다.</p>
+</div></div>
+<h2 id="background">Background</h2>
+<p>Motif가 있다고 실제 binding이 일어나는 것은 아니며, TF와 target의 발현이 함께 움직이지 않아도 regulation은 가능하다. PANDA는 개별 TF–target correlation 대신 TF의 협력자와 target들의 neighborhood가 서로 맞는지를 묻는다. 원 논문은 single-cell 연구가 아니라 yeast bulk expression을 이용한 방법 검증이다.</p>
+<h2 id="data">Data</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Data</th>
+<th>Type / scope</th>
+<th>Role</th>
+<th>Figure</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Synthetic networks</td>
+<td>25 effectors, 100 targets, 500 regulatory edges; 100 realizations</td>
+<td>Known truth에 noise를 넣고 복구 평가</td>
+<td>Table 1</td>
+</tr>
+<tr>
+<td>Harbison motif / tandem promoters</td>
+<td>204 TF motif 출발, tandem-promoter genes 4,360; 최종 53 TF × 2,555 genes, 34,128 motif edges</td>
+<td>Predicted regulatory prior</td>
+<td>1–5</td>
+</tr>
+<tr>
+<td>Chua perturbation expression</td>
+<td>실측 microarray 106 experiments</td>
+<td>TF knockout/overexpression condition의 co-expression</td>
+<td>2–5</td>
+</tr>
+<tr>
+<td>Pramila cell-cycle expression</td>
+<td>실측 56 experiments</td>
+<td>Time-course network</td>
+<td>3–5</td>
+</tr>
+<tr>
+<td>Gasch stress expression</td>
+<td>실측 173 experiments</td>
+<td>Stress-response network</td>
+<td>3–5</td>
+</tr>
+<tr>
+<td>BioGRID / NCBI GeneRIF PPI</td>
+<td>Affinity Capture-MS physical interactions, 동일 53 TF</td>
+<td>Cooperativity prior</td>
+<td>1–5</td>
+</tr>
+<tr>
+<td>ChIP-chip / stringent PPI</td>
+<td>ChIP-chip p&lt;0.001; low-throughput PPI evidence 별도</td>
+<td>Binding / co-regulation / cooperativity validation; 학습 motif와 구분</td>
+<td>2–3</td>
+</tr>
+</tbody>
+</table></div>
+<p>규모·처리는 Methods S1 pp.1–3 기준이며, 최종 network는 실측 interaction 목록이 아니라 prediction이다.</p>
+<h2 id="figure-1-·-three-networks-one-consensus">Figure 1 · Three networks, one consensus</h2>
+<p><strong>Context</strong> · 서로 다른 data는 같은 regulation을 부분적으로 관찰한다. 세 graph를 함께 움직여 모순을 줄이는 기본 구조를 먼저 본다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2013-glass-panda-fig1.png" alt="2013 Glass - PANDA Fig1" loading="lazy"><span class="figure-credit">Figure: Glass et al., PLoS ONE (2013) · CC BY</span></span></p>
+<h3 id="a-·-message-passing-framework">A · Message-passing framework</h3>
+<ul>
+<li><strong>목적</strong>: 서로 다른 종류의 관계를 어떤 graph로 표현하는가?</li>
+<li><strong>Data &amp; method</strong>: 개념적 effector–target graph와 세 edge type을 정의한다 (<a class="wikilink wikilink-pipeline" href="/papers/2013-glass-panda-pipeline/#step-1-·-seed-networks">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: Node 종류와 세 edge 종류를 구분한다.</li>
+<li><strong>결과와 의미</strong>: Cooperation, influence, co-affection을 별도 network로 갖고 같은 구조에 연결한다.</li>
+</ul>
+<h3 id="b-·-panda-instantiation">B · PANDA instantiation</h3>
+<ul>
+<li><strong>목적</strong>: 이 틀을 TF regulation에 어떻게 적용하는가?</li>
+<li><strong>Data &amp; method</strong>: Motif W, PPI P, expression correlation C를 반복적으로 갱신한다 (<a class="wikilink wikilink-pipeline" href="/papers/2013-glass-panda-pipeline/#step-3-·-messages-and-updates">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: TF–gene W를 중심으로 P와 C가 message를 주고받는 방향을 본다.</li>
+<li><strong>결과와 의미</strong>: 한 network의 이웃 정보가 다른 network의 edge weight를 정제한다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Co-expression은 TF–target 직접 상관이 아니라 target–target 근거로 들어간다.</p>
+</blockquote>
+<h2 id="figure-2-·-network-recovery-and-robustness">Figure 2 · Network recovery and robustness</h2>
+<p><strong>Context</strong> · Network가 수렴하는 것과 biological truth에 가까워지는 것은 다르다. 독립적인 validation 기준과 input noise를 이용해 이 차이를 평가한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2013-glass-panda-fig2.png" alt="2013 Glass - PANDA Fig2" loading="lazy"><span class="figure-credit">Figure: Glass et al., PLoS ONE (2013) · CC BY</span></span></p>
+<h3 id="a-·-convergence-and-binding-accuracy">A · Convergence and binding accuracy</h3>
+<ul>
+<li><strong>목적</strong>: 반복할수록 TF–gene prediction이 개선되는가?</li>
+<li><strong>Data &amp; method</strong>: Perturbation expression 기반 PANDA를 ChIP-chip gold standard로 평가한다 (<a class="wikilink wikilink-pipeline" href="/papers/2013-glass-panda-pipeline/#step-5-·-evaluation">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: Iteration별 AUC와 random 0.5, motif prior 0.687 기준선을 비교한다.</li>
+<li><strong>결과와 의미</strong>: 전체 AUC는 0.687에서 0.725로 증가하며 특히 motif-supported false positives의 재순위화가 기여한다.</li>
+</ul>
+<h3 id="b-·-noisy-motif-prior">B · Noisy motif prior</h3>
+<ul>
+<li><strong>목적</strong>: 잘못된 prior에서도 signal을 회복하는가?</li>
+<li><strong>Data &amp; method</strong>: Degree를 유지한 motif edge swaps 후 10 randomizations별 성능을 비교한다 (<a class="wikilink wikilink-pipeline" href="/papers/2013-glass-panda-pipeline/#step-5-·-evaluation">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: Prior randomization 정도에 따른 최종 AUC를 읽는다.</li>
+<li><strong>결과와 의미</strong>: 완전 randomization에서도 약 0.55지만 accurate prior보다 낮아 prior 품질의 중요성을 보여 준다.</li>
+</ul>
+<h3 id="c-·-all-three-networks">C · All three networks</h3>
+<ul>
+<li><strong>목적</strong>: P와 C도 정제되는가?</li>
+<li><strong>Data &amp; method</strong>: 10% TF·gene 제거 jackknife 100회로 세 network의 초기·최종 AUC를 비교한다 (<a class="wikilink wikilink-pipeline" href="/papers/2013-glass-panda-pipeline/#step-5-·-evaluation">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: Network 종류별 paired initial/final estimates를 비교한다.</li>
+<li><strong>결과와 의미</strong>: PPI AUC 0.611→0.692, co-regulation 0.548→0.590으로 개선되지만 각각의 validation 기준은 다르다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · 합의는 gold standard에서 실제 개선으로 이어졌지만 edge weight는 probability가 아니다.</p>
+</blockquote>
+<h2 id="figure-3-·-benchmark-and-condition-specificity">Figure 3 · Benchmark and condition specificity</h2>
+<p><strong>Context</strong> · 같은 motif prior를 가진 방법도 integration 방식에 따라 달라질 수 있다. 성능과 condition-specific biological meaning을 함께 비교한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2013-glass-panda-fig3.png" alt="2013 Glass - PANDA Fig3" loading="lazy"><span class="figure-credit">Figure: Glass et al., PLoS ONE (2013) · CC BY</span></span></p>
+<h3 id="a-·-overall-auc">A · Overall AUC</h3>
+<ul>
+<li><strong>목적</strong>: 다른 reconstruction 방법보다 나은가?</li>
+<li><strong>Data &amp; method</strong>: 세 expression datasets에 PANDA, SEREND, ReMoDiscovery, CLR, C3Net을 적용한다 (<a class="wikilink wikilink-pipeline" href="/papers/2013-glass-panda-pipeline/#step-5-·-evaluation">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: 색은 knockout·cell cycle·stress, 별표는 motif input 사용을 뜻한다.</li>
+<li><strong>결과와 의미</strong>: PANDA는 세 조건에서 약 0.72 AUC를 보이나 expression-only 방법과 input 정보량이 다르다.</li>
+</ul>
+<h3 id="b-·-fixed-specificity-performance">B · Fixed-specificity performance</h3>
+<ul>
+<li><strong>목적</strong>: False positives를 제한해도 유리한가?</li>
+<li><strong>Data &amp; method</strong>: ChIP-chip 기준 specificity 90%에서 sensitivity·precision을 계산한다 (<a class="wikilink wikilink-pipeline" href="/papers/2013-glass-panda-pipeline/#step-5-·-evaluation">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: 두 지표를 분리해 높을수록 좋은지 확인한다.</li>
+<li><strong>결과와 의미</strong>: PANDA sensitivity 36–39%, precision 13–14%로 보고되어 높은 AUC와 별개로 top predictions의 실험 확인이 필요하다.</li>
+</ul>
+<h3 id="c-·-panda-overlap">C · PANDA overlap</h3>
+<ul>
+<li><strong>목적</strong>: 공통 regulation과 조건 특이성을 함께 보존하는가?</li>
+<li><strong>Data &amp; method</strong>: 조건별 top 1,000 PANDA edges의 교집합을 계산한다 (<a class="wikilink wikilink-pipeline" href="/papers/2013-glass-panda-pipeline/#step-6-·-modules">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: Venn 영역은 edge 수이며 gene 수가 아니다.</li>
+<li><strong>결과와 의미</strong>: 공통 backbone과 condition-unique subsets가 함께 남는다.</li>
+</ul>
+<h3 id="d-·-serend-overlap">D · SEREND overlap</h3>
+<ul>
+<li><strong>목적</strong>: 같은 motif input을 쓰는 방법의 overlap은 어떤가?</li>
+<li><strong>Data &amp; method</strong>: SEREND의 조건별 top 1,000 edges를 비교한다 (<a class="wikilink wikilink-pipeline" href="/papers/2013-glass-panda-pipeline/#step-6-·-modules">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: C와 동일한 selection 크기에서 overlap 구조를 비교한다.</li>
+<li><strong>결과와 의미</strong>: PANDA보다 공통 edges가 적지만 그 자체만으로 biological quality를 결정할 수는 없다.</li>
+</ul>
+<h3 id="e-·-clr-overlap">E · CLR overlap</h3>
+<ul>
+<li><strong>목적</strong>: Expression-only 결과는 조건 간 얼마나 겹치는가?</li>
+<li><strong>Data &amp; method</strong>: CLR의 조건별 top 1,000 edges를 비교한다 (<a class="wikilink wikilink-pipeline" href="/papers/2013-glass-panda-pipeline/#step-6-·-modules">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: C–D와 edge selection 기준은 같고 input modality는 다르다.</li>
+<li><strong>결과와 의미</strong>: 공통 edges가 매우 적어 expression condition 의존성이 크다.</li>
+</ul>
+<h3 id="f-·-panda-functional-enrichment">F · PANDA functional enrichment</h3>
+<ul>
+<li><strong>목적</strong>: Unique edges가 알려진 condition biology를 담는가?</li>
+<li><strong>Data &amp; method</strong>: Unique-edge genes를 DAVID로 분석하고 2,555 genes를 background로 둔다 (<a class="wikilink wikilink-pipeline" href="/papers/2013-glass-panda-pipeline/#step-6-·-modules">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: BH FDR&lt;10⁻⁵ 및 gene-set member ≥10% 조건의 GO terms를 읽는다.</li>
+<li><strong>결과와 의미</strong>: Cell-cycle·stress network가 해당 condition 관련 기능을 포착한다.</li>
+</ul>
+<h3 id="g-·-clr-functional-enrichment">G · CLR functional enrichment</h3>
+<ul>
+<li><strong>목적</strong>: 대조 방법에서도 같은 기능적 특이성을 얻는가?</li>
+<li><strong>Data &amp; method</strong>: CLR unique-edge genes에 같은 enrichment 기준을 적용한다 (<a class="wikilink wikilink-pipeline" href="/papers/2013-glass-panda-pipeline/#step-6-·-modules">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: F와 같은 cutoff의 terms만 비교한다.</li>
+<li><strong>결과와 의미</strong>: Stress 관련 일부 broad terms만 남고 SEREND는 이 기준에서 유의한 term이 없었다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · 정확한 edge ranking과 condition-specific function은 서로 보완하는 평가다.</p>
+</blockquote>
+<h2 id="figure-4-·-condition-specific-modules">Figure 4 · Condition-specific modules</h2>
+<p><strong>Context</strong> · Global score만으로 어떤 regulator가 중요한지 알 수 없다. 조건 특이적 edges 비중이 높은 TF와 gene을 골라 expression과 network를 함께 확인한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2013-glass-panda-fig4.png" alt="2013 Glass - PANDA Fig4" loading="lazy"><span class="figure-credit">Figure: Glass et al., PLoS ONE (2013) · CC BY</span></span></p>
+<h3 id="a-·-expression-and-function">A · Expression and function</h3>
+<ul>
+<li><strong>목적</strong>: 선택한 genes가 해당 condition에서 일관된 expression을 보이는가?</li>
+<li><strong>Data &amp; method</strong>: Condition-specific connectivity로 선택한 genes의 두 expression datasets를 row Z-score로 표시한다 (<a class="wikilink wikilink-pipeline" href="/papers/2013-glass-panda-pipeline/#step-6-·-modules">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: TF는 bold이고 heatmap의 비교 단위는 각 gene 내 상대 발현이다.</li>
+<li><strong>결과와 의미</strong>: Cell-cycle·stress modules는 관련 expression patterns를 보이지만 MBP1·SUT1은 target과 직접 co-expression하지 않아도 포착된다.</li>
+</ul>
+<h3 id="b-·-cell-cycle-module">B · Cell-cycle module</h3>
+<ul>
+<li><strong>목적</strong>: Cell-cycle regulatory structure는 무엇인가?</li>
+<li><strong>Data &amp; method</strong>: Selected genes 사이 W edges와 top 10% P/C edges를 시각화한다 (<a class="wikilink wikilink-pipeline" href="/papers/2013-glass-panda-pipeline/#step-6-·-modules">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: TF–TF, TF–gene, gene–gene edge 종류를 구분한다.</li>
+<li><strong>결과와 의미</strong>: MBP1–SWI6와 cell-cycle targets가 연결되어 cooperative structure를 제안한다.</li>
+</ul>
+<h3 id="c-·-stress-module">C · Stress module</h3>
+<ul>
+<li><strong>목적</strong>: Stress response에서 어떤 구조가 달라지는가?</li>
+<li><strong>Data &amp; method</strong>: Stress network에 동일한 module selection을 적용한다 (<a class="wikilink wikilink-pipeline" href="/papers/2013-glass-panda-pipeline/#step-6-·-modules">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: B와 색·edge 유형을 맞추되 condition별 selection임을 기억한다.</li>
+<li><strong>결과와 의미</strong>: MSN4, SUT1, ADR1 주변의 inferred cooperation은 직접 physical interaction의 확정이 아니다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · TF expression과 target expression의 불일치가 곧 regulation 부재는 아니다.</p>
+</blockquote>
+<h2 id="figure-5-·-integrated-condition-specific-network">Figure 5 · Integrated condition-specific network</h2>
+<p><strong>Context</strong> · 선택된 module을 전체 graph에 다시 놓으면 조건 간 공유와 연결을 볼 수 있다. 공통 edges를 제외하여 condition-dependent structure를 강조한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2013-glass-panda-fig5.png" alt="2013 Glass - PANDA Fig5" loading="lazy"><span class="figure-credit">Figure: Glass et al., PLoS ONE (2013) · CC BY</span></span></p>
+<h3 id="network-·-global-organization">Network · Global organization</h3>
+<ul>
+<li><strong>목적</strong>: 조건별 modules가 전체 network에서 어떻게 연결되는가?</li>
+<li><strong>Data &amp; method</strong>: 세 조건의 top-edge union에서 세 network 모두에 공통인 edges를 제외한다 (<a class="wikilink wikilink-pipeline" href="/papers/2013-glass-panda-pipeline/#step-6-·-modules">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: Magenta는 cell cycle, yellow는 stress, cyan은 perturbation이며 labeled TF 주변을 본다.</li>
+<li><strong>결과와 의미</strong>: MBP1·MSN4 주변은 조건별 cluster를 보이고 perturbation-specific edges는 더 넓게 분산된다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · 이 그림은 whole-cell causal wiring diagram이 아니라 선택된 condition-specific predictions의 지도다.</p>
+</blockquote>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li>Message passing은 heuristic이며 calibrated probability 또는 activation/repression sign을 주지 않는다.</li>
+<li>Yeast 53 TF·2,555 genes subset과 불완전한 ChIP-chip gold standard에서 평가되었다.</li>
+<li>Co-expression=co-regulation, PPI=cooperation은 유용하지만 불완전한 가정이다.</li>
+<li>Motif·ChIP 자료가 같은 연구실에서 나왔으므로 filtering을 분리해도 완전한 independence가 보장되지는 않는다.</li>
+<li>α와 diagonal annealing에 결과가 의존한다; original parameters와 후속 패키지 기본값을 구분한다.</li>
+</ul>
+<h2 id="data-and-code">Data &amp; Code</h2>
+<ul>
+<li><a href="https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0064832">Original article / Methods / all figures</a></li>
+<li><a href="https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0064832.s005&amp;type=supplementary">Methods S1, 전체 10쪽 확인</a></li>
+<li><a href="https://doi.org/10.1371/journal.pone.0064832.s006">Materials S1: original code, inputs, outputs</a></li>
+<li><a href="https://sourceforge.net/projects/panda-net/">Original software</a></li>
+<li>Figure: Glass et al., PLoS ONE (2013), CC BY; publisher figure PNG 사용.</li>
+</ul>
+<h2 id="related-concepts">Related concepts</h2>
+<ul>
+<li>
+<p><a class="wikilink wikilink-paper" href="/papers/2024-osorio-scorpion/">2024 Osorio - SCORPION</a> · <a class="wikilink wikilink-concept" href="/concepts/scenic/">SCENIC</a> · <a class="wikilink wikilink-concept" href="/concepts/network-propagation/">Network Propagation</a> · <a class="wikilink wikilink-concept" href="/concepts/co-expression-network-analysis/">Co-expression Network Analysis</a></p>
+</li>
+<li>
+<p><a class="wikilink wikilink-concept" href="/concepts/gene-regulatory-network/">Gene Regulatory Network</a></p>
+</li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#background">Background</a></li><li class="toc-l2"><a href="#data">Data</a></li><li class="toc-l2"><a href="#figure-1-·-three-networks-one-consensus">Figure 1 · Three networks, one consensus</a></li><li class="toc-l3"><a href="#a-·-message-passing-framework">A · Message-passing framework</a></li><li class="toc-l3"><a href="#b-·-panda-instantiation">B · PANDA instantiation</a></li><li class="toc-l2"><a href="#figure-2-·-network-recovery-and-robustness">Figure 2 · Network recovery and robustness</a></li><li class="toc-l3"><a href="#a-·-convergence-and-binding-accuracy">A · Convergence and binding accuracy</a></li><li class="toc-l3"><a href="#b-·-noisy-motif-prior">B · Noisy motif prior</a></li><li class="toc-l3"><a href="#c-·-all-three-networks">C · All three networks</a></li><li class="toc-l2"><a href="#figure-3-·-benchmark-and-condition-specificity">Figure 3 · Benchmark and condition specificity</a></li><li class="toc-l3"><a href="#a-·-overall-auc">A · Overall AUC</a></li><li class="toc-l3"><a href="#b-·-fixed-specificity-performance">B · Fixed-specificity performance</a></li><li class="toc-l3"><a href="#c-·-panda-overlap">C · PANDA overlap</a></li><li class="toc-l3"><a href="#d-·-serend-overlap">D · SEREND overlap</a></li><li class="toc-l3"><a href="#e-·-clr-overlap">E · CLR overlap</a></li><li class="toc-l3"><a href="#f-·-panda-functional-enrichment">F · PANDA functional enrichment</a></li><li class="toc-l3"><a href="#g-·-clr-functional-enrichment">G · CLR functional enrichment</a></li><li class="toc-l2"><a href="#figure-4-·-condition-specific-modules">Figure 4 · Condition-specific modules</a></li><li class="toc-l3"><a href="#a-·-expression-and-function">A · Expression and function</a></li><li class="toc-l3"><a href="#b-·-cell-cycle-module">B · Cell-cycle module</a></li><li class="toc-l3"><a href="#c-·-stress-module">C · Stress module</a></li><li class="toc-l2"><a href="#figure-5-·-integrated-condition-specific-network">Figure 5 · Integrated condition-specific network</a></li><li class="toc-l3"><a href="#network-·-global-organization">Network · Global organization</a></li><li class="toc-l2"><a href="#limitations">Limitations</a></li><li class="toc-l2"><a href="#data-and-code">Data &amp;amp; Code</a></li><li class="toc-l2"><a href="#related-concepts">Related concepts</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/co-expression-network-analysis/"><span class="kind-dot kind-concept"></span>Co-expression Network Analysis</a></li><li><a href="/concepts/gene-regulatory-network/"><span class="kind-dot kind-concept"></span>Gene Regulatory Network</a></li><li><a href="/concepts/network-propagation/"><span class="kind-dot kind-concept"></span>Network Propagation</a></li><li><a href="/papers/2013-glass-panda-pipeline/"><span class="kind-dot kind-pipeline"></span>PANDA · Pipeline</a></li><li><a href="/concepts/scenic/"><span class="kind-dot kind-concept"></span>SCENIC</a></li><li><a href="/papers/2024-osorio-scorpion/"><span class="kind-dot kind-paper"></span>SCORPION</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

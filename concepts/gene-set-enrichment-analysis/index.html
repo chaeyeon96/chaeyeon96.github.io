@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gene Set Enrichment Analysis · Study Wiki</title>
+<meta name="description" content="DE 결과를 gene 하나하나가 아니라 pathway, gene set 단위로 요약하는 분석. 유의 gene 목록이 특정 set에 몰렸는지(ORA), 전체 순위에서 set이 한쪽 끝에 몰렸는지(GSEA)를 본다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/single-cell-analysis/">Single-cell Analysis</a></p>
+    <h1 class="note-title">Gene Set Enrichment Analysis</h1>
+    <p class="lead">DE 결과를 gene 하나하나가 아니라 pathway, gene set 단위로 요약하는 분석. 유의 gene 목록이 특정 set에 몰렸는지(ORA), 전체 순위에서 set이 한쪽 끝에 몰렸는지(GSEA)를 본다.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#single-cell</span><span class="chip chip-tag">#pathway</span><span class="chip chip-tag">#enrichment</span><span class="chip chip-tag">#functional-analysis</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p>DEG가 300개 나왔을 때 &quot;그래서 무슨 일이 일어난 건데?&quot;에 답하는 단계입니다. &quot;interferon 반응 gene들이 전반적으로 올라갔다&quot; 같은 문장으로 바꿔 줍니다.</p>
+<h2 id="자세히">자세히</h2>
+<h3 id="방법-지도">방법 지도</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>목적</th>
+<th>방법</th>
+<th>도구 (R / Python)</th>
+<th>입력</th>
+<th>주의</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>유의 DEG 목록이 어느 pathway에 몰렸나</td>
+<td><strong>ORA</strong></td>
+<td>clusterProfiler <code>enrichGO/enrichKEGG</code>, g:Profiler / gseapy enrichr</td>
+<td>유의 gene 목록 + background</td>
+<td><strong>FDR cutoff에 의존</strong>, background 설정이 결과를 좌우</td>
+</tr>
+<tr>
+<td>전체 순위에서 set이 위/아래로 몰렸나</td>
+<td><strong>Preranked GSEA</strong></td>
+<td><strong>fgsea</strong>, clusterProfiler <code>GSEA</code> / gseapy prerank</td>
+<td>모든 gene의 점수(t, Wald 통계량)</td>
+<td>랭킹 점수 선택이 중요</td>
+</tr>
+<tr>
+<td>Gene 간 상관까지 보정한 set 검정</td>
+<td><strong>camera</strong> (limma)</td>
+<td>limma</td>
+<td>voom 객체</td>
+<td>pseudobulk 보강용으로 좋음</td>
+</tr>
+<tr>
+<td>모델 계수 기반 set 검정</td>
+<td>MAST <code>gseaAfterBoot</code></td>
+<td>MAST</td>
+<td>MAST 모델 + bootstrap</td>
+<td>→ <a class="wikilink wikilink-concept" href="/concepts/mast/">MAST</a></td>
+</tr>
+<tr>
+<td>Cell / sample마다 pathway 점수</td>
+<td><strong>Gene set scoring</strong></td>
+<td>AUCell, UCell, GSVA, ssGSEA</td>
+<td>발현 행렬</td>
+<td>→ <a class="wikilink wikilink-concept" href="/concepts/gene-set-scoring/">Gene Set Scoring</a></td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>Competitive test</strong> (대부분의 GSEA, ORA): &quot;이 set이 나머지 gene들보다 상대적으로 더 움직였나?&quot;</li>
+<li><strong>Self-contained test</strong>: &quot;이 set 안 gene들의 효과가 0과 다른가?&quot;</li>
+</ul>
+<h3 id="single-cell-정석-workflow">Single-cell 정석 workflow</h3>
+<p><strong>Pseudobulk DE → preranked GSEA (+ camera)</strong></p>
+<ol>
+<li>Cell type별로 sample 단위 count 합치기 → <a class="wikilink wikilink-concept" href="/concepts/pseudobulk-analysis/">Pseudobulk Analysis</a></li>
+<li>edgeR / DESeq2 / limma-voom DE (공변량 포함)</li>
+<li>DE 통계량으로 랭킹 → fgsea. 랭킹 예: <code>t</code> 또는 <code>sign(logFC) × |t|</code></li>
+<li>보강: camera 또는 ORA</li>
+</ol>
+<p>그룹당 sample이 5명 이상이면 체감이 좋다.</p>
+<h3 id="상황별-선택">상황별 선택</h3>
+<ul>
+<li><strong>Cell type별 case vs control</strong>: pseudobulk → fgsea/camera. Sample 구분이 불가능하면 cluster 수준 DE 통계량 → fgsea, 해석은 보수적으로.</li>
+<li><strong>Responder vs non-responder의 시간 변화</strong>: pseudobulk 선형모델에서 <strong>group × time interaction 계수</strong>의 통계량으로 GSEA. 시각화는 gene set score를 시간축에 그리고 mixed model로 검정.</li>
+<li><strong>Trajectory, pseudotime을 따라</strong>: DE 기반 GSEA보다 score 기반(AUCell, UCell, GSVA)이 직관적. 점수를 pseudotime에 회귀·smoothing.</li>
+<li><strong>MAST를 주로 쓸 때</strong>: MAST DEG → fgsea/clusterProfiler, 그 pathway를 UCell/AUCell로 cell 단위 확인, ORA는 요약용.</li>
+</ul>
+<h3 id="자주-터지는-함정">자주 터지는 함정</h3>
+<ol>
+<li><strong>Gene universe</strong>: ORA의 background는 &quot;검정 가능했던 gene 전체&quot;, single-cell에서는 <strong>그 cell type에서 충분히 발현·검정된 gene</strong>으로.</li>
+<li><strong>MT, ribosomal, hemoglobin gene이 결과를 지배</strong>: 랭킹에서 빼거나 해석에서 분리.</li>
+<li><strong>Gene ID 매핑</strong>: SYMBOL vs ENSEMBL 혼용, alias, 대소문자. 매칭이 빠지면 검정력이 급감한다.</li>
+<li><strong>Cell 수와 sample 불균형</strong>: cell 수준 DE의 작은 p-value가 그대로 GSEA를 부풀린다.</li>
+</ol>
+<h3 id="결과에서-볼-것">결과에서 볼 것</h3>
+<ul>
+<li><strong>NES</strong>: 방향과 크기 (normalized enrichment score)</li>
+<li><strong>FDR (q-value)</strong></li>
+<li><strong>Leading-edge genes</strong>: 실제로 그 pathway를 끌고 간 핵심 gene. 특정 cell state의 marker인지 확인한다.</li>
+</ul>
+<h3 id="자주-쓰는-gene-set-일반-지식">자주 쓰는 gene set (일반 지식)</h3>
+<p>MSigDB(Hallmark, C2 canonical pathways, C7 immunologic), GO, KEGG, Reactome, blood transcription modules(BTM)</p>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/differential-expression/">Differential Expression</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/pseudobulk-analysis/">Pseudobulk Analysis</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/gene-set-scoring/">Gene Set Scoring</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/mast/">MAST</a></li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2025-sheinin-scnet/">2025 Sheinin - scNET</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2025-wang-lifespan-immune-trajectories/">2025 Wang - Lifespan Immune Trajectories</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2024-osorio-scorpion/">2024 Osorio - SCORPION</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2023-vasaikar-palmo/">2023 Vasaikar - PALMO</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2023-zhu-pbmc-aging-clock/">2023 Zhu - PBMC Aging Clock</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2021-ruiz-multiscale-interactome/">2021 Ruiz - Multiscale Interactome</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l3"><a href="#방법-지도">방법 지도</a></li><li class="toc-l3"><a href="#single-cell-정석-workflow">Single-cell 정석 workflow</a></li><li class="toc-l3"><a href="#상황별-선택">상황별 선택</a></li><li class="toc-l3"><a href="#자주-터지는-함정">자주 터지는 함정</a></li><li class="toc-l3"><a href="#결과에서-볼-것">결과에서 볼 것</a></li><li class="toc-l3"><a href="#자주-쓰는-gene-set-일반-지식">자주 쓰는 gene set (일반 지식)</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/differential-expression/"><span class="kind-dot kind-concept"></span>Differential Expression (DE)</a></li><li><a href="/concepts/gene-set-scoring/"><span class="kind-dot kind-concept"></span>Gene Set Scoring</a></li><li><a href="/papers/2025-wang-lifespan-immune-trajectories/"><span class="kind-dot kind-paper"></span>Lifespan Immune Trajectories (Wang 2025)</a></li><li><a href="/concepts/mast/"><span class="kind-dot kind-concept"></span>MAST</a></li><li><a href="/papers/2021-ruiz-multiscale-interactome/"><span class="kind-dot kind-paper"></span>Multiscale Interactome (Ruiz 2021)</a></li><li><a href="/papers/2023-vasaikar-palmo/"><span class="kind-dot kind-paper"></span>PALMO (Vasaikar 2023)</a></li><li><a href="/papers/2023-zhu-pbmc-aging-clock/"><span class="kind-dot kind-paper"></span>PBMC Aging Clock (Zhu 2023)</a></li><li><a href="/concepts/pseudobulk-analysis/"><span class="kind-dot kind-concept"></span>Pseudobulk Analysis</a></li><li><a href="/papers/2025-sheinin-scnet/"><span class="kind-dot kind-paper"></span>scNET (Sheinin 2025)</a></li><li><a href="/papers/2025-sheinin-scnet-pipeline/"><span class="kind-dot kind-pipeline"></span>scNET Pipeline (Sheinin 2025)</a></li><li><a href="/papers/2024-osorio-scorpion/"><span class="kind-dot kind-paper"></span>SCORPION</a></li><li><a href="/concepts/scrna-seq-workflow/"><span class="kind-dot kind-concept"></span>scRNA-seq Workflow</a></li><li><a href="/concepts/time-series-expression-patterns/"><span class="kind-dot kind-concept"></span>Time-series Expression Patterns</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

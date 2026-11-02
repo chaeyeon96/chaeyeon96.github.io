@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RNA-seq Normalization · Study Wiki</title>
+<meta name="description" content="Sequencing depth, transcript 길이, sample 구성, batch 같은 기술적 차이를 보정해 gene 발현을 비교 가능하게 만드는 과정. 비교하려는 대상(같은 sample 안 / sample 사이 / dataset 사이)에 따라 방법이 다르다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/single-cell-analysis/">Single-cell Analysis</a></p>
+    <h1 class="note-title">RNA-seq Normalization</h1>
+    <p class="lead">Sequencing depth, transcript 길이, sample 구성, batch 같은 기술적 차이를 보정해 gene 발현을 비교 가능하게 만드는 과정. 비교하려는 대상(같은 sample 안 / sample 사이 / dataset 사이)에 따라 방법이 다르다.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#rna-seq</span><span class="chip chip-tag">#normalization</span><span class="chip chip-tag">#preprocessing</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p>같은 gene이라도 read를 많이 읽은 sample에서는 count가 크게 나오고, 긴 gene은 짧은 gene보다 read가 많이 붙습니다. Normalization은 이런 &quot;측정 방식 때문에 생긴 차이&quot;를 걷어 내는 일입니다.</p>
+<h2 id="자세히">자세히</h2>
+<h3 id="1-within-sample-한-sample-안의-gene끼리-비교">1. Within sample: 한 sample 안의 gene끼리 비교</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>방법</th>
+<th>보정하는 것</th>
+<th>메모</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CPM</strong> (counts per million)</td>
+<td>depth</td>
+<td>길이는 보정 안 함. 같은 sample 안 gene 비교에는 부적합, sample 간 비교에는 dataset 수준 방법과 함께 쓴다</td>
+</tr>
+<tr>
+<td><strong>RPKM / FPKM</strong></td>
+<td>depth + 길이</td>
+<td>single-end / paired-end. Sample 간에 같은 발현도 다르게 보일 수 있어 sample 간 비교에 부적합</td>
+</tr>
+<tr>
+<td><strong>TPM</strong></td>
+<td>depth + 길이</td>
+<td>먼저 길이로 나눈 뒤 합이 100만이 되게 스케일. Sample마다 TPM 합이 같아 FPKM보다 sample 간 변동이 적다</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="2-within-a-dataset-sample끼리-비교">2. Within a dataset: sample끼리 비교</h3>
+<p>RNA-seq은 <strong>절대량이 아니라 상대량</strong>을 잰다. 어떤 gene 몇 개가 엄청 많이 발현되면 나머지 gene의 비율이 상대적으로 줄어 보인다 (composition bias).</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>방법</th>
+<th>원리</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Quantile</strong></td>
+<td>모든 sample의 발현 분포를 똑같이 맞춘다. 분포 차이는 전부 기술적이라고 가정</td>
+</tr>
+<tr>
+<td><strong>Upper quartile</strong></td>
+<td>각 sample을 75번째 percentile 값으로 나눈다</td>
+</tr>
+<tr>
+<td><strong>TMM</strong> (edgeR)</td>
+<td>극단값을 잘라 낸 log fold change의 가중 평균으로 scaling factor 계산 (일반 지식)</td>
+</tr>
+<tr>
+<td><strong>Median of ratios</strong> (DESeq2)</td>
+<td>gene별 기하평균 대비 비율의 중앙값으로 size factor 계산 (일반 지식)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="3-across-datasets-batch-correction">3. Across datasets: batch correction</h3>
+<p>여러 연구나 시점의 데이터를 합치면 <strong>batch effect</strong>가 가장 큰 변동 원인이 되기도 한다.</p>
+<ul>
+<li><strong>Limma <code>removeBatchEffect</code>, ComBat</strong>: batch를 아는 경우. Empirical Bayes로 gene 간에 정보를 빌려 오므로 sample이 적어도 비교적 안정적이다.</li>
+<li>먼저 dataset 내 normalization으로 스케일을 맞춘 <strong>뒤에</strong> batch correction을 한다.</li>
+<li>Single-cell에서는 <a class="wikilink wikilink-concept" href="/concepts/scvi/">scVI</a>, Harmony 같은 integration 방법을 주로 쓴다 → <a class="wikilink wikilink-concept" href="/concepts/batch-correction/">Batch Correction</a></li>
+</ul>
+<h3 id="single-cell에서-흔한-선택-일반-지식">Single-cell에서 흔한 선택 (일반 지식)</h3>
+<ul>
+<li><strong>log1p(CPM 또는 counts per 10k)</strong>: <code>sc.pp.normalize_total</code> → <code>sc.pp.log1p</code>. 가장 흔한 기본값</li>
+<li><strong>SCTransform</strong>: regularized negative binomial regression으로 depth 효과를 제거</li>
+<li><strong>Pearson residuals</strong>: 비슷한 아이디어의 분석적 버전</li>
+<li>Pseudobulk DE에서는 raw count를 합친 뒤 TMM, DESeq2 방식을 쓴다 → <a class="wikilink wikilink-concept" href="/concepts/pseudobulk-analysis/">Pseudobulk Analysis</a></li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/batch-correction/">Batch Correction</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/scvi/">scVI</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/pseudobulk-analysis/">Pseudobulk Analysis</a></li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2023-heumos-single-cell-best-practices/">2023 Heumos - Single-cell Best Practices</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l3"><a href="#1-within-sample-한-sample-안의-gene끼리-비교">1. Within sample: 한 sample 안의 gene끼리 비교</a></li><li class="toc-l3"><a href="#2-within-a-dataset-sample끼리-비교">2. Within a dataset: sample끼리 비교</a></li><li class="toc-l3"><a href="#3-across-datasets-batch-correction">3. Across datasets: batch correction</a></li><li class="toc-l3"><a href="#single-cell에서-흔한-선택-일반-지식">Single-cell에서 흔한 선택 (일반 지식)</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/batch-correction/"><span class="kind-dot kind-concept"></span>Batch Correction</a></li><li><a href="/concepts/pseudobulk-analysis/"><span class="kind-dot kind-concept"></span>Pseudobulk Analysis</a></li><li><a href="/papers/2025-sheinin-scnet-pipeline/"><span class="kind-dot kind-pipeline"></span>scNET Pipeline (Sheinin 2025)</a></li><li><a href="/concepts/scrna-seq-workflow/"><span class="kind-dot kind-concept"></span>scRNA-seq Workflow</a></li><li><a href="/papers/2023-heumos-single-cell-best-practices/"><span class="kind-dot kind-paper"></span>Single-cell Best Practices (Heumos 2023)</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

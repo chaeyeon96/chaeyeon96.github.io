@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mal-ID · Pipeline · Study Wiki</title>
+<meta name="description" content="2025 Zaslavsky - Mal-ID의 계산 흐름. Toy example과 설명 그림은 직접 작성한 교육용이며 논문 결과가 아니다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a> › <a href="/papers/2025-zaslavsky-mal-id/">Mal-ID (Zaslavsky 2025)</a></p>
+    <div class="paper-meta">
+      <span class="badge badge-sage">Pipeline</span>
+      <span class="badge">Science</span>
+      <span>2025</span>
+      <span class="muted">method</span>
+      
+    </div>
+    <h1 class="note-title">Mal-ID · Pipeline</h1>
+    <p class="paper-full-title">Disease diagnostics using machine learning of B cell and T cell receptor sequences — Zaslavsky et al.</p>
+    <p class="lead">2025 Zaslavsky - Mal-ID의 계산 흐름. Toy example과 설명 그림은 직접 작성한 교육용이며 논문 결과가 아니다.</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1126/science.adp2407" rel="noopener">원문 (DOI)</a>
+      
+      <a class="btn btn-small btn-soft" href="/papers/2025-zaslavsky-mal-id/">논문 정리로</a>
+      <span class="license">License · unknown</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/statistics-and-ml/">Statistics &amp; ML</a></div>
+    <div class="note-body"><h2 id="0-overview">0. Overview</h2>
+<pre class="mermaid">flowchart LR
+ A[&quot;Bulk IgH/TRB sequences&quot;] --&gt; B[&quot;Clone QC and patient split&quot;]
+ B --&gt; C[&quot;Model 1: composition&quot;]
+ B --&gt; D[&quot;Model 2: convergent clusters&quot;]
+ B --&gt; E[&quot;Model 3: ESM-2 and sequence scores&quot;]
+ E --&gt; F[&quot;Within-category aggregation&quot;]
+ C --&gt; G[&quot;Validation-set ensemble&quot;]
+ D --&gt; G
+ F --&gt; G
+ G --&gt; H[&quot;Held-out patients / external cohorts&quot;]
+</pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Question</th>
+<th>Paper term</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>누가 학습과 평가에 들어가는가?</td>
+<td>Patient-level CV</td>
+</tr>
+<tr>
+<td>2</td>
+<td>어떤 repertoire 신호를 뽑는가?</td>
+<td>Models 1–3</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Sequence scores를 어떻게 환자로 모으는가?</td>
+<td>Two-stage training</td>
+</tr>
+<tr>
+<td>4</td>
+<td>여섯 base model을 어떻게 합치는가?</td>
+<td>Ridge metamodel</td>
+</tr>
+<tr>
+<td>5</td>
+<td>외부 환자와 known binders에서도 유효한가?</td>
+<td>External validation</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="1-qc-and-participant-split">1. QC and participant split</h2>
+<h3 id="task">Task</h3>
+<p>Reads를 clone 단위로 정리하고 같은 사람의 정보가 test로 새지 않게 한다.</p>
+<h3 id="input-→-output">Input → Output</h3>
+<p>cDNA IgH/TRB reads → productive clonotypes와 train-1/train-2/validation/test sets.</p>
+<h3 id="intuition">Intuition</h3>
+<p>한 사람의 문장 절반을 학습한 뒤 나머지를 ‘새 사람’이라고 평가하지 않는다.</p>
+<h3 id="details">Details</h3>
+<p>IgBLAST v1.3.0 productive rearrangements, V-match score IgH≥200/TRB≥80, CDR3 length≥8 amino acids를 사용한다. Within-person clone grouping은 V/J/length 일치와 BCR 90%/TCR 95% identity다. 각 replicate/isotype에서 clone 대표 한 개를 유지한다; 대표는 RNA reads가 가장 많은 sequence다. Public-cluster threshold와 혼동하지 않는다.</p>
+<p>IgG/IgA와 SHM≥1%의 IgM/D를 사용한다. 3-fold stratified CV의 split unit은 participant이며 모든 timepoints/replicates를 묶는다. Base-model selection은 validation, two-stage sequence fit은 train-1, aggregation fit은 train-2, metamodel fit은 validation, 최종 평가는 test다.</p>
+<h3 id="toy-example">Toy example</h3>
+<p>숫자는 설명용: donor A의 day0/day7이 있으면 둘 다 같은 fold에 둔다. A의 sequence 10,000개를 나누어 8,000 train/2,000 test로 넣는 것은 새로운 사람에 대한 generalization test가 아니다.</p>
+<h3 id="related-figures">Related figures</h3>
+<p>Figure 1; Supplementary Figure S2는 원문이 참조한 split diagram이며 이 작업에서는 PDF 본문을 확보하지 못했다.</p>
+<h2 id="2-three-representations">2. Three representations</h2>
+<h3 id="task-1">Task</h3>
+<p>각 repertoire를 서로 보완적인 feature로 바꾼다.</p>
+<h3 id="input-→-output-1">Input → Output</h3>
+<p>Clones → composition vector, disease-cluster vector, sequence embedding.</p>
+<h3 id="intuition-1">Intuition</h3>
+<p>전체 gene usage 분포, 공유되는 sequence family, 더 넓은 learned similarity를 각각 보는 세 관찰자다.</p>
+<h3 id="details-1">Details</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Features / primary-cohort choice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 BCR</td>
+<td>V–J count→proportion→log/Z-score→15 PCs per isotype + median SHM + SHM≥1% fraction; 51 features; elastic net ratio 0.25</td>
+</tr>
+<tr>
+<td>1 TCR</td>
+<td>15 PCs; lasso logistic regression</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Same V/J/length, single-linkage identity BCR≥85%, TCR≥90%; Fisher enrichment threshold grid 0.0005–0.05; train-2 MCC selection</td>
+</tr>
+<tr>
+<td>2 classifier</td>
+<td>Disease-enriched cluster membership counts; BCR ridge, TCR lasso; no match→abstain</td>
+</tr>
+<tr>
+<td>3 embedding</td>
+<td>ESM-2 30 layers/150M parameters; mean-pool sequence-length axis to 640 dimensions; BCR additionally SHM</td>
+</tr>
+<tr>
+<td>3 sequence models</td>
+<td>Per IGHV×isotype or TRBV; primary BCR random forest, TCR one-vs-rest ridge</td>
+</tr>
+</tbody>
+</table></div>
+<p>Model 1 rare-V filtering과PCA 등은 training만으로 fit한다. Model 2의 Fisher table은 read 수가 아니라 cluster를 갖는 <strong>사람 수</strong>다. Cluster consensus는 clone size로 position별 weighted vote를 한다.</p>
+<p>교육용 identity 식은 같은 길이 L에서 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mo>=</mo><mn>1</mn><mo>−</mo><mi>m</mi><mi mathvariant="normal">/</mi><mi>L</mi></mrow><annotation encoding="application/x-tex">I=1-m/L</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">m</span><span class="mord">/</span><span class="mord mathnormal">L</span></span></span></span>이며 m은 substitutions 수다. 동일 V/J/length 조건을 생략하고 identity만 적용하지 않는다.</p>
+<h3 id="toy-example-1">Toy example</h3>
+<p>숫자는 설명용: 길이 20에서 3 substitutions이면 identity=85%로 BCR public-cluster 기준을 만족하지만 90% TCR 기준은 만족하지 못한다. Counts (3,1)을 비율로 바꾸면 (0.75,0.25)이며 reads (300,1)로 바꿔 계산하면 다른 model이다.</p>
+<h3 id="related-figures-1">Related figures</h3>
+<p>Figures 1B, 2B.</p>
+<h2 id="3-sequence-aggregation">3. Sequence aggregation</h2>
+<h3 id="task-2">Task</h3>
+<p>Noisy sequence predictions를 category별로 요약해 sample-level prediction으로 바꾼다.</p>
+<h3 id="input-→-output-2">Input → Output</h3>
+<p>Sequence class probability vectors → V/isotype category features → sample predictions.</p>
+<h3 id="intuition-2">Intuition</h3>
+<p>환자의 모든 receptor가 질병 표지는 아니므로 하나의 sequence를 확정 진단처럼 읽지 않고 여러 신호를 모은다.</p>
+<h3 id="details-2">Details</h3>
+<p>Weak label은 sequence의 실제 binding label이 아니라 donor의 immune state다. 서로 다른 sequence-category model의 probability calibration이 같다고 가정하지 않아 category 안에서 먼저 평균한다. Second-stage model은 one-vs-rest이며 해당 class probabilities만 feature로 넣고, gene-frequency weighting을 적용한다. Top 50% prevalent V genes를 사용한다.</p>
+<p>Primary BCR는 mean aggregation; primary TCR는 maximum entropy보다 20% 낮은 cutoff를 쓴다:</p>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>H</mi><mo stretchy="false">(</mo><mi>p</mi><mo stretchy="false">)</mo><mo>=</mo><mo>−</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>K</mi></munderover><msub><mi>p</mi><mi>k</mi></msub><mi>log</mi><mo>⁡</mo><msub><mi>p</mi><mi>k</mi></msub><mo separator="true">,</mo><mspace width="2em"/><msub><mi>H</mi><mrow><mi>m</mi><mi>a</mi><mi>x</mi></mrow></msub><mo>=</mo><mi>log</mi><mo>⁡</mo><mi>K</mi><mo separator="true">,</mo><mspace width="2em"/><mi>H</mi><mo stretchy="false">(</mo><mi>p</mi><mo stretchy="false">)</mo><mo>≤</mo><mn>0.8</mn><msub><mi>H</mi><mrow><mi>m</mi><mi>a</mi><mi>x</mi></mrow></msub><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">H(p)=-\sum_{k=1}^Kp_k\log p_k,\qquad H_{max}=\log K,\qquad H(p)\le0.8H_{max}.
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0813em;">H</span><span class="mopen">(</span><span class="mord mathnormal">p</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.1304em;vertical-align:-1.3021em;"></span><span class="mord">−</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8283em;"><span style="top:-1.8479em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0715em;">K</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.3021em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.0139em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0813em;">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0813em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">ma</span><span class="mord mathnormal mtight">x</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">lo<span style="margin-right:0.0139em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">K</span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0813em;">H</span><span class="mopen">(</span><span class="mord mathnormal">p</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord">0.8</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0813em;">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0813em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">ma</span><span class="mord mathnormal mtight">x</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">.</span></span></span></span></span></p>
+<p>이는 <strong>entropy가 큰 sequence의 상위 20%를 순위로 제거하는 것과 다르다</strong>. Median, bottom-10%-trimmed mean, 10%/20%-below-max entropy alternatives를 validation에서 비교했다. Second stage는 random forest이며 sequence stage와 다른 train-2에서 fit한다.</p>
+<h3 id="toy-example-2">Toy example</h3>
+<p>숫자는 설명용: K=2이면 cutoff=0.8 log2≈0.5545; p=(0.5,0.5)의 entropy≈0.6931은 제외하고 (0.9,0.1)의 entropy≈0.3251은 유지한다. 남은 probabilities (0.9,0.8)의 mean은 0.85다.</p>
+<h3 id="related-figures-2">Related figures</h3>
+<p>Figure 3; Tree SHAP은 category-level patient model에 적용하며 직접 receptor binding의 causal attribution이 아니다.</p>
+<h2 id="4-ensemble-and-evaluation">4. Ensemble and evaluation</h2>
+<h3 id="task-3">Task</h3>
+<p>3 BCR+3 TCR model의 class probabilities를 합친다.</p>
+<h3 id="input-→-output-3">Input → Output</h3>
+<p>Validation-set base predictions → ridge multinomial metamodel → test probabilities.</p>
+<h3 id="intuition-3">Intuition</h3>
+<p>여러 전문가의 답을 합치는 규칙을, 그 전문가가 외운 training 답안이 아니라 별도 validation 예제에서 배운다.</p>
+<h3 id="details-3">Details</h3>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>z</mi><mi>i</mi></msub><mo>=</mo><mo stretchy="false">[</mo><msubsup><mi>p</mi><mi>i</mi><mrow><mi>B</mi><mn>1</mn></mrow></msubsup><mo separator="true">,</mo><msubsup><mi>p</mi><mi>i</mi><mrow><mi>B</mi><mn>2</mn></mrow></msubsup><mo separator="true">,</mo><msubsup><mi>p</mi><mi>i</mi><mrow><mi>B</mi><mn>3</mn></mrow></msubsup><mo separator="true">,</mo><msubsup><mi>p</mi><mi>i</mi><mrow><mi>T</mi><mn>1</mn></mrow></msubsup><mo separator="true">,</mo><msubsup><mi>p</mi><mi>i</mi><mrow><mi>T</mi><mn>2</mn></mrow></msubsup><mo separator="true">,</mo><msubsup><mi>p</mi><mi>i</mi><mrow><mi>T</mi><mn>3</mn></mrow></msubsup><mo stretchy="false">]</mo><mo separator="true">,</mo><mspace width="2em"/><msub><mover accent="true"><mi>p</mi><mo>^</mo></mover><mi>i</mi></msub><mo>=</mo><mrow><mi mathvariant="normal">s</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">x</mi></mrow><mo stretchy="false">(</mo><mi>W</mi><msub><mi>z</mi><mi>i</mi></msub><mo>+</mo><mi>b</mi><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">z_i=[p_i^{B1},p_i^{B2},p_i^{B3},p_i^{T1},p_i^{T2},p_i^{T3}],\qquad \hat p_i=\mathrm{softmax}(Wz_i+b).
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.044em;">z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.044em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.1413em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="top:-2.453em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0502em;">B</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="top:-2.453em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0502em;">B</span><span class="mord mtight">2</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="top:-2.453em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0502em;">B</span><span class="mord mtight">3</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="top:-2.453em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="top:-2.453em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span><span class="mord mtight">2</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="top:-2.453em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span><span class="mord mtight">3</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mclose">]</span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.6944em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal">p</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1667em;"><span class="mord">^</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathrm">softmax</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.1389em;">W</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.044em;">z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.044em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">b</span><span class="mclose">)</span><span class="mord">.</span></span></span></span></span></p>
+<p>위 식은 logistic metamodel의 교육용 표기다. Ridge regularization과 inverse-class-frequency weights를 사용한다. Model 2 abstention은 ensemble에도 전달한다. AUROC/AP는 probability scale이 fold별로 다를 수 있어 fold별 계산 후 요약하고, accuracy용 labels는 concatenate한다. Multiclass overall metric은 class-size-weighted one-vs-one이며 disease별은 one-vs-rest다.</p>
+<h3 id="toy-example-3">Toy example</h3>
+<p>숫자는 설명용: 100 samples 중 3개 abstention이면 나머지의 accuracy가 90/97이어도 전체 accuracy는 90/100이다. AUROC는 abstention probabilities가 없어 그 3개를 제외하므로 accuracy와 분모가 다르다.</p>
+<h3 id="related-figures-3">Related figures</h3>
+<p>Figure 2A–F.</p>
+<h2 id="5-external-and-sequence-validation">5. External and sequence validation</h2>
+<h3 id="task-4">Task</h3>
+<p>새 cohort generalization과 known-binder detection을 별도 시험한다.</p>
+<h3 id="input-→-output-4">Input → Output</h3>
+<p>Independent repertoires / binder databases → sample predictions / sequence enrichment.</p>
+<h3 id="intuition-4">Intuition</h3>
+<p>환자 진단 시험과 항체 하나의 결합 시험은 서로 다른 시험지다.</p>
+<h3 id="details-4">Details</h3>
+<p>External cDNA cohorts는 nomenclature를 재처리하고 일부 held-out external samples로 class decision thresholds를 MCC에 맞춰 조절했다. gDNA TCR analysis는 retraining을 포함한다.</p>
+<p>CoV-AbDab 2023-06-13 snapshot의 known human binders를 igblastp로 annotation하고 BCR 95% identity로 deduplicate한다. Isotype이 없으므로 IgG sequence models를 적용한다. Model 2와 3는 global fold에서 고정된 모델이며 external binder에 새 classifier를 fit한 것이 아니다. Healthy-donor sequences를 donor 단위로 유지한 1,000 permutations와 AUPRC/prevalence fold-change를 사용한다.</p>
+<h3 id="toy-example-4">Toy example</h3>
+<p>숫자는 설명용: binder prevalence=0.1, AUPRC=0.3이면 baseline 대비 3배지만 precision 100%라는 뜻은 아니다. 같은 AUROC여도 prevalence가 바뀌면 precision은 달라질 수 있다.</p>
+<h3 id="related-figures-4">Related figures</h3>
+<p>Figure 4; external-cohort analyses는 Supplementary references 참조.</p>
+<h2 id="implementation-checks-and-discrepancies">Implementation checks and discrepancies</h2>
+<ul>
+<li>550은 patient가 아니라 paired sample 수이며 paired participants는 542명이다.</li>
+<li>Entropy cutoff는 순위 상위 20% 제거가 아니고, primary-cohort TCR branch의 maximum-entropy-relative cutoff다. Primary BCR는 mean이다.</li>
+<li>ESM-2 embedding은 구조/결합을 직접 측정하거나 검증한 좌표가 아니다.</li>
+<li>Results healthy n=220과 Methods n=217의 cohort-accounting 차이는 Supplementary Table 1 audit가 필요하다.</li>
+<li>kBET 평균 rejection 18.2%가 confounding 부재의 증명은 아니며 COVID BCR의 rejection은 더 높다.</li>
+</ul>
+<h2 id="reproduction-and-sources">Reproduction and sources</h2>
+<p><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12061481/">Final-paper Methods</a>, <a href="https://github.com/maximz/malid">official code</a>, <a href="https://synapse.org/malid">processed data</a>.</p>
+<p>Main Methods의 sequencing, split, Models 1–3, ensemble, external evaluation을 확인했다. Supplementary PDF 접근은 browser challenge로 막혔으며, code 전체를 실행하거나 Supplementary Tables를 재검증한 것은 아니다. 환경·classifier 선택은 primary cohort와 재학습 cohort를 구분한다.</p>
+<h2 id="retained-method-illustrations">Retained method illustrations</h2>
+<p>아래 이미지는 기존 노트의 asset이며 일부의 원출처가 미확인이다. 정확한 model 정의는 위의 확인된 Methods를 따른다.</p>
+<p><span class="figure-hidden">이 그림은 저작권 때문에 싣지 않았습니다 · <a href="https://doi.org/10.1126/science.adp2407" rel="noopener">원문에서 보기 →</a></span>
+<span class="figure-hidden">이 그림은 저작권 때문에 싣지 않았습니다 · <a href="https://doi.org/10.1126/science.adp2407" rel="noopener">원문에서 보기 →</a></span>
+<span class="figure-hidden">이 그림은 저작권 때문에 싣지 않았습니다 · <a href="https://doi.org/10.1126/science.adp2407" rel="noopener">원문에서 보기 →</a></span>
+<span class="figure-hidden">이 그림은 저작권 때문에 싣지 않았습니다 · <a href="https://doi.org/10.1126/science.adp2407" rel="noopener">원문에서 보기 →</a></span></p>
+<h2 id="explanatory-figure">Explanatory figure</h2>
+<p>설명 그림 (직접 작성). 숫자는 설명용이며 논문 결과가 아니다. Python으로 toy 계산과 확률 합/threshold를 검산했다.</p>
+<p><span class="figure-hidden">이 그림은 저작권 때문에 싣지 않았습니다 · <a href="https://doi.org/10.1126/science.adp2407" rel="noopener">원문에서 보기 →</a></span></p>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#0-overview">0. Overview</a></li><li class="toc-l2"><a href="#1-qc-and-participant-split">1. QC and participant split</a></li><li class="toc-l3"><a href="#task">Task</a></li><li class="toc-l3"><a href="#input-→-output">Input → Output</a></li><li class="toc-l3"><a href="#intuition">Intuition</a></li><li class="toc-l3"><a href="#details">Details</a></li><li class="toc-l3"><a href="#toy-example">Toy example</a></li><li class="toc-l3"><a href="#related-figures">Related figures</a></li><li class="toc-l2"><a href="#2-three-representations">2. Three representations</a></li><li class="toc-l3"><a href="#task-1">Task</a></li><li class="toc-l3"><a href="#input-→-output-1">Input → Output</a></li><li class="toc-l3"><a href="#intuition-1">Intuition</a></li><li class="toc-l3"><a href="#details-1">Details</a></li><li class="toc-l3"><a href="#toy-example-1">Toy example</a></li><li class="toc-l3"><a href="#related-figures-1">Related figures</a></li><li class="toc-l2"><a href="#3-sequence-aggregation">3. Sequence aggregation</a></li><li class="toc-l3"><a href="#task-2">Task</a></li><li class="toc-l3"><a href="#input-→-output-2">Input → Output</a></li><li class="toc-l3"><a href="#intuition-2">Intuition</a></li><li class="toc-l3"><a href="#details-2">Details</a></li><li class="toc-l3"><a href="#toy-example-2">Toy example</a></li><li class="toc-l3"><a href="#related-figures-2">Related figures</a></li><li class="toc-l2"><a href="#4-ensemble-and-evaluation">4. Ensemble and evaluation</a></li><li class="toc-l3"><a href="#task-3">Task</a></li><li class="toc-l3"><a href="#input-→-output-3">Input → Output</a></li><li class="toc-l3"><a href="#intuition-3">Intuition</a></li><li class="toc-l3"><a href="#details-3">Details</a></li><li class="toc-l3"><a href="#toy-example-3">Toy example</a></li><li class="toc-l3"><a href="#related-figures-3">Related figures</a></li><li class="toc-l2"><a href="#5-external-and-sequence-validation">5. External and sequence validation</a></li><li class="toc-l3"><a href="#task-4">Task</a></li><li class="toc-l3"><a href="#input-→-output-4">Input → Output</a></li><li class="toc-l3"><a href="#intuition-4">Intuition</a></li><li class="toc-l3"><a href="#details-4">Details</a></li><li class="toc-l3"><a href="#toy-example-4">Toy example</a></li><li class="toc-l3"><a href="#related-figures-4">Related figures</a></li><li class="toc-l2"><a href="#implementation-checks-and-discrepancies">Implementation checks and discrepancies</a></li><li class="toc-l2"><a href="#reproduction-and-sources">Reproduction and sources</a></li><li class="toc-l2"><a href="#retained-method-illustrations">Retained method illustrations</a></li><li class="toc-l2"><a href="#explanatory-figure">Explanatory figure</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/information-entropy/"><span class="kind-dot kind-concept"></span>Information Entropy</a></li><li><a href="/papers/2025-zaslavsky-mal-id/"><span class="kind-dot kind-paper"></span>Mal-ID (Zaslavsky 2025)</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

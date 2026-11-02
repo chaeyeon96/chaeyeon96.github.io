@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mal-ID (Zaslavsky 2025) · Study Wiki</title>
+<meta name="description" content="Bulk BCR/TCR repertoires의 composition, convergent sequence, language-model representation을 결합해 immune states를 분류하는 연구용 framework.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a></p>
+    <div class="paper-meta">
+      
+      <span class="badge">Science</span>
+      <span>2025</span>
+      <span class="muted">method</span>
+      
+    </div>
+    <h1 class="note-title">Mal-ID (Zaslavsky 2025)</h1>
+    <p class="paper-full-title">Disease diagnostics using machine learning of B cell and T cell receptor sequences — Zaslavsky et al.</p>
+    <p class="lead">Bulk BCR/TCR repertoires의 composition, convergent sequence, language-model representation을 결합해 immune states를 분류하는 연구용 framework.</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1126/science.adp2407" rel="noopener">원문 (DOI)</a>
+      <a class="btn btn-small btn-soft" href="/papers/2025-zaslavsky-mal-id-pipeline/">Pipeline 따라가기</a>
+      
+      <span class="license">License · unknown</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/immunology/">Immunology</a><a class="chip chip-link" href="/sections/statistics-and-ml/">Statistics &amp; ML</a></div>
+    <div class="note-body"><div class="callout callout-tip">
+<div class="callout-title"><span class="callout-icon" aria-hidden="true">✦</span>Pipeline</div>
+<div class="callout-body">
+<p><a class="wikilink wikilink-pipeline" href="/papers/2025-zaslavsky-mal-id-pipeline/">2025 Zaslavsky - Mal-ID (Pipeline)</a>에서 participant split, 세 base models, aggregation과 ensemble을 따라간다.</p>
+</div></div>
+<div class="callout callout-note">
+<div class="callout-title"><span class="callout-icon" aria-hidden="true">✎</span>Image provenance</div>
+<div class="callout-body">
+<p>기존 method image 중 논문 그림이 아닌 asset은 출처 미확인 상태를 유지하며 Pipeline으로 옮겼다. 새 공개 사용을 허가한 것으로 보지 않는다.</p>
+</div></div>
+<h2 id="background">Background</h2>
+<p>두 사람의 receptor sequences가 정확히 겹치는 경우는 드물고, 환자의 모든 clone이 disease-specific하지도 않다. Mal-ID는 repertoire 전체의 통계, 비슷한 CDR3 clusters, learned sequence representation을 나누어 학습한 뒤 sample-level evidence를 합친다.</p>
+<h2 id="data">Data</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Input / source</th>
+<th>Scope / type</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Primary cohort blood RNA/PBMC</td>
+<td>실측 bulk IgH/TRB; 전체 593 individuals; 16.2M BCR/23.5M TCR clones</td>
+<td>Six-state classification</td>
+</tr>
+<tr>
+<td>Paired evaluation</td>
+<td>542 individuals의 550 paired samples</td>
+<td>Figure 2; participant-level 3-fold CV</td>
+</tr>
+<tr>
+<td>Independent cDNA cohorts</td>
+<td>외부 COVID-19/healthy repertoire</td>
+<td>Generalization; 일부 threshold adaptation 포함</td>
+</tr>
+<tr>
+<td>Adaptive Biotechnologies gDNA data</td>
+<td>다른 protocol의 TCR repertoires</td>
+<td>모델 재학습을 포함한 별도 평가</td>
+</tr>
+<tr>
+<td>CoV-AbDab / influenza binders / ImmuneCode MIRA</td>
+<td>기존 antigen-associated sequences</td>
+<td>Sequence-level validation, Figure 4/Supplement</td>
+</tr>
+<tr>
+<td>ESM-2 embedding / disease probability</td>
+<td>실측 sequence에서 계산한 features/predictions</td>
+<td>구조·결합을 직접 측정한 값이 아님</td>
+</tr>
+</tbody>
+</table></div>
+<p>Primary groups는 COVID-19, HIV, SLE, T1D, influenza vaccination, healthy다. Six states에 vaccination/healthy도 포함되므로 ‘여섯 질병’이라고 부르지 않는다. Donor, sample, clone, read 수는 서로 다른 분모다.</p>
+<h2 id="figure-1-·-framework">Figure 1 · Framework</h2>
+<p><strong>Context</strong> · 전체 repertoire에는 disease-related clones와 background가 섞여 있다. 서로 다른 요약이 어떤 신호를 포착하고 어떤 단위로 합쳐지는지 보여 준다.</p>
+<p><span class="figure-hidden">이 그림은 저작권 때문에 싣지 않았습니다 · <a href="https://doi.org/10.1126/science.adp2407" rel="noopener">원문에서 보기 →</a></span></p>
+<p><strong>A–B · Inputs and representations</strong></p>
+<ul>
+<li><strong>목적</strong>: 서열에서 어떤 정보를 추출하는가?</li>
+<li><strong>Data &amp; method</strong>: Blood bulk IgH/TRB에 세 representation을 적용한다; <a class="wikilink wikilink-pipeline" href="/papers/2025-zaslavsky-mal-id-pipeline/#2-three-representations">Step 2</a>.</li>
+<li><strong>그림 읽기</strong>: Composition, sequence cluster, ESM-2 embedding의 가지를 구분한다.</li>
+<li><strong>결과와 의미</strong>: 각 representation은 서로 다른 repertoire 특성을 제공한다.</li>
+</ul>
+<p><strong>C–E · Ensemble and validation</strong></p>
+<ul>
+<li><strong>목적</strong>: 어떻게 sample prediction과 해석을 연결하는가?</li>
+<li><strong>Data &amp; method</strong>: 세 BCR·세 TCR models의 probabilities를 ensemble한다; <a class="wikilink wikilink-pipeline" href="/papers/2025-zaslavsky-mal-id-pipeline/#4-ensemble-and-evaluation">Step 4</a>.</li>
+<li><strong>그림 읽기</strong>: Held-out participants, feature interpretation, threshold tuning을 별도 단계로 읽는다.</li>
+<li><strong>결과와 의미</strong>: 여러 immune states를 구분하거나 한 condition의 operating point를 선택할 수 있는 proof of concept다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Sequence-level weak labels와 patient-level diagnosis는 다른 supervision 단위다.</p>
+</blockquote>
+<h2 id="figure-2-·-classification-performance">Figure 2 · Classification performance</h2>
+<p><strong>Context</strong> · Model 구조만으로 성능을 알 수 없으므로 본 적 없는 사람에게 평가한다. Ranking 성능, 최종 label, confidence와 activity association을 분리한다.</p>
+<p><span class="figure-hidden">이 그림은 저작권 때문에 싣지 않았습니다 · <a href="https://doi.org/10.1126/science.adp2407" rel="noopener">원문에서 보기 →</a></span></p>
+<p><strong>A–C · Held-out classification</strong></p>
+<ul>
+<li><strong>목적</strong>: BCR/TCR와 세 모델을 합치면 성능이 개선되는가?</li>
+<li><strong>Data &amp; method</strong>: 542 individuals의 550 paired samples에 participant-level CV를 적용했다; <a class="wikilink wikilink-pipeline" href="/papers/2025-zaslavsky-mal-id-pipeline/#4-ensemble-and-evaluation">Step 4</a>.</li>
+<li><strong>그림 읽기</strong>: A는 sample confusion counts, B는 architecture별 AUROC, C는 class-vs-rest다.</li>
+<li><strong>결과와 의미</strong>: Combined model multiclass AUROC=0.986이며 combined signal이 유리하지만 임상 정확도 98.6%라는 뜻은 아니다.</li>
+</ul>
+<p><strong>D · Probability margin</strong></p>
+<ul>
+<li><strong>목적</strong>: 오류일 때 confidence도 달라지는가?</li>
+<li><strong>Data &amp; method</strong>: Test sample의 top-two probability difference를 비교했다; <a class="wikilink wikilink-pipeline" href="/papers/2025-zaslavsky-mal-id-pipeline/#4-ensemble-and-evaluation">Step 4</a>.</li>
+<li><strong>그림 읽기</strong>: Correct/incorrect groups의 margin 분포를 읽는다.</li>
+<li><strong>결과와 의미</strong>: 오류에서 margin이 작지만 이것만으로 calibrated uncertainty가 증명되지는 않는다.</li>
+</ul>
+<p><strong>E · SLE activity</strong></p>
+<ul>
+<li><strong>목적</strong>: Healthy로 오분류된 SLE는 어떤 특징이 있는가?</li>
+<li><strong>Data &amp; method</strong>: Adult SLE의 BCR-only prediction과 SLEDAI를 비교했다; <a class="wikilink wikilink-pipeline" href="/papers/2025-zaslavsky-mal-id-pipeline/#4-ensemble-and-evaluation">Step 4</a>.</li>
+<li><strong>그림 읽기</strong>: Activity score가 있는 subset의 분포만 비교한다.</li>
+<li><strong>결과와 의미</strong>: 낮은 activity와 misclassification이 연관되지만 오류를 임상적으로 올바른 판정이라고 바꾸어 부르지 않는다.</li>
+</ul>
+<p><strong>F · Operating points</strong></p>
+<ul>
+<li><strong>목적</strong>: Sensitivity와 specificity의 trade-off는 무엇인가?</li>
+<li><strong>Data &amp; method</strong>: Pan-disease model에서 SLE binary decision threshold를 바꿨다; <a class="wikilink wikilink-pipeline" href="/papers/2025-zaslavsky-mal-id-pipeline/#4-ensemble-and-evaluation">Step 4</a>.</li>
+<li><strong>그림 읽기</strong>: 두 강조 operating points를 비교한다.</li>
+<li><strong>결과와 의미</strong>: 97%/86% 또는 84%/95% 등의 선택은 연구 cohort 기준이며 임상 적용에는 prevalence와 독립 검증이 필요하다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · AUROC, accuracy, abstention, clinical operating point를 함께 읽는다.</p>
+</blockquote>
+<h2 id="figure-3-·-ighv-and-isotype-attribution">Figure 3 · IGHV and isotype attribution</h2>
+<p><strong>Context</strong> · 높은 성능이 immunology와 일치하는 신호에서 나오는지 살펴본다. 모델의 feature contribution과 antigen specificity를 혼동하지 않는 것이 핵심이다.</p>
+<p><span class="figure-hidden">이 그림은 저작권 때문에 싣지 않았습니다 · <a href="https://doi.org/10.1126/science.adp2407" rel="noopener">원문에서 보기 →</a></span></p>
+<p><strong>A–C · Viral response features</strong></p>
+<ul>
+<li><strong>목적</strong>: 감염·백신 상태별로 어떤 V/isotype feature가 기여하는가?</li>
+<li><strong>Data &amp; method</strong>: Model 3 patient aggregation에 Tree SHAP을 적용했다; <a class="wikilink wikilink-pipeline" href="/papers/2025-zaslavsky-mal-id-pipeline/#3-sequence-aggregation">Step 3</a>.</li>
+<li><strong>그림 읽기</strong>: COVID-19, HIV, vaccination별 rescaled importance를 읽는다.</li>
+<li><strong>결과와 의미</strong>: 알려진 IGHV와 isotype 맥락을 재현하지만 SHAP은 직접 binding measurement가 아니다.</li>
+</ul>
+<p><strong>D–E · Autoimmune features</strong></p>
+<ul>
+<li><strong>목적</strong>: SLE/T1D에서도 서로 다른 repertoire feature가 있는가?</li>
+<li><strong>Data &amp; method</strong>: Positive samples의 category-level SHAP을 요약했다; <a class="wikilink wikilink-pipeline" href="/papers/2025-zaslavsky-mal-id-pipeline/#3-sequence-aggregation">Step 3</a>.</li>
+<li><strong>그림 읽기</strong>: Gene×isotype별 기여와 condition 간 차이를 비교한다.</li>
+<li><strong>결과와 의미</strong>: SLE의 IGHV4-34 등과 일치하는 해석을 제공하되 모든 우선순위 gene이 validated mechanism은 아니다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · 모델이 알려진 지식과 일치한다는 근거와 새 mechanistic 가설을 분리한다.</p>
+</blockquote>
+<h2 id="figure-4-·-known-antigen-associated-sequences">Figure 4 · Known antigen-associated sequences</h2>
+<p><strong>Context</strong> · 환자 분류가 잘되어도 individual receptor의 binding을 잘 맞히는 것은 아니다. 외부 known-binder sequences로 두 질문을 분리한다.</p>
+<p><span class="figure-hidden">이 그림은 저작권 때문에 싣지 않았습니다 · <a href="https://doi.org/10.1126/science.adp2407" rel="noopener">원문에서 보기 →</a></span></p>
+<p><strong>A–D · Clustering specificity</strong></p>
+<ul>
+<li><strong>목적</strong>: Model 2가 어떤 binder를 찾고 놓치는가?</li>
+<li><strong>Data &amp; method</strong>: CoV-AbDab SARS-CoV-2 binders와 healthy sequences를 fixed clusters에 매칭했다; <a class="wikilink wikilink-pipeline" href="/papers/2025-zaslavsky-mal-id-pipeline/#5-external-and-sequence-validation">Step 5</a>.</li>
+<li><strong>그림 읽기</strong>: V/J/length matching과 추가 85% identity 조건을 구분한다.</li>
+<li><strong>결과와 의미</strong>: 높은 precision과 낮은 recall의 보수적인 detection을 보인다.</li>
+</ul>
+<p><strong>E–G · Language-model ranking</strong></p>
+<ul>
+<li><strong>목적</strong>: Model 3가 알려진 binder에 더 높은 score를 주는가?</li>
+<li><strong>Data &amp; method</strong>: Fixed sequence-level classifiers에 external binders를 입력했다; <a class="wikilink wikilink-pipeline" href="/papers/2025-zaslavsky-mal-id-pipeline/#5-external-and-sequence-validation">Step 5</a>.</li>
+<li><strong>그림 읽기</strong>: Sequence score, AUPRC fold-change, gene별 AUROC는 다른 요약이다.</li>
+<li><strong>결과와 의미</strong>: Binder enrichment를 보이지만 patient AUROC와 달리 sequence-level 성능은 제한적이다.</li>
+</ul>
+<p><strong>H–I · Complementarity</strong></p>
+<ul>
+<li><strong>목적</strong>: Cluster가 놓친 서열에서도 신호가 있는가?</li>
+<li><strong>Data &amp; method</strong>: Model 2가 평가하지 못한 sequences와 matched-precision recall을 비교했다; <a class="wikilink wikilink-pipeline" href="/papers/2025-zaslavsky-mal-id-pipeline/#5-external-and-sequence-validation">Step 5</a>.</li>
+<li><strong>그림 읽기</strong>: No-cluster subset의 AUROC와 V gene별 recall 차이를 읽는다.</li>
+<li><strong>결과와 의미</strong>: Language representation이 detection 범위를 넓히지만 false positives도 함께 증가할 수 있다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Disease classification 성공을 antigen-binding predictor의 완성으로 해석하지 않는다.</p>
+</blockquote>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li>Disease class, treatment, age, sampling time와 protocol의 상관을 완전히 제거했다고 할 수 없다. kBET 결과만으로 batch confounding 부재를 증명하지 않는다.</li>
+<li>External validation에는 threshold adaptation 또는 별도 retraining이 포함된 경우가 있으므로 모두 zero-shot validation으로 묶지 않는다.</li>
+<li>TCR는 HLA context에 의존하고, receptor 하나의 sequence score는 paired receptor 구조나 실제 antigen-binding 실험을 대신하지 못한다.</li>
+<li>Closed-set classes 밖의 disease, comorbidity, 낮은 activity, clinical prevalence 변화는 별도 검증이 필요하다.</li>
+<li>Healthy count가 Results 220, Methods 217로 달리 기재돼 있다. Overall 593과 paired 542/550의 분모를 그대로 구분하고 Supplementary Table 1로 cohort accounting을 확정해야 한다.</li>
+</ul>
+<h2 id="data-and-code">Data &amp; Code</h2>
+<ul>
+<li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12061481/">Final Science article author manuscript / Methods</a></li>
+<li><a href="https://github.com/maximz/malid">Code</a>; <a href="https://synapse.org/malid">processed data</a></li>
+<li>SRA: <strong>PRJNA486667, PRJNA491287, PRJNA1147802</strong>.</li>
+<li>Final-paper Methods를 확인했다. Supplementary PDF는 접근 시 browser challenge가 반환되어 전체 열람하지 못했다; 그 내용을 읽었다고 간주하지 않는다.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li>
+<p><a class="wikilink wikilink-concept" href="/concepts/b-cell-and-bcr/">B Cell and BCR</a> · <a class="wikilink wikilink-concept" href="/concepts/t-cell-and-tcr/">T Cell and TCR</a> · <a class="wikilink wikilink-concept" href="/concepts/clonotype-and-cdr/">Clonotype and CDR</a> · <a class="wikilink wikilink-concept" href="/concepts/somatic-hypermutation/">Somatic Hypermutation</a> · <a class="wikilink wikilink-concept" href="/concepts/class-switch-recombination/">Class Switch Recombination</a> · <a class="wikilink wikilink-concept" href="/concepts/hla-restriction/">HLA Restriction</a></p>
+</li>
+<li>
+<p><a class="wikilink wikilink-concept" href="/concepts/logistic-regression/">Logistic Regression</a> · <a class="wikilink wikilink-concept" href="/concepts/pca/">PCA</a> · <a class="wikilink wikilink-concept" href="/concepts/shap/">SHAP</a> · <a class="wikilink wikilink-concept" href="/concepts/confusion-matrix/">Confusion Matrix</a> · <a class="wikilink wikilink-concept" href="/concepts/batch-correction/">Batch Correction</a> (kBET)</p>
+</li>
+<li>
+<p><a class="wikilink wikilink-concept" href="/concepts/information-entropy/">Information Entropy</a></p>
+</li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#background">Background</a></li><li class="toc-l2"><a href="#data">Data</a></li><li class="toc-l2"><a href="#figure-1-·-framework">Figure 1 · Framework</a></li><li class="toc-l2"><a href="#figure-2-·-classification-performance">Figure 2 · Classification performance</a></li><li class="toc-l2"><a href="#figure-3-·-ighv-and-isotype-attribution">Figure 3 · IGHV and isotype attribution</a></li><li class="toc-l2"><a href="#figure-4-·-known-antigen-associated-sequences">Figure 4 · Known antigen-associated sequences</a></li><li class="toc-l2"><a href="#limitations">Limitations</a></li><li class="toc-l2"><a href="#data-and-code">Data &amp;amp; Code</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/b-cell-and-bcr/"><span class="kind-dot kind-concept"></span>B Cell and BCR</a></li><li><a href="/concepts/batch-correction/"><span class="kind-dot kind-concept"></span>Batch Correction</a></li><li><a href="/concepts/class-switch-recombination/"><span class="kind-dot kind-concept"></span>Class Switch Recombination (CSR)</a></li><li><a href="/concepts/clonotype-and-cdr/"><span class="kind-dot kind-concept"></span>Clonotype and CDR</a></li><li><a href="/concepts/confusion-matrix/"><span class="kind-dot kind-concept"></span>Confusion Matrix</a></li><li><a href="/concepts/hla-restriction/"><span class="kind-dot kind-concept"></span>HLA Restriction</a></li><li><a href="/concepts/information-entropy/"><span class="kind-dot kind-concept"></span>Information Entropy</a></li><li><a href="/concepts/logistic-regression/"><span class="kind-dot kind-concept"></span>Logistic Regression</a></li><li><a href="/concepts/pca/"><span class="kind-dot kind-concept"></span>PCA (Principal Component Analysis)</a></li><li><a href="/concepts/shap/"><span class="kind-dot kind-concept"></span>SHAP (Shapley Additive Explanations)</a></li><li><a href="/concepts/somatic-hypermutation/"><span class="kind-dot kind-concept"></span>Somatic Hypermutation (SHM)</a></li><li><a href="/concepts/t-cell-and-tcr/"><span class="kind-dot kind-concept"></span>T Cell and TCR</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PALMO (Vasaikar 2023) · Study Wiki</title>
+<meta name="description" content="Longitudinal multi-omics의 variation을 donor, time, cell type 관점으로 나누고 안정적인 feature와 개인별 변화·outlier를 찾는 다섯 module의 platform.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a></p>
+    <div class="paper-meta">
+      
+      <span class="badge">Nature Communications</span>
+      <span>2023</span>
+      <span class="muted">method</span>
+      
+    </div>
+    <h1 class="note-title">PALMO (Vasaikar 2023)</h1>
+    <p class="paper-full-title">A comprehensive platform for analyzing longitudinal multi-omics data — Vasaikar et al.</p>
+    <p class="lead">Longitudinal multi-omics의 variation을 donor, time, cell type 관점으로 나누고 안정적인 feature와 개인별 변화·outlier를 찾는 다섯 module의 platform.</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1038/s41467-023-37432-w" rel="noopener">원문 (DOI)</a>
+      <a class="btn btn-small btn-soft" href="/papers/2023-vasaikar-palmo-pipeline/">Pipeline 따라가기</a>
+      
+      <span class="license">License · CC BY 4.0</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/single-cell-analysis/">Single-cell Analysis</a><a class="chip chip-link" href="/sections/statistics-and-ml/">Statistics &amp; ML</a></div>
+    <div class="note-body"><div class="callout callout-tip">
+<div class="callout-title"><span class="callout-icon" aria-hidden="true">✦</span>Method walkthrough</div>
+<div class="callout-body">
+<p><a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/">2023 Vasaikar - PALMO (Pipeline)</a>에서 입력 정리, VDA, CVP, SPECT, ODA, TCA를 수식과 손계산으로 따라간다.</p>
+</div></div>
+<div class="callout callout-info">
+<div class="callout-title"><span class="callout-icon" aria-hidden="true">ℹ</span>Project connection</div>
+<div class="callout-body">
+<p>같은 환자를 여러 시점에 잰 longitudinal data를 다룬다. 시간에 따른 변화(TCA)와 variance decomposition(VDA)이 프로젝트의 longitudinal 분석에 참고가 된다.</p>
+</div></div>
+<h2 id="background">Background</h2>
+<p>Longitudinal data에서는 사람 사이의 차이와 같은 사람의 시간 변화가 섞인다. Single-cell data에는 cell type 구성과 sparse measurement까지 더해진다. PALMO는 하나의 통합 prediction model이 아니라, 연구 질문에 따라 선택하는 다섯 analytical module이며 pseudobulk와 개인별 분석으로 계산 복잡도를 줄인다.</p>
+<h2 id="data">Data</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Dataset / source</th>
+<th>Measurement and scale</th>
+<th>Role / figure</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>자체 healthy cohort; GSE190992</td>
+<td>Healthy non-smoking Caucasian donor 6명, 25–38세, 여/남 각 3명; 매주 10주, 혈액 60개</td>
+<td>CBC·plasma proteomics, Figure 3 / Supplementary 4</td>
+</tr>
+<tr>
+<td>같은 cohort의 PBMC</td>
+<td>Donor 4명 × week 2–7, 24 samples; flow 27 cell types; scRNA 472,464 cells → 19 cell types, 11,191 genes</td>
+<td>VDA·SPECT, Figures 2, 4, 6</td>
+</tr>
+<tr>
+<td>같은 cohort의 scATAC</td>
+<td>18 samples, 135,566 cells, 294,623 peaks; downstream 14 cell types·24,769 gene scores</td>
+<td>Gene score는 accessibility에서 계산한 proxy; Figures 2, 4G, 6</td>
+</tr>
+<tr>
+<td>Olink plasma</td>
+<td>1,156 assayed proteins; downstream reliable 1,042</td>
+<td>CVP·ODA; denominator 불일치는 Limitations 참고</td>
+</tr>
+<tr>
+<td>CNP0001102; GSE149689; GSE164378</td>
+<td>공개 PBMC scRNA/CITE-seq; 각각 infection cohort·infection cohort·8명 3시점</td>
+<td>External sUMAP·DEG overlap; Figure 4D–I; CNP0001102 환자 4명의 ≥3시점 TCA는 Figure 7</td>
+</tr>
+<tr>
+<td>GSE129788</td>
+<td>Young 8마리(2–3개월), old 8마리(21–23개월), 37,069 mouse brain cells·25 cell types</td>
+<td>Cross-sectional age group 내 replicate를 이용한 SPECT; Figure 5</td>
+</tr>
+<tr>
+<td>GSE156980</td>
+<td>SSc donor 4명, 3시점; CD4/CD8 non-naive TCRβ; 288,597 / 11,739 unique clonotypes</td>
+<td>Frequency를 continuous input으로 VDA; Supplementary 6</td>
+</tr>
+<tr>
+<td>variancePartition tutorial simulation</td>
+<td>200 genes, 100 samples, 25 donors</td>
+<td>Software agreement benchmark; Supplementary 5</td>
+</tr>
+</tbody>
+</table></div>
+<p>원문 Results/Methods 및 Supplementary Figure 1의 data map을 기준으로 했다. Prediction은 VDA variance fractions, stability classes, outlier calls, TCA slopes이며 새로 측정한 molecular data와 구분한다.</p>
+<h2 id="figure-1-·-five-analytical-questions">Figure 1 · Five analytical questions</h2>
+<p><strong>Context</strong> · 같은 longitudinal dataset도 연구 질문에 따라 필요한 요약이 다르다. 이 figure는 data 형식에 따라 어떤 module을 쓰며 어떤 결과를 얻는지 연결한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-vasaikar-palmo-fig1.png" alt="2023 Vasaikar - PALMO Fig1" loading="lazy"><span class="figure-credit">Figure: Vasaikar et al., Nature Communications (2023) · CC BY 4.0</span></span></p>
+<p>Figure: Vasaikar et al., Nature Communications (2023) · CC BY 4.0. Publisher figure image; legend는 아래에서 재구성했다.</p>
+<h3 id="a-·-longitudinal-inputs">A · Longitudinal inputs</h3>
+<ul>
+<li><strong>목적</strong>: 반복 측정과 modality의 관계를 이해한다.</li>
+<li><strong>Data &amp; method</strong>: Cohort 및 bulk/single-cell 입력을 개념적으로 배치했다; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-1-·-input-and-preprocessing">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: 왼쪽 participant-time sampling에서 오른쪽 modality로 따라간다.</li>
+<li><strong>결과와 의미</strong>: 각 modality를 같은 cohort에서 얻었다고 모든 분석이 paired single-cell multiome인 것은 아니다.</li>
+</ul>
+<h3 id="b-·-module-selection">B · Module selection</h3>
+<ul>
+<li><strong>목적</strong>: 데이터 형식에 맞는 분석을 고른다.</li>
+<li><strong>Data &amp; method</strong>: Bulk·single-cell 및 pseudobulk 경로의 개념도; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#overview">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: 분기선과 module 이름을 읽는다.</li>
+<li><strong>결과와 의미</strong>: 다섯 module은 반드시 순서대로 실행하는 직렬 pipeline이 아니다.</li>
+</ul>
+<h3 id="c-·-vda">C · VDA</h3>
+<ul>
+<li><strong>목적</strong>: 어떤 factor가 variance를 설명하는지 묻는다.</li>
+<li><strong>Data &amp; method</strong>: Feature별 mixed model의 variance components; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-2-·-vda">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: 막대의 factor별 몫을 비교한다.</li>
+<li><strong>결과와 의미</strong>: 큰 ICC는 해당 factor와 variation이 관련됨을 뜻하며 원인 증명이 아니다.</li>
+</ul>
+<h3 id="d-·-cvp">D · CVP</h3>
+<ul>
+<li><strong>목적</strong>: Bulk feature의 시간 안정성을 묻는다.</li>
+<li><strong>Data &amp; method</strong>: Donor별 repeated measurement의 CV; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-3-·-cvp">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: 평균과 CV의 scatter를 함께 읽는다.</li>
+<li><strong>결과와 의미</strong>: 작은 CV는 관찰 기간 내 상대적으로 안정적이라는 뜻이다.</li>
+</ul>
+<h3 id="e-·-spect">E · SPECT</h3>
+<ul>
+<li><strong>목적</strong>: 안정성이 cell type에 특이적인지 묻는다.</li>
+<li><strong>Data &amp; method</strong>: Cell type-donor별 pseudobulk CV; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-4-·-spect">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Heatmap의 같은 gene을 여러 cell type에서 비교한다.</li>
+<li><strong>결과와 의미</strong>: 보편적 안정성과 cell type-specific 안정성을 구분한다.</li>
+</ul>
+<h3 id="f-·-oda">F · ODA</h3>
+<ul>
+<li><strong>목적</strong>: 개인에게 비정상 시점이 있었는지 묻는다.</li>
+<li><strong>Data &amp; method</strong>: Donor 내 z-score와 sample별 outlier count; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-5-·-oda">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: 시점별 outlier 수가 기대보다 큰지 읽는다.</li>
+<li><strong>결과와 의미</strong>: 집단 평균에 가려지는 개인 사건을 후보로 제시한다.</li>
+</ul>
+<h3 id="g-·-tca">G · TCA</h3>
+<ul>
+<li><strong>목적</strong>: 시간에 따라 증가·감소하는 gene을 찾는다.</li>
+<li><strong>Data &amp; method</strong>: Donor·cell type별 MAST hurdle model; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-6-·-tca">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: 시간 순서의 expression pattern을 읽는다.</li>
+<li><strong>결과와 의미</strong>: 세 시점 이상에서는 time slope를 검사한다.</li>
+</ul>
+<h3 id="h-·-circos">H · Circos</h3>
+<ul>
+<li><strong>목적</strong>: 여러 feature·cell type·donor의 stability를 비교한다.</li>
+<li><strong>Data &amp; method</strong>: CV를 원형으로 배열한 시각화; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-7-·-validation-and-visualization">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: 색은 CV이며 ring의 modality/participant를 구분한다.</li>
+<li><strong>결과와 의미</strong>: Circos는 별도 통계 검정이 아니라 stability 결과의 표현이다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Variance source, stability, outlier, time trend는 서로 다른 질문이다.</p>
+</blockquote>
+<h2 id="figure-2-·-variance-sources-in-single-cell-omics">Figure 2 · Variance sources in single-cell omics</h2>
+<p><strong>Context</strong> · Module 지도를 실제 healthy cohort에 적용한다. 먼저 시간 변화가 얼마나 큰지 donor와 cell type 차이에 상대적으로 평가해야 뒤의 stability 분석을 해석할 수 있다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-vasaikar-palmo-fig2.png" alt="2023 Vasaikar - PALMO Fig2" loading="lazy"><span class="figure-credit">Figure: Vasaikar et al., Nature Communications (2023) · CC BY 4.0</span></span></p>
+<p>Figure: Vasaikar et al., Nature Communications (2023) · CC BY 4.0. Publisher figure image; legend는 아래에서 재구성했다.</p>
+<h3 id="a-·-rna-variance-fractions">A · RNA variance fractions</h3>
+<ul>
+<li><strong>목적</strong>: scRNA variation의 주된 축을 찾는다.</li>
+<li><strong>Data &amp; method</strong>: 24 PBMC samples·19 cell types·11,191 genes의 pseudobulk VDA; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-2-·-vda">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: x의 donor/week/celltype/residual별 ICC 분포를 비교한다.</li>
+<li><strong>결과와 의미</strong>: ICC &gt;50%인 gene은 donor 10개, week 0개, cell type 4,384개로 cell type 차이가 지배적이다.</li>
+</ul>
+<h3 id="b-·-rna-cell-type-genes">B · RNA cell-type genes</h3>
+<ul>
+<li><strong>목적</strong>: Cell type variance가 큰 gene을 확인한다.</li>
+<li><strong>Data &amp; method</strong>: RNA VDA 상위 gene의 pseudobulk expression; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-2-·-vda">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Cell type별 boxplot과 ICC를 함께 읽는다.</li>
+<li><strong>결과와 의미</strong>: 상위 10개 중 9개가 immune function 관련이며 LILRA4 같은 pDC-associated marker가 포함된다.</li>
+</ul>
+<h3 id="c-·-rna-donor-genes">C · RNA donor genes</h3>
+<ul>
+<li><strong>목적</strong>: Donor 차이의 생물학적 후보를 본다.</li>
+<li><strong>Data &amp; method</strong>: RNA donor-ICC 상위 gene; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-2-·-vda">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: 같은 gene의 donor별 expression을 비교한다.</li>
+<li><strong>결과와 의미</strong>: 상위 10개 중 6개가 X/Y chromosome 관련이므로 donor effect에 sex가 포함될 수 있다.</li>
+</ul>
+<h3 id="d-·-rna-time-genes">D · RNA time genes</h3>
+<ul>
+<li><strong>목적</strong>: 시간 변동의 최대 수준을 확인한다.</li>
+<li><strong>Data &amp; method</strong>: RNA week-ICC 상위 gene; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-2-·-vda">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: 각 시점의 expression과 ICC를 읽는다.</li>
+<li><strong>결과와 의미</strong>: 상위 gene도 ICC ≤3%로 이 healthy cohort의 RNA 변화는 작다.</li>
+</ul>
+<h3 id="e-·-atac-variance-fractions">E · ATAC variance fractions</h3>
+<ul>
+<li><strong>목적</strong>: 다른 modality에서도 구조가 같은지 묻는다.</li>
+<li><strong>Data &amp; method</strong>: 18 samples·14 cell types·24,769 gene scores의 VDA; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-2-·-vda">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: A와 같은 factor 축을 비교한다.</li>
+<li><strong>결과와 의미</strong>: ICC &gt;50%인 gene은 donor 33개, week 0개, cell type 7,847개다.</li>
+</ul>
+<h3 id="f-·-atac-cell-type-genes">F · ATAC cell-type genes</h3>
+<ul>
+<li><strong>목적</strong>: Accessibility의 cell type-associated gene을 본다.</li>
+<li><strong>Data &amp; method</strong>: Gene-score VDA 상위 gene; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-2-·-vda">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Stacked bar의 cell type 몫을 읽는다.</li>
+<li><strong>결과와 의미</strong>: 상위 10개 gene의 ICC는 95–97%이며 SPIB 등 immune-associated gene이 포함된다.</li>
+</ul>
+<h3 id="g-·-atac-donor-genes">G · ATAC donor genes</h3>
+<ul>
+<li><strong>목적</strong>: RNA와 다른 donor 차이를 찾는다.</li>
+<li><strong>Data &amp; method</strong>: Gene-score donor-ICC ranking; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-2-·-vda">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Donor 몫과 residual을 비교한다.</li>
+<li><strong>결과와 의미</strong>: XIST 등 sex-associated gene 외 RHD·GSTM1도 나타나 donor heterogeneity를 반영한다.</li>
+</ul>
+<h3 id="h-·-atac-time-genes">H · ATAC time genes</h3>
+<ul>
+<li><strong>목적</strong>: Chromatin의 시간 variation이 RNA보다 큰지 본다.</li>
+<li><strong>Data &amp; method</strong>: Gene-score week-ICC ranking; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-2-·-vda">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Week 몫을 D의 RNA ICC와 비교한다.</li>
+<li><strong>결과와 의미</strong>: 상위 5개 ICC 32–34%는 RNA 상위 gene보다 크지만 동일한 민감도의 직접 benchmark는 아니다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Healthy cohort에서는 cell type과 donor 차이가 시간 변화보다 크다.</p>
+</blockquote>
+<h3 id="supplementary-6-·-tcr-repertoire">Supplementary 6 · TCR repertoire</h3>
+<p>TCRβ CDR3 peptide의 read fraction을 continuous feature로 사용했다. CD4+에서 donor/time/subtype이 variance &gt;50%를 설명한 clonotype은 각각 6,625/3/41개이고 CD8+는 650/0/1개다. Donor-specific stability는 관찰이지만 disease causality는 입증하지 않았다. <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-1-·-input-and-preprocessing">Frequency construction</a> 참고.</p>
+<h2 id="figure-3-·-protein-stability-and-an-individual-outlier">Figure 3 · Protein stability and an individual outlier</h2>
+<p><strong>Context</strong> · 집단 내 variance가 작더라도 특정 donor의 한 시점에는 변화가 있을 수 있다. CVP로 전반적인 안정성을 보고 ODA로 한 시점의 다수 protein 변화를 검사한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-vasaikar-palmo-fig3.png" alt="2023 Vasaikar - PALMO Fig3" loading="lazy"><span class="figure-credit">Figure: Vasaikar et al., Nature Communications (2023) · CC BY 4.0</span></span></p>
+<p>Figure: Vasaikar et al., Nature Communications (2023) · CC BY 4.0. Publisher figure image; legend는 아래에서 재구성했다.</p>
+<h3 id="a-·-cv-profiles">A · CV profiles</h3>
+<ul>
+<li><strong>목적</strong>: Plasma protein의 시간 안정성을 비교한다.</li>
+<li><strong>Data &amp; method</strong>: 6 donors·10 weeks·1,042 proteins의 NPX CV; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-3-·-cvp">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: x는 평균 NPX, y는 CV; stable 파랑·variable 빨강이다.</li>
+<li><strong>결과와 의미</strong>: Donor별 CV 분포가 다르며 PTID3은 상대적으로 큰 변동을 보인다.</li>
+</ul>
+<h3 id="b-·-variable-proteins">B · Variable proteins</h3>
+<ul>
+<li><strong>목적</strong>: 가장 변하는 protein을 찾는다.</li>
+<li><strong>Data &amp; method</strong>: Median donor CV &gt;5%인 protein 중 top 50; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-3-·-cvp">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Gene-by-donor heatmap의 CV를 비교한다.</li>
+<li><strong>결과와 의미</strong>: 총 413 variable proteins; SNAP23·GRAP2·ARG1·AIFM1·MESD의 median CV는 24.6–27.7%다.</li>
+</ul>
+<h3 id="c-·-stable-proteins">C · Stable proteins</h3>
+<ul>
+<li><strong>목적</strong>: 안정적인 reference 후보를 찾는다.</li>
+<li><strong>Data &amp; method</strong>: Median CV &lt;5%인 protein 중 top 50; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-3-·-cvp">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: B와 반대의 낮은 CV 색을 읽는다.</li>
+<li><strong>결과와 의미</strong>: 총 629 stable proteins; SOD2·NRP2·OSCAR·NRCAM·MIA는 median CV 0.6–0.8%다.</li>
+</ul>
+<h3 id="d-·-outlier-event">D · Outlier event</h3>
+<ul>
+<li><strong>목적</strong>: 한 시점의 outlier protein 수가 기대보다 많은지 검사한다.</li>
+<li><strong>Data &amp; method</strong>: Donor 내 |z|&gt;2.5 count와 binomial test·BH adjustment; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-5-·-oda">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: 위는 양/음 outlier 수, 아래는 sample p-value의 -log10이다.</li>
+<li><strong>결과와 의미</strong>: PTID3 week 6에서 71개 outlier가 보고되어 개인별 perturbation 후보가 된다; denominator·p 표기 차이는 Limitations 참고.</li>
+</ul>
+<h3 id="e-·-protein-examples">E · Protein examples</h3>
+<ul>
+<li><strong>목적</strong>: Outlier가 실제 NPX pattern에도 보이는지 확인한다.</li>
+<li><strong>Data &amp; method</strong>: PTID3 week 6 관련 protein의 longitudinal NPX; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-5-·-oda">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: 같은 donor의 다른 week를 대조한다.</li>
+<li><strong>결과와 의미</strong>: 한 시점의 동반 상승은 immune perturbation과 일치하지만 감염 확진은 아니다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · 평균적인 안정성과 개인별 이상 시점은 함께 볼 필요가 있다.</p>
+</blockquote>
+<p>Supplementary 7의 outlier protein은 adaptive immune response, MHC class II antigen presentation, T-cell activation 등에 연결되고 ssGSEA에서 MYC·IFN-α/γ response 등이 관찰된다. Exploratory pathway 결과이며 clinical event 확인은 별도다.</p>
+<h2 id="figure-4-·-static-genes-as-transferable-features">Figure 4 · STATIC genes as transferable features</h2>
+<p><strong>Context</strong> · Cell type별로 안정적인 gene은 단순 housekeeping gene과 다르다. SPECT로 선택한 feature가 다른 PBMC dataset의 cell identity와 molecular modality를 연결하는지 평가한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-vasaikar-palmo-fig4.png" alt="2023 Vasaikar - PALMO Fig4" loading="lazy"><span class="figure-credit">Figure: Vasaikar et al., Nature Communications (2023) · CC BY 4.0</span></span></p>
+<p>Figure: Vasaikar et al., Nature Communications (2023) · CC BY 4.0. Publisher figure image; legend는 아래에서 재구성했다.</p>
+<h3 id="a-·-static-heatmap">A · STATIC heatmap</h3>
+<ul>
+<li><strong>목적</strong>: 어떤 cell type에서 안정적인지 본다.</li>
+<li><strong>Data &amp; method</strong>: 4 donors ×19 cell types의 CV; 220 selected STATIC 중 93 displayed genes; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-4-·-spect">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: 낮은 CV와 NA 색을 구별한다.</li>
+<li><strong>결과와 의미</strong>: Cell type당 up to 25개를 모아 220 unique genes를 얻었으며 모든 cell type에서 안정적인 gene만 선택한 것이 아니다.</li>
+</ul>
+<h3 id="b-·-representative-markers">B · Representative markers</h3>
+<ul>
+<li><strong>목적</strong>: Cell type-specific pattern을 확인한다.</li>
+<li><strong>Data &amp; method</strong>: T/B/NK/monocyte/DC별 대표 STATIC genes의 CV; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-4-·-spect">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: 각 circos의 gene·donor·cell type을 읽는다.</li>
+<li><strong>결과와 의미</strong>: B의 CD79A/MS4A1, T의 LEF1/CCR7, NK의 PRF1, monocyte의 CD14, DC의 LILRA4처럼 알려진 identity와 맞는다.</li>
+</ul>
+<h3 id="c-·-internal-sumap">C · Internal sUMAP</h3>
+<ul>
+<li><strong>목적</strong>: 220 genes가 자체 cohort 구조를 보존하는지 본다.</li>
+<li><strong>Data &amp; method</strong>: 자체 scRNA-seq의 220-feature UMAP; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-4-·-spect">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: 색은 기존 cell label; 서로 다른 군집을 본다.</li>
+<li><strong>결과와 의미</strong>: Major cell types와 다수 subtype이 분리되지만 UMAP만으로 classification accuracy를 정량화할 수 없다.</li>
+</ul>
+<h3 id="d-·-external-infection-cohort">D · External infection cohort</h3>
+<ul>
+<li><strong>목적</strong>: 외부 cohort에 feature set을 적용한다.</li>
+<li><strong>Data &amp; method</strong>: CNP0001102의 동일 220-feature UMAP; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-4-·-spect">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: 기존 study label을 색으로 읽는다.</li>
+<li><strong>결과와 의미</strong>: Selected features의 전이 가능성을 시각적으로 보인다.</li>
+</ul>
+<h3 id="e-·-second-infection-cohort">E · Second infection cohort</h3>
+<ul>
+<li><strong>목적</strong>: 독립 infection cohort에서도 확인한다.</li>
+<li><strong>Data &amp; method</strong>: GSE149689의 동일 220-feature UMAP; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-4-·-spect">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: D와 같은 분석이며 cohort는 다르다.</li>
+<li><strong>결과와 의미</strong>: 동일 gene set이 주요 PBMC cell types를 구분한다.</li>
+</ul>
+<h3 id="f-·-external-cite-seq">F · External CITE-seq</h3>
+<ul>
+<li><strong>목적</strong>: 다른 PBMC dataset에서도 확인한다.</li>
+<li><strong>Data &amp; method</strong>: GSE164378의 동일 220-feature UMAP; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-4-·-spect">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: 기존 annotation별 separation을 읽는다.</li>
+<li><strong>결과와 의미</strong>: 건강한 PBMC cohort에서도 identity 정보가 유지된다.</li>
+</ul>
+<h3 id="g-·-rna–atac-correspondence">G · RNA–ATAC correspondence</h3>
+<ul>
+<li><strong>목적</strong>: STATIC이 modality 연결에 유용한지 묻는다.</li>
+<li><strong>Data &amp; method</strong>: 14 cell types ×18 matched samples, 252 pseudobulk observations의 Pearson correlation; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-7-·-validation-and-visualization">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: STATIC/HVG/reliable/random density를 비교한다.</li>
+<li><strong>결과와 의미</strong>: 계산 가능한 STATIC 206 genes median r=0.70, HVG 403 genes median r=0.40; random 95% bound=0.399지만 cell type 간 차이가 상관을 주도한다.</li>
+</ul>
+<h3 id="h-·-first-deg-overlap">H · First DEG overlap</h3>
+<ul>
+<li><strong>목적</strong>: 안정적 gene이 disease 변화도 담는지 묻는다.</li>
+<li><strong>Data &amp; method</strong>: CNP0001102의 normal-vs-FLU/COVID DEGs와 STATIC intersection; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-7-·-validation-and-visualization">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Venn 교집합 49/50을 읽는다.</li>
+<li><strong>결과와 의미</strong>: Overlap p=4.8×10⁻²⁶ /1.7×10⁻²⁸로 biomarker 후보 가능성을 보이나 diagnostic validation은 아니다.</li>
+</ul>
+<h3 id="i-·-second-deg-overlap">I · Second DEG overlap</h3>
+<ul>
+<li><strong>목적</strong>: Overlap이 독립 cohort에서도 나타나는지 묻는다.</li>
+<li><strong>Data &amp; method</strong>: GSE149689의 FLU/COVID DEGs와 intersection; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-7-·-validation-and-visualization">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: 교집합 126/86을 읽는다.</li>
+<li><strong>결과와 의미</strong>: Overlap p=4.8×10⁻⁷⁴ /2.1×10⁻⁶¹로 같은 관찰을 지지한다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Healthy stability와 disease responsiveness는 모순이 아니며, STATIC은 cell type별 조건부 stability다.</p>
+</blockquote>
+<h3 id="supplementary-9-·-stability-classes">Supplementary 9 · Stability classes</h3>
+<p>76 donor-cell type 조합, CV cutoff 10% 및 연구 기준 40조합으로 SUV 700, SUS 2,129, VATIC 5,750, STATIC 4,004 genes를 분류했다. VATIC/STATIC은 서로 다른 cell type에서 동시에 성립할 수 있다. SUV는 FOS/FOSB/JUN/KLF9, DUSP1/PPP1R15A, DDIT4, TNFAIP3 등 regulation·activity와 연결되며 SUS에는 ribosomal/ferritin genes가 많다. SUV 57·SUS 501 enriched pathways는 원문 Supplementary Data 3의 보고값이며 전체 workbook을 재분석하지 않았다.</p>
+<h3 id="representative-static-genes">Representative STATIC genes</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Cell type</th>
+<th>Representative genes reported in Figure 4B</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>T</td>
+<td>GIMAP7, LEF1, CD27, CCR7, TSHZ2</td>
+</tr>
+<tr>
+<td>B</td>
+<td>CD79A, MS4A1, TCL1A, CD79B, TNFRSF13C</td>
+</tr>
+<tr>
+<td>NK</td>
+<td>PRF1, FGFBP2, SPON2, CST7, KLRD1</td>
+</tr>
+<tr>
+<td>Monocyte</td>
+<td>CD14, FCN1, MNDA, SERPINA1, SPI1</td>
+</tr>
+<tr>
+<td>DC</td>
+<td>LILRA4, IRF7, FCER1A, SERPINF1, SPIB</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="figure-5-·-static-genes-in-mouse-brain">Figure 5 · STATIC genes in mouse brain</h2>
+<p><strong>Context</strong> · PBMC에서 선택한 전략이 다른 조직에서도 작동하는지 검사한다. 다만 이 mouse dataset은 같은 개체를 추적한 longitudinal study가 아니라 age group 내 서로 다른 mouse를 replicate로 취급한 예다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-vasaikar-palmo-fig5.png" alt="2023 Vasaikar - PALMO Fig5" loading="lazy"><span class="figure-credit">Figure: Vasaikar et al., Nature Communications (2023) · CC BY 4.0</span></span></p>
+<p>Figure: Vasaikar et al., Nature Communications (2023) · CC BY 4.0. Publisher figure image; legend는 아래에서 재구성했다.</p>
+<h3 id="a-·-age-group-cv">A · Age-group CV</h3>
+<ul>
+<li><strong>목적</strong>: 다른 조직의 stability를 본다.</li>
+<li><strong>Data &amp; method</strong>: Young/old 각 8마리·25 cell types의 pseudobulk SPECT; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-4-·-spect">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Age group별 CV heatmap을 비교한다.</li>
+<li><strong>결과와 의미</strong>: Cell type당 up to 25개에서 304 unique STATIC genes를 얻었다.</li>
+</ul>
+<h3 id="b-·-sumap">B · sUMAP</h3>
+<ul>
+<li><strong>목적</strong>: 304 genes가 brain identity를 담는지 본다.</li>
+<li><strong>Data &amp; method</strong>: 37,069 cells의 304-feature UMAP; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-4-·-spect">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: 기존 25 cell type labels를 읽는다.</li>
+<li><strong>결과와 의미</strong>: Major cell-type structure가 유지된다.</li>
+</ul>
+<h3 id="c-·-marker-agreement">C · Marker agreement</h3>
+<ul>
+<li><strong>목적</strong>: 기존 marker와의 일치율을 본다.</li>
+<li><strong>Data &amp; method</strong>: 기존 study marker list와 STATIC intersection; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-4-·-spect">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Cell type별 percentage를 읽는다.</li>
+<li><strong>결과와 의미</strong>: 304 중 299 genes가 기존 marker list에 포함된다.</li>
+</ul>
+<h3 id="d-·-age-related-degs">D · Age-related DEGs</h3>
+<ul>
+<li><strong>목적</strong>: Age-associated 변화와 겹치는지 본다.</li>
+<li><strong>Data &amp; method</strong>: DEGs가 있는 15 cell types의 STATIC 234개와 DEGs 1,113개의 비교; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-4-·-spect">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Venn 교집합은 123이며 234는 STATIC 집합 크기다.</li>
+<li><strong>결과와 의미</strong>: 123 overlaps, p=6.2×10⁻⁷⁷; 기존 메모의 overlap 234는 집합 크기와 혼동한 값이다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · SPECT는 time ordering을 쓰지 않으므로 repeated-condition data에도 적용할 수 있지만 이를 longitudinal evidence라고 부르면 안 된다.</p>
+</blockquote>
+<h2 id="figure-6-·-cross-modality-stability-patterns">Figure 6 · Cross-modality stability patterns</h2>
+<p><strong>Context</strong> · 전체적인 RNA–ATAC correlation과 시간 안정성은 같은 양이 아니다. Family와 cell type별 CV를 나란히 그려 두 modality가 같은 시간 변화를 보이는지 확인한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-vasaikar-palmo-fig6.png" alt="2023 Vasaikar - PALMO Fig6" loading="lazy"><span class="figure-credit">Figure: Vasaikar et al., Nature Communications (2023) · CC BY 4.0</span></span></p>
+<p>Figure: Vasaikar et al., Nature Communications (2023) · CC BY 4.0. Publisher figure image; legend는 아래에서 재구성했다.</p>
+<h3 id="a-·-hla">A · HLA</h3>
+<ul>
+<li><strong>목적</strong>: Family member별 stability가 modality 사이에 일치하는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Healthy cohort HLA genes의 RNA pseudobulk 및 ATAC gene-score CV; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-7-·-validation-and-visualization">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Outer RNA/inner ATAC ring과 donor를 구분하며 grey는 missing/low-cell-count다.</li>
+<li><strong>결과와 의미</strong>: Member·cell type마다 pattern이 다르고 RNA/ATAC stability가 반드시 일치하지 않는다.</li>
+</ul>
+<h3 id="b-·-irf">B · IRF</h3>
+<ul>
+<li><strong>목적</strong>: Family member별 stability가 modality 사이에 일치하는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Healthy cohort IRF genes의 RNA pseudobulk 및 ATAC gene-score CV; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-7-·-validation-and-visualization">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Outer RNA/inner ATAC ring과 donor를 구분하며 grey는 missing/low-cell-count다.</li>
+<li><strong>결과와 의미</strong>: Member·cell type마다 pattern이 다르고 RNA/ATAC stability가 반드시 일치하지 않는다.</li>
+</ul>
+<h3 id="c-·-il">C · IL</h3>
+<ul>
+<li><strong>목적</strong>: Family member별 stability가 modality 사이에 일치하는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Healthy cohort IL genes의 RNA pseudobulk 및 ATAC gene-score CV; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-7-·-validation-and-visualization">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Outer RNA/inner ATAC ring과 donor를 구분하며 grey는 missing/low-cell-count다.</li>
+<li><strong>결과와 의미</strong>: Member·cell type마다 pattern이 다르고 RNA/ATAC stability가 반드시 일치하지 않는다.</li>
+</ul>
+<h3 id="d-·-cxcr/l">D · CXCR/L</h3>
+<ul>
+<li><strong>목적</strong>: Family member별 stability가 modality 사이에 일치하는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Healthy cohort CXCR/L genes의 RNA pseudobulk 및 ATAC gene-score CV; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-7-·-validation-and-visualization">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Outer RNA/inner ATAC ring과 donor를 구분하며 grey는 missing/low-cell-count다.</li>
+<li><strong>결과와 의미</strong>: Member·cell type마다 pattern이 다르고 RNA/ATAC stability가 반드시 일치하지 않는다.</li>
+</ul>
+<h3 id="e-·-jak/stat">E · JAK/STAT</h3>
+<ul>
+<li><strong>목적</strong>: Family member별 stability가 modality 사이에 일치하는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Healthy cohort JAK/STAT genes의 RNA pseudobulk 및 ATAC gene-score CV; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-7-·-validation-and-visualization">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Outer RNA/inner ATAC ring과 donor를 구분하며 grey는 missing/low-cell-count다.</li>
+<li><strong>결과와 의미</strong>: Member·cell type마다 pattern이 다르고 RNA/ATAC stability가 반드시 일치하지 않는다.</li>
+</ul>
+<h3 id="f-·-tnfrsf">F · TNFRSF</h3>
+<ul>
+<li><strong>목적</strong>: Family member별 stability가 modality 사이에 일치하는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Healthy cohort TNFRSF genes의 RNA pseudobulk 및 ATAC gene-score CV; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-7-·-validation-and-visualization">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Outer RNA/inner ATAC ring과 donor를 구분하며 grey는 missing/low-cell-count다.</li>
+<li><strong>결과와 의미</strong>: Member·cell type마다 pattern이 다르고 RNA/ATAC stability가 반드시 일치하지 않는다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Across-cell-type correlation을 within-cell-type longitudinal coupling으로 해석하지 않는다.</p>
+</blockquote>
+<h2 id="figure-7-·-individual-recovery-trajectories">Figure 7 · Individual recovery trajectories</h2>
+<p><strong>Context</strong> · Healthy cohort에서 작은 시간 변동을 본 뒤 disease recovery에서는 변화가 개인마다 다른지 묻는다. TCA는 cohort 평균보다 donor·cell type별 time slope를 분석한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-vasaikar-palmo-fig7.png" alt="2023 Vasaikar - PALMO Fig7" loading="lazy"><span class="figure-credit">Figure: Vasaikar et al., Nature Communications (2023) · CC BY 4.0</span></span></p>
+<p>Figure: Vasaikar et al., Nature Communications (2023) · CC BY 4.0. Publisher figure image; legend는 아래에서 재구성했다.</p>
+<h3 id="a-·-cov-3">A · COV-3</h3>
+<ul>
+<li><strong>목적</strong>: 개인별 recovery-associated trend를 찾는다.</li>
+<li><strong>Data &amp; method</strong>: CNP0001102 41세 female, mild; D1/D4/D16; MAST time slope; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-6-·-tca">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: x=slope, y=-log10 adjusted p, 색=cell type이다.</li>
+<li><strong>결과와 의미</strong>: IFI27(DC), IFI44L(naive B), IGLC3(plasma)의 감소 외 변화가 적다.</li>
+</ul>
+<h3 id="b-·-cov-2">B · COV-2</h3>
+<ul>
+<li><strong>목적</strong>: 개인별 recovery-associated trend를 찾는다.</li>
+<li><strong>Data &amp; method</strong>: CNP0001102 45세 male, mild; D1/D4/D7/D10/D16; MAST time slope; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-6-·-tca">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: x=slope, y=-log10 adjusted p, 색=cell type이다.</li>
+<li><strong>결과와 의미</strong>: Monocyte 18 up genes와 myeloid leukocyte-mediated immunity enrichment(adj p=0.044)가 보고된다.</li>
+</ul>
+<h3 id="c-·-cov-1">C · COV-1</h3>
+<ul>
+<li><strong>목적</strong>: 개인별 recovery-associated trend를 찾는다.</li>
+<li><strong>Data &amp; method</strong>: CNP0001102 15세 male, mild; D1/D4/D16; MAST time slope; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-6-·-tca">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: x=slope, y=-log10 adjusted p, 색=cell type이다.</li>
+<li><strong>결과와 의미</strong>: Cycling plasma에서 11 up/6 down, cycling T에서 7 up/16 down 등 humoral-response-associated 변화가 나타난다.</li>
+</ul>
+<h3 id="d-·-cov-5">D · COV-5</h3>
+<ul>
+<li><strong>목적</strong>: 개인별 recovery-associated trend를 찾는다.</li>
+<li><strong>Data &amp; method</strong>: CNP0001102 85세 female, severe; D1/D7/D13; MAST time slope; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-6-·-tca">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: x=slope, y=-log10 adjusted p, 색=cell type이다.</li>
+<li><strong>결과와 의미</strong>: 다수 cell type에 변화가 있고 memory/naive B의 IFN response enrichment가 관찰된다; age/severity의 인과 효과로 분리한 분석은 아니다.</li>
+</ul>
+<h3 id="e-·-trend-counts">E · Trend counts</h3>
+<ul>
+<li><strong>목적</strong>: 환자별 변화의 범위를 비교한다.</li>
+<li><strong>Data &amp; method</strong>: 같은 TCA에서 BH p&lt;0.05 및 |slope|&gt;0.1인 genes; <a class="wikilink wikilink-pipeline" href="/papers/2023-vasaikar-palmo-pipeline/#step-6-·-tca">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Red up/blue down의 크기를 donor-cell type별 비교한다.</li>
+<li><strong>결과와 의미</strong>: Recovery의 heterogeneity를 보이며 cell 수·power 차이도 함께 고려해야 한다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Longitudinal response는 개인별로 다르며 유의 gene 수만으로 반응 강도를 단정할 수 없다.</p>
+</blockquote>
+<h3 id="supplementary-12-·-tca-versus-pairwise-tests">Supplementary 12 · TCA versus pairwise tests</h3>
+<p>COV-5 activated CD4+ cells에서 D1 vs D7+D13 및 D1+D7 vs D13 비교는 각각 942/1,018 DEGs, 두 결과 overlap 813개였다. TCA의 BH p&lt;0.05 gene 921개 중 두 비교 모두와 겹친 것은 21개다. Figure 7의 |slope|&gt;0.1 filter가 추가된 수와 혼동하지 않는다. 원문 Methods는 Seurat <code>test.use=&quot;MAST&quot;</code>, Supplementary 12 legend는 Wilcoxon이라 comparator test 표기에 불일치가 있다.</p>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li>Small healthy cohort이며 donor·sex·batch가 완전히 독립적이지 않다. VDA fraction은 원인 기여도의 실험적 증명이 아니다.</li>
+<li>Pseudobulk는 계산을 줄이지만 rare cell state 변화를 평균화한다. TCA의 donor별 cell-level model을 population-level replicated inference로 확대하지 않는다.</li>
+<li>CV는 mean과 scale에 의존하며 NPX처럼 log-scale data의 CV는 원래 abundance CV와 다르다. Cutoff 5%/10%는 universal constant가 아니다.</li>
+<li>ODA는 normal z-score와 binomial approximation을 이용한다. 서로 correlated proteins와 적은 timepoints는 calibration에 영향을 줄 수 있다. PTID3 event는 확진된 infection이 아니다.</li>
+<li><strong>Source inconsistencies</strong>: 원문 1,042/1,156을 68%라 썼지만 산술상 약 90.1%; 1.24%의 1,042는 약 12.94이지 19가 아니다. Figure 3D의 raw p=4.46×10⁻²⁸와 본문의 adjusted p=2.7×10⁻²⁶는 구별한다; 전자에 60 samples를 곱하면 2.676×10⁻²⁶로 후자와 반올림 수준에서 맞는다(BH 조정과 양립하는 산술 확인이며 raw-data 재계산은 아님). Expected-count denominator는 미해결이다.</li>
+<li>Figure 6 title은 five families라 쓰지만 A–F는 여섯 group이다. SPECT default groupThreshold=Ndonor×Ncelltype/2=38과 이 연구의 40 기준을 구분한다.</li>
+</ul>
+<h2 id="data-and-code">Data &amp; Code</h2>
+<ul>
+<li><a href="https://www.nature.com/articles/s41467-023-37432-w">Original article, Methods and figure legends</a></li>
+<li><a href="https://static-content.springer.com/esm/art%3A10.1038%2Fs41467-023-37432-w/MediaObjects/41467_2023_37432_MOESM1_ESM.pdf">Supplementary Figures 1–12</a>: 전체 caption 검토; main panels는 publisher images로 시각 검토했다.</li>
+<li><a href="https://github.com/aifimmunology/PALMO">PALMO repository</a>, <a href="https://doi.org/10.5281/zenodo.7549226">archived source</a>.</li>
+<li>GSE190992 processed scRNA/scATAC; raw sequencing phs003203.v1.p1은 dbGaP authorized access 대상이다. CBC/flow/Olink는 Supplementary Data 1. Supplementary spreadsheets 전체 재계산과 package execution은 이번 정리에 포함하지 않았다.</li>
+</ul>
+<h2 id="related-concepts">Related concepts</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/mixed-effects-model/">Mixed Effects Model</a> · <a class="wikilink wikilink-concept" href="/concepts/time-series-expression-patterns/">Time-series Expression Patterns</a> · <a class="wikilink wikilink-concept" href="/concepts/batch-correction/">Batch Correction</a> · <a class="wikilink wikilink-concept" href="/concepts/clonotype-and-cdr/">Clonotype and CDR</a> · <a class="wikilink wikilink-concept" href="/concepts/pseudobulk-analysis/">Pseudobulk Analysis</a> · <a class="wikilink wikilink-concept" href="/concepts/gene-set-enrichment-analysis/">Gene Set Enrichment Analysis</a> · <a class="wikilink wikilink-concept" href="/concepts/gene-set-scoring/">Gene Set Scoring</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#background">Background</a></li><li class="toc-l2"><a href="#data">Data</a></li><li class="toc-l2"><a href="#figure-1-·-five-analytical-questions">Figure 1 · Five analytical questions</a></li><li class="toc-l3"><a href="#a-·-longitudinal-inputs">A · Longitudinal inputs</a></li><li class="toc-l3"><a href="#b-·-module-selection">B · Module selection</a></li><li class="toc-l3"><a href="#c-·-vda">C · VDA</a></li><li class="toc-l3"><a href="#d-·-cvp">D · CVP</a></li><li class="toc-l3"><a href="#e-·-spect">E · SPECT</a></li><li class="toc-l3"><a href="#f-·-oda">F · ODA</a></li><li class="toc-l3"><a href="#g-·-tca">G · TCA</a></li><li class="toc-l3"><a href="#h-·-circos">H · Circos</a></li><li class="toc-l2"><a href="#figure-2-·-variance-sources-in-single-cell-omics">Figure 2 · Variance sources in single-cell omics</a></li><li class="toc-l3"><a href="#a-·-rna-variance-fractions">A · RNA variance fractions</a></li><li class="toc-l3"><a href="#b-·-rna-cell-type-genes">B · RNA cell-type genes</a></li><li class="toc-l3"><a href="#c-·-rna-donor-genes">C · RNA donor genes</a></li><li class="toc-l3"><a href="#d-·-rna-time-genes">D · RNA time genes</a></li><li class="toc-l3"><a href="#e-·-atac-variance-fractions">E · ATAC variance fractions</a></li><li class="toc-l3"><a href="#f-·-atac-cell-type-genes">F · ATAC cell-type genes</a></li><li class="toc-l3"><a href="#g-·-atac-donor-genes">G · ATAC donor genes</a></li><li class="toc-l3"><a href="#h-·-atac-time-genes">H · ATAC time genes</a></li><li class="toc-l3"><a href="#supplementary-6-·-tcr-repertoire">Supplementary 6 · TCR repertoire</a></li><li class="toc-l2"><a href="#figure-3-·-protein-stability-and-an-individual-outlier">Figure 3 · Protein stability and an individual outlier</a></li><li class="toc-l3"><a href="#a-·-cv-profiles">A · CV profiles</a></li><li class="toc-l3"><a href="#b-·-variable-proteins">B · Variable proteins</a></li><li class="toc-l3"><a href="#c-·-stable-proteins">C · Stable proteins</a></li><li class="toc-l3"><a href="#d-·-outlier-event">D · Outlier event</a></li><li class="toc-l3"><a href="#e-·-protein-examples">E · Protein examples</a></li><li class="toc-l2"><a href="#figure-4-·-static-genes-as-transferable-features">Figure 4 · STATIC genes as transferable features</a></li><li class="toc-l3"><a href="#a-·-static-heatmap">A · STATIC heatmap</a></li><li class="toc-l3"><a href="#b-·-representative-markers">B · Representative markers</a></li><li class="toc-l3"><a href="#c-·-internal-sumap">C · Internal sUMAP</a></li><li class="toc-l3"><a href="#d-·-external-infection-cohort">D · External infection cohort</a></li><li class="toc-l3"><a href="#e-·-second-infection-cohort">E · Second infection cohort</a></li><li class="toc-l3"><a href="#f-·-external-cite-seq">F · External CITE-seq</a></li><li class="toc-l3"><a href="#g-·-rna–atac-correspondence">G · RNA–ATAC correspondence</a></li><li class="toc-l3"><a href="#h-·-first-deg-overlap">H · First DEG overlap</a></li><li class="toc-l3"><a href="#i-·-second-deg-overlap">I · Second DEG overlap</a></li><li class="toc-l3"><a href="#supplementary-9-·-stability-classes">Supplementary 9 · Stability classes</a></li><li class="toc-l3"><a href="#representative-static-genes">Representative STATIC genes</a></li><li class="toc-l2"><a href="#figure-5-·-static-genes-in-mouse-brain">Figure 5 · STATIC genes in mouse brain</a></li><li class="toc-l3"><a href="#a-·-age-group-cv">A · Age-group CV</a></li><li class="toc-l3"><a href="#b-·-sumap">B · sUMAP</a></li><li class="toc-l3"><a href="#c-·-marker-agreement">C · Marker agreement</a></li><li class="toc-l3"><a href="#d-·-age-related-degs">D · Age-related DEGs</a></li><li class="toc-l2"><a href="#figure-6-·-cross-modality-stability-patterns">Figure 6 · Cross-modality stability patterns</a></li><li class="toc-l3"><a href="#a-·-hla">A · HLA</a></li><li class="toc-l3"><a href="#b-·-irf">B · IRF</a></li><li class="toc-l3"><a href="#c-·-il">C · IL</a></li><li class="toc-l3"><a href="#d-·-cxcr/l">D · CXCR/L</a></li><li class="toc-l3"><a href="#e-·-jak/stat">E · JAK/STAT</a></li><li class="toc-l3"><a href="#f-·-tnfrsf">F · TNFRSF</a></li><li class="toc-l2"><a href="#figure-7-·-individual-recovery-trajectories">Figure 7 · Individual recovery trajectories</a></li><li class="toc-l3"><a href="#a-·-cov-3">A · COV-3</a></li><li class="toc-l3"><a href="#b-·-cov-2">B · COV-2</a></li><li class="toc-l3"><a href="#c-·-cov-1">C · COV-1</a></li><li class="toc-l3"><a href="#d-·-cov-5">D · COV-5</a></li><li class="toc-l3"><a href="#e-·-trend-counts">E · Trend counts</a></li><li class="toc-l3"><a href="#supplementary-12-·-tca-versus-pairwise-tests">Supplementary 12 · TCA versus pairwise tests</a></li><li class="toc-l2"><a href="#limitations">Limitations</a></li><li class="toc-l2"><a href="#data-and-code">Data &amp;amp; Code</a></li><li class="toc-l2"><a href="#related-concepts">Related concepts</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/batch-correction/"><span class="kind-dot kind-concept"></span>Batch Correction</a></li><li><a href="/concepts/clonotype-and-cdr/"><span class="kind-dot kind-concept"></span>Clonotype and CDR</a></li><li><a href="/concepts/gene-set-enrichment-analysis/"><span class="kind-dot kind-concept"></span>Gene Set Enrichment Analysis</a></li><li><a href="/concepts/gene-set-scoring/"><span class="kind-dot kind-concept"></span>Gene Set Scoring</a></li><li><a href="/concepts/mixed-effects-model/"><span class="kind-dot kind-concept"></span>Mixed Effects Model</a></li><li><a href="/papers/2023-vasaikar-palmo-pipeline/"><span class="kind-dot kind-pipeline"></span>PALMO · Pipeline</a></li><li><a href="/concepts/pseudobulk-analysis/"><span class="kind-dot kind-concept"></span>Pseudobulk Analysis</a></li><li><a href="/concepts/time-series-expression-patterns/"><span class="kind-dot kind-concept"></span>Time-series Expression Patterns</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

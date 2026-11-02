@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CellChat · Study Wiki</title>
+<meta name="description" content="Ligand–receptor 발현을 mass action 법칙 기반 확률 모델로 바꿔 cell group 사이의 통신 확률을 계산하고, permutation으로 유의성을 판단한 뒤 signaling pathway 단위로 해석하는 CCC 도구 (R).">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/single-cell-analysis/">Single-cell Analysis</a></p>
+    <h1 class="note-title">CellChat</h1>
+    <p class="lead">Ligand–receptor 발현을 mass action 법칙 기반 확률 모델로 바꿔 cell group 사이의 통신 확률을 계산하고, permutation으로 유의성을 판단한 뒤 signaling pathway 단위로 해석하는 CCC 도구 (R).</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#single-cell</span><span class="chip chip-tag">#cell-cell-communication</span><span class="chip chip-tag">#ligand-receptor</span><span class="chip chip-tag">#tool</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p>&quot;Sender의 ligand가 많고 receiver의 receptor가 많을수록 대화할 확률이 높다. 단, 무한정 올라가지는 않는다(포화).&quot; 이 생화학 원리를 single-cell 데이터에 맞게 계산합니다.</p>
+<h2 id="자세히">자세히</h2>
+<h3 id="0-입력">0. 입력</h3>
+<ul>
+<li><strong>발현 행렬</strong> (genes × cells): library size 정규화 + <strong>log 변환된 데이터</strong>. Raw count면 <code>normalizeData</code>로 먼저 정규화.</li>
+<li><strong>Cell metadata</strong>: cell group label</li>
+<li>(공간 데이터면) 좌표</li>
+</ul>
+<h3 id="1-전처리">1. 전처리</h3>
+<ul>
+<li><strong>CellChatDB</strong> 선택 (human/mouse). 단순 1:1 쌍이 아니라 <strong>multi-subunit complex</strong>와 cofactor(agonist, antagonist)를 포함한다.</li>
+<li><code>identifyOverExpressedGenes</code>, <code>identifyOverExpressedInteractions</code>: 각 group에서 과발현된 ligand와 receptor만 남겨 계산량을 줄인다.</li>
+</ul>
+<h3 id="2-group-대표-발현값">2. Group 대표 발현값</h3>
+<p>Sparse하고 noisy한 single-cell에서 group 대표값을 어떻게 정하느냐가 결과를 크게 바꾼다.</p>
+<ul>
+<li><strong>triMean</strong> (기본): 이상치에 강함. 적지만 확실한 상호작용을 잡음</li>
+<li><strong>truncatedMean</strong> (<code>trim = 0.1</code> 등): 하위 일부를 잘라 평균. 약한 신호에 대한 민감도 ↑</li>
+</ul>
+<h3 id="3-통신-확률">3. 통신 확률</h3>
+<ul>
+<li>Ligand와 receptor 발현이 높을수록 확률 ↑ (<strong>law of mass action</strong>)</li>
+<li>생체 반응의 포화를 <strong>Hill function</strong>으로 반영</li>
+<li>Agonist, antagonist, co-receptor 효과를 곱해 조정</li>
+</ul>
+<h3 id="4-유의성">4. 유의성</h3>
+<p>Cell group label을 무작위로 섞어 확률을 다시 계산하는 <strong>permutation test</strong>. p &lt; 0.05인 상호작용만 남긴다.</p>
+<h3 id="5-pathway-단위로-묶기">5. Pathway 단위로 묶기</h3>
+<p>L–R 쌍을 WNT, CCL, MHC-II 같은 <strong>signaling pathway</strong>로 묶어 &quot;어떤 경로가 활성화됐나&quot;로 해석한다.</p>
+<h3 id="6-네트워크-분석-social-network-analysis">6. 네트워크 분석 (social network analysis)</h3>
+<ul>
+<li>각 cell group의 역할: <strong>sender, receiver, mediator, influencer</strong> (centrality 지표)</li>
+<li>여러 pathway에 걸친 <strong>outgoing/incoming 패턴</strong> (NMF 기반)</li>
+<li>Pathway 사이의 기능적·구조적 유사도로 묶기</li>
+</ul>
+<h3 id="7-그룹-비교-예-질병-vs-대조">7. 그룹 비교 (예: 질병 vs 대조)</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>층위</th>
+<th>질문</th>
+<th>방법</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>전체</td>
+<td>통신이 전반적으로 많아졌나</td>
+<td>총 interaction 수와 강도 비교 (<code>compareInteractions</code>)</td>
+</tr>
+<tr>
+<td>Cell 쌍</td>
+<td>어느 cell 쌍의 통신이 변했나</td>
+<td>differential interaction heatmap, circle plot</td>
+</tr>
+<tr>
+<td>Pathway</td>
+<td>어떤 경로가 켜지거나 꺼졌나</td>
+<td><code>rankNet</code> (information flow)</td>
+</tr>
+<tr>
+<td>L–R 쌍</td>
+<td>어떤 쌍이 바뀌었나</td>
+<td>bubble plot, DEG 기반 L–R 식별</td>
+</tr>
+</tbody>
+</table></div>
+<p>Sample(환자) 단위 변동을 고려하려면 sample별로 CellChat을 돌린 뒤 결과를 sample 단위로 비교하거나, <a class="wikilink wikilink-concept" href="/concepts/cell-cell-communication/">Tensor-cell2cell</a>과 함께 쓴다.</p>
+<h3 id="공간-데이터-v2">공간 데이터 (v2)</h3>
+<p>물리적 거리가 멀면 확률을 0으로 둔다. 작은 분자 확산 거리인 약 <strong>250 µm</strong>를 기본 기준으로 쓴다.</p>
+<h2 id="evidence-boundaries">Evidence boundaries</h2>
+<p><a class="wikilink wikilink-paper" href="/papers/2024-dunlap-ra-synovium-clonal-associations/">2024 Dunlap - RA Synovium Clonal Associations</a>와 <a class="wikilink wikilink-paper" href="/papers/2025-bolton-jia-synovial-atlas/">2025 Bolton - JIA Synovial Atlas</a>의 inferred communication은 RNA expression 기반이다. Interaction 수·score·pathway 정보량을 직접 측정한 ligand secretion, receptor occupancy, downstream signaling으로 대체해서 읽지 않는다. Spatial proximity나 functional assay는 별도 evidence로 구분한다.</p>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/cell-cell-communication/">Cell-Cell Communication</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/cytokine-and-pathway-activity/">Cytokine and Pathway Activity</a></li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2024-binvignat-ra-disease-activity-pbmc/">2024 Binvignat - RA Disease Activity PBMC</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2024-dunlap-ra-synovium-clonal-associations/">2024 Dunlap - RA Synovium Clonal Associations</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l3"><a href="#0-입력">0. 입력</a></li><li class="toc-l3"><a href="#1-전처리">1. 전처리</a></li><li class="toc-l3"><a href="#2-group-대표-발현값">2. Group 대표 발현값</a></li><li class="toc-l3"><a href="#3-통신-확률">3. 통신 확률</a></li><li class="toc-l3"><a href="#4-유의성">4. 유의성</a></li><li class="toc-l3"><a href="#5-pathway-단위로-묶기">5. Pathway 단위로 묶기</a></li><li class="toc-l3"><a href="#6-네트워크-분석-social-network-analysis">6. 네트워크 분석 (social network analysis)</a></li><li class="toc-l3"><a href="#7-그룹-비교-예-질병-vs-대조">7. 그룹 비교 (예: 질병 vs 대조)</a></li><li class="toc-l3"><a href="#공간-데이터-v2">공간 데이터 (v2)</a></li><li class="toc-l2"><a href="#evidence-boundaries">Evidence boundaries</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/cell-cell-communication/"><span class="kind-dot kind-concept"></span>Cell-Cell Communication (CCC)</a></li><li><a href="/concepts/cytokine-and-pathway-activity/"><span class="kind-dot kind-concept"></span>Cytokine and Pathway Activity</a></li><li><a href="/papers/2025-bolton-jia-synovial-atlas/"><span class="kind-dot kind-paper"></span>JIA Synovial Atlas (Bolton 2025)</a></li><li><a href="/papers/2024-binvignat-ra-disease-activity-pbmc/"><span class="kind-dot kind-paper"></span>RA Disease Activity PBMC (Binvignat 2024)</a></li><li><a href="/papers/2024-dunlap-ra-synovium-clonal-associations/"><span class="kind-dot kind-paper"></span>RA Synovium Clonal Associations (Dunlap 2024)</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

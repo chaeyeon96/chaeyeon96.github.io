@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compound Library · Study Wiki</title>
+<meta name="description" content="Screening 대상이 되는 compound 모음. 실제로 구매하거나 합성할 수 있는 molecule의 structure 목록이다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/ai-drug-discovery/">AI Drug Discovery</a></p>
+    <h1 class="note-title">Compound Library</h1>
+    <p class="lead">Screening 대상이 되는 compound 모음. 실제로 구매하거나 합성할 수 있는 molecule의 structure 목록이다.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#database</span><span class="chip chip-tag">#chemistry</span><span class="chip chip-tag">#screening</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p><a class="wikilink wikilink-concept" href="/concepts/virtual-screening/">Virtual Screening</a>은 &quot;이 목록 중 어떤 compound가 좋을까&quot;를 고르는 일이고, 그 목록이 compound library입니다. Library가 크고 다양할수록 좋은 hit을 찾을 가능성이 커지지만, 계산 비용도 커집니다.</p>
+<h2 id="자세히">자세히</h2>
+<p><strong>대표적인 library</strong> (일반 지식)</p>
+<ul>
+<li><strong>ZINC</strong>: UCSF에서 만든 무료 database. 여러 vendor에서 <strong>구매 가능한</strong> compound를 모아 둔 catalog. Drug-like, lead-like 같은 subset으로 나눠 제공한다. 최신 버전은 수십억 개 규모.</li>
+<li><strong>Enamine</strong>: compound 공급 회사. 재고가 있는 HTS collection과, 주문하면 합성해 주는 make-on-demand(REAL) space가 있다. REAL space는 수십억 개 규모.</li>
+<li><strong>ChEMBL</strong>: library라기보다 <strong>bioactivity database</strong>. 문헌에 보고된 compound와 그 활성 값(IC50 등)을 모아 둔 것. &quot;이미 알려진 active compound&quot;를 확인할 때 쓴다.</li>
+</ul>
+<p><strong>Drug-like filter</strong> (일반 지식)</p>
+<ul>
+<li>Library에서 약이 될 만한 compound만 고르는 기준. 대표적으로 Lipinski's rule of five (분자량 ≤ 500, cLogP ≤ 5, H-bond donor ≤ 5, acceptor ≤ 10).</li>
+<li>Toxicity나 반응성이 의심되는 structural alert(structural liability)를 걸러 내기도 한다.</li>
+</ul>
+<h2 id="왜-중요한가">왜 중요한가</h2>
+<ul>
+<li>Virtual screening의 결과는 <strong>library에 있는 것 안에서만</strong> 나온다. 어떤 library를 쓰느냐가 찾을 수 있는 chemical space를 정한다.</li>
+<li>&quot;In-stock&quot; compound를 쓰면 hit을 바로 구매해 실험할 수 있어 검증 속도가 빠르다.</li>
+<li>Ultra-large library(수억~수십억 개)를 다루는 것이 최근 virtual screening의 큰 흐름이다. (일반 지식)</li>
+</ul>
+<h2 id="논문별-활용">논문별 활용</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a>: HCC screening에는 ZINC의 drug-like compound <strong>6,857,774개</strong>(약 700만)를 사용 (Figure 1A, 2K). 이 library의 상당 부분이 LINCS training compound와 다른 새로운 chemical space였다. IPF screening에는 Enamine HTS library를 쓰고, hit 후보를 structural liability, mutagenicity, cLogP로 걸렀다 (Figure 6G). 새 hit이 기존 anti-HCC compound와 닮지 않았는지는 ChEMBL로 확인했다.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/virtual-screening/">Virtual Screening</a>: library에서 후보를 고르는 과정</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/molecular-fingerprint/">Molecular Fingerprint</a>: library compound를 computer가 다루는 형식</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/hit-to-lead-optimization/">Hit-to-Lead Optimization</a>: library에서 찾은 hit을 개선하는 다음 단계</li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l2"><a href="#왜-중요한가">왜 중요한가</a></li><li class="toc-l2"><a href="#논문별-활용">논문별 활용</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/ecfp/"><span class="kind-dot kind-concept"></span>ECFP</a></li><li><a href="/papers/2026-xing-gps/"><span class="kind-dot kind-paper"></span>GPS (Xing 2026)</a></li><li><a href="/concepts/molecular-fingerprint/"><span class="kind-dot kind-concept"></span>Molecular Fingerprint</a></li><li><a href="/concepts/virtual-screening/"><span class="kind-dot kind-concept"></span>Virtual Screening</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCENIC · Study Wiki</title>
+<meta name="description" content="Single-cell 데이터에서 어떤 transcription factor(TF)가 활성화되어 어떤 target gene들을 조절하는지 찾는 GRN 추론 도구. Co-expression에 DNA motif 근거를 더해 regulon(TF + target set)을 만들고, cell마다 regulon 활성 점수를 준다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/single-cell-analysis/">Single-cell Analysis</a></p>
+    <h1 class="note-title">SCENIC</h1>
+    <p class="lead">Single-cell 데이터에서 어떤 transcription factor(TF)가 활성화되어 어떤 target gene들을 조절하는지 찾는 GRN 추론 도구. Co-expression에 DNA motif 근거를 더해 regulon(TF + target set)을 만들고, cell마다 regulon 활성 점수를 준다.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#single-cell</span><span class="chip chip-tag">#gene-regulatory-network</span><span class="chip chip-tag">#transcription-factor</span><span class="chip chip-tag">#tool</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p>&quot;TF A가 오를 때 gene B, C, D도 같이 오른다&quot;(상관)에서 그치지 않고, &quot;B, C, D 근처 DNA에 정말 A가 붙을 수 있는 서열이 있다&quot;(motif)까지 확인합니다. 그래서 단순 상관보다 생물학적 근거가 탄탄합니다.</p>
+<h2 id="자세히">자세히</h2>
+<h3 id="3단계">3단계</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>단계</th>
+<th>명령 (pySCENIC)</th>
+<th>하는 일</th>
+<th>출력</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1. Co-expression</strong></td>
+<td><code>pyscenic grn</code></td>
+<td>GRNBoost2(gradient boosting)로 TF 발현이 각 gene 발현을 얼마나 잘 예측하는지 <strong>importance</strong> 계산</td>
+<td><code>adjacencies.tsv</code> (TF, target, importance) — 아직 검증 전</td>
+</tr>
+<tr>
+<td><strong>2. Motif 검증</strong></td>
+<td><code>pyscenic ctx</code></td>
+<td>RcisTarget으로 target gene 주변(예: TSS ±10 kb)에 TF motif가 <strong>유의하게 enriched</strong>된 target만 남김</td>
+<td><code>regulons.csv</code> (검증된 regulon)</td>
+</tr>
+<tr>
+<td><strong>3. 활성 점수</strong></td>
+<td><code>pyscenic aucell</code></td>
+<td>Cell마다 regulon target이 상위 발현 gene에 얼마나 몰렸는지 <strong>AUC</strong> → <a class="wikilink wikilink-concept" href="/concepts/gene-set-scoring/">Gene Set Scoring</a></td>
+<td><code>pyscenic_output.loom</code> (cell × regulon AUC)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="입력">입력</h3>
+<ul>
+<li>발현 행렬 (genes × cells). 너무 낮게 발현되는 gene은 미리 걸러야 결과가 깨끗하다.</li>
+<li>TF 목록 (내장)</li>
+<li>Motif ranking database (<code>.feather</code>, human/mouse 다운로드)</li>
+</ul>
+<h3 id="downstream">Downstream</h3>
+<ul>
+<li><strong>AUC 행렬로 clustering·heatmap</strong>: 발현량 대신 regulon 활성으로 cell을 보기</li>
+<li><strong>RSS (regulon specificity score)</strong>: Jensen–Shannon divergence 기반. 특정 cell type에 특이적인 TF 찾기</li>
+<li><strong>그룹·시간 비교</strong>: 예를 들어 STAT1 regulon 활성이 치료 4주차에 정점, 반응군에서만 FOXP3 regulon 유지 같은 해석 (sample 단위로 요약해 검정)</li>
+</ul>
+<h3 id="실무-주의">실무 주의</h3>
+<ul>
+<li>계산량이 크다. Cell이 많으면 며칠 걸릴 수 있어 <strong>pySCENIC</strong>이 R 버전보다 훨씬 빠르고, cell subsampling도 흔하다.</li>
+<li>GRNBoost2는 random 요소가 있어 여러 번 돌려 안정적인 regulon만 쓰기도 한다 (일반 지식).</li>
+<li>TF 발현은 낮은데 regulon AUC만 높을 수 있다. TF 단백질은 적어도 효율적으로 일한다고 해석한다.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/gene-set-scoring/">Gene Set Scoring</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/cytokine-and-pathway-activity/">Cytokine and Pathway Activity</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/co-expression-network-analysis/">Co-expression Network Analysis</a></li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2025-wang-lifespan-immune-trajectories/">2025 Wang - Lifespan Immune Trajectories</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2024-osorio-scorpion/">2024 Osorio - SCORPION</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2013-glass-panda/">2013 Glass - PANDA</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l3"><a href="#3단계">3단계</a></li><li class="toc-l3"><a href="#입력">입력</a></li><li class="toc-l3"><a href="#downstream">Downstream</a></li><li class="toc-l3"><a href="#실무-주의">실무 주의</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/co-expression-network-analysis/"><span class="kind-dot kind-concept"></span>Co-expression Network Analysis</a></li><li><a href="/concepts/cytokine-and-pathway-activity/"><span class="kind-dot kind-concept"></span>Cytokine and Pathway Activity</a></li><li><a href="/concepts/gene-regulatory-network/"><span class="kind-dot kind-concept"></span>Gene Regulatory Network</a></li><li><a href="/concepts/gene-set-scoring/"><span class="kind-dot kind-concept"></span>Gene Set Scoring</a></li><li><a href="/papers/2025-wang-lifespan-immune-trajectories/"><span class="kind-dot kind-paper"></span>Lifespan Immune Trajectories (Wang 2025)</a></li><li><a href="/papers/2013-glass-panda/"><span class="kind-dot kind-paper"></span>PANDA (2013 Glass)</a></li><li><a href="/papers/2024-osorio-scorpion/"><span class="kind-dot kind-paper"></span>SCORPION</a></li><li><a href="/concepts/scrna-seq-workflow/"><span class="kind-dot kind-concept"></span>scRNA-seq Workflow</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

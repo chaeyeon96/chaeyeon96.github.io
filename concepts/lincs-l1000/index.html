@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LINCS L1000 · Study Wiki</title>
+<meta name="description" content="수만 개의 compound와 genetic perturbation을 여러 cell line에 처리하고 gene expression 변화를 측정한 대규모 perturbation transcriptomics database. Connectivity Map의 확장판이다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/ai-drug-discovery/">AI Drug Discovery</a></p>
+    <h1 class="note-title">LINCS L1000</h1>
+    <p class="lead">수만 개의 compound와 genetic perturbation을 여러 cell line에 처리하고 gene expression 변화를 측정한 대규모 perturbation transcriptomics database. Connectivity Map의 확장판이다.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#database</span><span class="chip chip-tag">#transcriptomics</span><span class="chip chip-tag">#perturbation</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p>&quot;이 compound를 이 cell에 넣으면 어떤 gene이 오르고 내리나&quot;를 엄청나게 많이 측정해 둔 표입니다. <a class="wikilink wikilink-concept" href="/concepts/signature-reversal/">Signature Reversal</a>에서 drug signature를 가져오는 대표적인 출처이고, AI model의 training data로도 많이 쓰입니다.</p>
+<h2 id="자세히">자세히</h2>
+<p><strong>L1000 assay</strong> (일반 지식)</p>
+<ul>
+<li>전체 transcriptome 대신 대표 gene <strong>978개</strong>(landmark genes)만 직접 측정해 비용을 크게 낮췄다.</li>
+<li>나머지 약 1만 개 gene은 landmark gene으로부터 계산으로 추정(inferred)한다.</li>
+<li>그래서 측정 gene 수와 신뢰할 수 있는 gene 수가 다르다는 점을 알고 써야 한다.</li>
+</ul>
+<p><strong>규모와 구성</strong> (일반 지식)</p>
+<ul>
+<li>NIH LINCS program의 일부. Broad Institute가 생산 (Subramanian et al., <em>Cell</em> 2017).</li>
+<li>Perturbation 종류: small molecule compound, shRNA knockdown, CRISPR knockout, gene overexpression.</li>
+<li>조건: 여러 cell line × dose × time point. 단, 조합이 고르게 채워져 있지 않다.</li>
+<li>Phase I(GSE92742), Phase II(GSE70138), 이후 2020 release 등으로 나뉜다.</li>
+</ul>
+<p><strong>Data level</strong> (일반 지식)</p>
+<ul>
+<li>Level 3: normalized expression</li>
+<li><strong>Level 4</strong>: replicate별 z-score (control 대비 얼마나 변했나)</li>
+<li><strong>Level 5</strong>: replicate를 합친 consensus signature</li>
+</ul>
+<p><strong>주의할 점</strong></p>
+<ul>
+<li>Replicate 간 재현성이 낮다. <a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a>에 따르면 Phase I level 4 replicate 간 평균 correlation이 약 0.5다 (Figure S1A–B).</li>
+<li>대부분의 compound가 일부 cell line, 주로 10 μM·24 h 같은 특정 조건에서만 측정됐다.</li>
+</ul>
+<h2 id="왜-중요한가">왜 중요한가</h2>
+<ul>
+<li>Drug signature를 대규모로 제공하는 사실상 표준 resource다.</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/signature-reversal/">Signature Reversal</a>, MoA 추정, drug similarity 분석, structure → expression 예측 model 학습에 두루 쓰인다.</li>
+<li>한계: <strong>측정된 compound만</strong> 쓸 수 있다. 그래서 측정되지 않은 compound의 signature를 예측하려는 연구가 이어진다.</li>
+</ul>
+<h2 id="논문별-활용">논문별 활용</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a>: Phase I data(compound effect 18,746개, 978 landmark genes, HEPG2·MCF7·PC3·VCAP)로 GPS를 학습 (Figure 1A). Noise 때문에 Z score ±1.5로 up/down/no effect 3-class로 바꾸고, RCL로 data point를 re-weight했다. Target 추정 검증에는 LINCS shRNA knockdown profile을 사용 (Figure 2J).</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/connectivity-map/">Connectivity Map</a>: LINCS L1000의 전신</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/signature-reversal/">Signature Reversal</a>: LINCS signature의 대표적인 활용</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/disease-signature/">Disease Signature</a>: LINCS signature와 비교하는 대상</li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l2"><a href="#왜-중요한가">왜 중요한가</a></li><li class="toc-l2"><a href="#논문별-활용">논문별 활용</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/connectivity-map/"><span class="kind-dot kind-concept"></span>Connectivity Map (CMap)</a></li><li><a href="/papers/2026-xing-gps/"><span class="kind-dot kind-paper"></span>GPS (Xing 2026)</a></li><li><a href="/papers/2026-xing-gps-pipeline/"><span class="kind-dot kind-pipeline"></span>GPS Pipeline 따라가기</a></li><li><a href="/concepts/mechanism-of-action/"><span class="kind-dot kind-concept"></span>Mechanism of Action (MoA)</a></li><li><a href="/concepts/signature-reversal/"><span class="kind-dot kind-concept"></span>Signature Reversal</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

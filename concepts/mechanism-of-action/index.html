@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mechanism of Action (MoA) · Study Wiki</title>
+<meta name="description" content="Drug이 어떤 분자(target)에 작용해, 어떤 경로를 거쳐 효과를 내는지에 대한 설명.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/ai-drug-discovery/">AI Drug Discovery</a></p>
+    <h1 class="note-title">Mechanism of Action (MoA)</h1>
+    <p class="lead">Drug이 어떤 분자(target)에 작용해, 어떤 경로를 거쳐 효과를 내는지에 대한 설명.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#pharmacology</span><span class="chip chip-tag">#target-identification</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p>&quot;이 compound가 듣는다&quot;는 결과가 있으면, 그다음 질문은 &quot;<strong>왜</strong> 듣는가&quot;입니다. 그 답이 MoA입니다. 예를 들어 &quot;이 drug은 단백질 X를 억제해서 세포 분열을 멈춘다&quot;가 MoA입니다.</p>
+<h2 id="자세히">자세히</h2>
+<p><strong>Mode of action과 구분</strong> (일반 지식)</p>
+<ul>
+<li><strong>Mechanism of action</strong>: 분자 수준. 어떤 target에 어떻게 붙어 무엇을 바꾸는가.</li>
+<li><strong>Mode of action</strong>: 더 넓은 수준. cell이나 tissue에서 어떤 기능적 변화가 일어나는가. 두 용어를 섞어 쓰는 경우도 많다.</li>
+</ul>
+<p><strong>MoA를 밝히는 방법</strong> (일반 지식)</p>
+<ul>
+<li><strong>Target-based</strong>로 시작했다면 target을 이미 알고 있어 MoA 확인이 비교적 쉽다.</li>
+<li><strong>Phenotypic</strong>으로 찾았다면 target을 나중에 찾아야 한다(<strong>target deconvolution</strong>). 방법:
+<ul>
+<li>Affinity-based: compound에 붙는 protein을 직접 끌어낸다 (pull-down, proteomics)</li>
+<li>Genetic: CRISPR/shRNA screen으로 compound 감수성을 바꾸는 gene을 찾는다</li>
+<li><strong>Expression-based</strong>: compound signature를 gene knockdown signature나 MoA가 알려진 drug의 signature와 비교한다 (<a class="wikilink wikilink-concept" href="/concepts/connectivity-map/">Connectivity Map</a>, <a class="wikilink wikilink-concept" href="/concepts/lincs-l1000/">LINCS L1000</a>)</li>
+<li>Structure-based: docking, structure prediction으로 binding 후보를 찾는다</li>
+</ul>
+</li>
+</ul>
+<p><strong>검증</strong></p>
+<ul>
+<li>후보 target을 knockdown·knockout했을 때 같은 phenotype이 나오는지 본다.</li>
+<li>Compound 처리 후 target의 protein level이나 activity가 바뀌는지 본다.</li>
+</ul>
+<h2 id="왜-중요한가">왜 중요한가</h2>
+<ul>
+<li>MoA를 알아야 <a class="wikilink wikilink-concept" href="/concepts/hit-to-lead-optimization/">Hit-to-Lead Optimization</a>의 방향을 정하고, 부작용과 내성을 예측할 수 있다.</li>
+<li>Phenotypic이나 transcriptomics-based screening의 가장 큰 약점이 &quot;MoA를 모른다&quot;는 것이라, 이를 보완하는 방법이 중요하다.</li>
+<li>Small molecule은 보통 여러 protein에 작용하고, off-target effect가 실제 효과의 원인인 경우도 흔하다.</li>
+</ul>
+<h2 id="논문별-활용">논문별 활용</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a>: 예측 expression으로 MoA 단서를 찾는 두 가지를 보여 준다.
+<ul>
+<li><strong>Knockdown 비교</strong>: 20개 target 중 8개에서 inhibitor의 예측 profile이 해당 gene의 shRNA knockdown profile과 유의하게 비슷했다 (Figure 2J).</li>
+<li><strong>SGAR</strong>(structure–gene–activity relationship, 이 논문의 분석법): activity와 연관된 gene을 찾아 <strong>UHRF1</strong>을 후보로 좁히고, knockdown과 western blot으로 확인했다 (Figure 5). 단 direct binding은 증명하지 않았고, 저자들도 AlphaFold 3 같은 structure-based 방법과의 보완을 한계로 꼽았다.</li>
+</ul>
+</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/target-based-vs-phenotypic-screening/">Target-based vs Phenotypic Screening</a>: MoA를 언제 알게 되는지가 두 전략의 큰 차이</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/connectivity-map/">Connectivity Map</a>: expression 기반 MoA 추정 도구</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/hit-to-lead-optimization/">Hit-to-Lead Optimization</a>: MoA 정보가 최적화 방향을 정한다</li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2021-ruiz-multiscale-interactome/">2021 Ruiz - Multiscale Interactome</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l2"><a href="#왜-중요한가">왜 중요한가</a></li><li class="toc-l2"><a href="#논문별-활용">논문별 활용</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/abatacept/"><span class="kind-dot kind-concept"></span>Abatacept</a></li><li><a href="/papers/2026-xing-gps/"><span class="kind-dot kind-paper"></span>GPS (Xing 2026)</a></li><li><a href="/papers/2026-xing-gps-pipeline/"><span class="kind-dot kind-pipeline"></span>GPS Pipeline 따라가기</a></li><li><a href="/concepts/hit-to-lead-optimization/"><span class="kind-dot kind-concept"></span>Hit-to-Lead Optimization</a></li><li><a href="/papers/2021-ruiz-multiscale-interactome/"><span class="kind-dot kind-paper"></span>Multiscale Interactome (Ruiz 2021)</a></li><li><a href="/concepts/network-propagation/"><span class="kind-dot kind-concept"></span>Network Propagation</a></li><li><a href="/concepts/target-based-vs-phenotypic-screening/"><span class="kind-dot kind-concept"></span>Target-based vs Phenotypic Screening</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

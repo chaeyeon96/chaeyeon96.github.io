@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>scNET (Sheinin 2025) · Study Wiki</title>
+<meta name="description" content="scRNA-seq expression, PPI network, cell KNN graph를 함께 학습해 dataset의 맥락을 반영한 gene/cell embedding과 reconstructed expression을 만드는 graph autoencoder.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a></p>
+    <div class="paper-meta">
+      
+      <span class="badge">Nature Methods</span>
+      <span>2025</span>
+      <span class="muted">method</span>
+      
+    </div>
+    <h1 class="note-title">scNET (Sheinin 2025)</h1>
+    <p class="paper-full-title">scNET: learning context-specific gene and cell embeddings by integrating single-cell gene expression data with protein–protein interactions — Sheinin et al.</p>
+    <p class="lead">scRNA-seq expression, PPI network, cell KNN graph를 함께 학습해 dataset의 맥락을 반영한 gene/cell embedding과 reconstructed expression을 만드는 graph autoencoder.</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1038/s41592-025-02627-0" rel="noopener">원문 (DOI)</a>
+      <a class="btn btn-small btn-soft" href="/papers/2025-sheinin-scnet-pipeline/">Pipeline 따라가기</a>
+      
+      <span class="license">License · CC BY-NC-ND 4.0</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/single-cell-analysis/">Single-cell Analysis</a><a class="chip chip-link" href="/sections/statistics-and-ml/">Statistics &amp; ML</a></div>
+    <div class="note-body"><div class="callout callout-tip">
+<div class="callout-title"><span class="callout-icon" aria-hidden="true">✦</span>Pipeline</div>
+<div class="callout-body">
+<p>입력 정렬부터 dual-view encoder, attention, loss, KNN pruning, downstream 분석까지는 <a class="wikilink wikilink-pipeline" href="/papers/2025-sheinin-scnet-pipeline/">2025 Sheinin - scNET (Pipeline)</a>에서 단계별로 설명한다. 수식·설정값·설명용 숫자와 원문 표기 불일치도 그곳에 모았다.</p>
+</div></div>
+<h2 id="prerequisites">Prerequisites</h2>
+<p><a class="wikilink wikilink-concept" href="/concepts/knn-graph/">KNN Graph</a> · <a class="wikilink wikilink-concept" href="/concepts/graph-convolutional-network/">Graph Convolutional Network</a> · <a class="wikilink wikilink-concept" href="/concepts/attention/">Attention</a> · <a class="wikilink wikilink-concept" href="/concepts/leiden-clustering/">Leiden Clustering</a> · <a class="wikilink wikilink-concept" href="/concepts/network-propagation/">Network Propagation</a>. Autoencoder는 입력을 작은 표현으로 바꾼 뒤 입력을 다시 복원하도록 학습하는 신경망이다 (일반 지식).</p>
+<p>KNN graph는 expression이 가까운 cell을 이웃으로 연결한 graph이고, PPI는 protein–protein interaction 관계를 모은 network다 (일반 지식).</p>
+<h2 id="background">Background</h2>
+<p>Expression만으로 gene 사이의 기능적 관계를 찾으려면 여러 cell에서 함께 변하는 패턴이 충분히 관측되어야 한다. 하지만 scRNA-seq에서는 sparse counts와 noise 때문에 이런 패턴이 약해질 수 있다. 반대로 PPI는 이미 알려진 protein 관계를 제공하지만, 특정 cell type이나 condition의 상태를 직접 나타내지는 않는다.</p>
+<p>scNET은 두 정보를 결합한다. 비슷한 cell 사이에서는 expression 정보를 모으고, 연결된 protein 사이에서는 gene 정보를 모은다. 그 결과 gene 관계와 cell 관계를 함께 학습하면서, 초기 KNN graph에서 불필요한 연결도 줄이려는 방법이다. 모든 dataset을 합친 pretrained model을 만드는 것이 아니라, 분석할 dataset에 모델을 학습한다.</p>
+<p>원문은 이 문제를 zero inflation으로 설명한다. <strong>관측된 zero를 모두 missing value로 간주하지는 않는다</strong>. Biological zero와 관측 과정에서 생긴 zero를 개별적으로 판별했다는 결과는 이 논문에 없다.</p>
+<h2 id="data">Data</h2>
+<p>모든 scRNA-seq 입력은 <strong>기존 공개 실측 data</strong>다. 아래 규모는 Methods가 소개한 dataset 크기이며, PPI와 교집합을 취한 최종 학습 gene 수는 아니다. Gene embedding, cell embedding, reconstructed expression과 coembedded network는 이 입력으로부터 계산한 출력이다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Dataset / source</th>
+<th>Measured scope</th>
+<th>Role / figure</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Human malaria-associated B cells · GSE149729</td>
+<td>7,044 cells × 19,374 genes</td>
+<td>Gene embedding evaluation / Figures 2–3</td>
+</tr>
+<tr>
+<td>Mouse visual cortex · GSE102827</td>
+<td>65,540 cells × 25,187 genes</td>
+<td>Scaling and PPI integration / Supplementary Figures 2–5</td>
+</tr>
+<tr>
+<td>Human cancer cell lines · GSE118767</td>
+<td>902 cells × 16,468 genes; H1975/H2228/HCC827</td>
+<td>Clustering / <a href="#fig4gl">Figure 4G–L</a>, <a href="#fig4n">Figure 4N</a></td>
+</tr>
+<tr>
+<td>Mouse embryonic stem cell cycle · E-MTAB-2805</td>
+<td>275 cells × 23,506 genes; G1/G2M/S</td>
+<td>Cell-state clustering / Supplementary Figure 8</td>
+</tr>
+<tr>
+<td>GBM mouse model · GSE156663</td>
+<td>9,175 cells × 18,531 genes; control/P-selectin inhibition</td>
+<td>Expression and CD8 condition analysis / Figure 5, Extended Data Figure 2</td>
+</tr>
+<tr>
+<td>Mouse DRG · GSE59739</td>
+<td>799 cells × 25,334 genes; NF/NP/PEP/TH</td>
+<td>Clustering / <a href="#fig4af">Figure 4A–F</a>, <a href="#fig4m">Figure 4M</a></td>
+</tr>
+<tr>
+<td>Glioma tumor-reactive CD8 · GSE154795</td>
+<td>4,231 cells × 14,202 genes; H-2Kb-SIINFEKL Dext+</td>
+<td>WT/MHCII knockout / Supplementary Figure 9</td>
+</tr>
+<tr>
+<td>Weighted human PPI · ANAT 3.0 reference</td>
+<td>Score≥0.5: 14,136 proteins, 111,790 interactions</td>
+<td>Prior and reconstruction target / Figure 1</td>
+</tr>
+<tr>
+<td>GO / KEGG / disease gene lists</td>
+<td>KEGG pathways with ≥30 expressed genes; 230 disease lists</td>
+<td>Functional evaluation / Figures 2–3</td>
+</tr>
+</tbody>
+</table></div>
+<p>PPI edge를 나눠 평가하는 cross-validation, pathway gene을 나누는 train/test, cell label을 이용한 clustering benchmark는 서로 다른 평가다. 별도 환자 cohort에서 치료 효과를 검증한 연구로 읽지 않는다. 입력 전처리와 최종 행렬 정렬은 <a class="wikilink wikilink-pipeline" href="/papers/2025-sheinin-scnet-pipeline/#1-inputs-and-preprocessing">Pipeline Step 1</a>에 정리했다. 규모·등록번호 출처: <a href="https://www.nature.com/articles/s41592-025-02627-0">원문 Methods와 Data availability</a>.</p>
+<h2 id="figure-1-·-dual-view-autoencoder">Figure 1 · Dual-view autoencoder</h2>
+<p><strong>Context</strong> · Expression과 PPI의 장점을 함께 쓰려면 cell 방향과 gene 방향으로 정보를 주고받아야 한다. 이 도식은 같은 expression matrix를 두 방향에서 처리하고, 서로 다른 출력에 어떤 역할을 맡기는지 보여 준다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2025-sheinin-scnet-fig1.webp" alt="2025 Sheinin - scNET Fig1" loading="lazy"><span class="figure-credit">Figure: Sheinin et al., Nature Methods (2025) · CC BY-NC-ND 4.0</span></span></p>
+<p><strong>Architecture · Inputs, embeddings and reconstruction</strong></p>
+<ul>
+<li><strong>목적</strong> · Cell similarity만으로 smoothing하거나 PPI topology만 학습하는 데서 더 나아가, 두 정보를 함께 반영한 표현을 얻는다.</li>
+<li><strong>Data &amp; method</strong> · 실측 expression에서 만든 feature matrix, cell KNN graph, 기존 PPI를 입력으로 받는 <strong>모델 도식</strong>이다. Cell/gene 방향의 graph convolution을 번갈아 적용하고, 별도 attention과 decoder로 학습한다. <a class="wikilink wikilink-pipeline" href="/papers/2025-sheinin-scnet-pipeline/#2-dual-view-encoder">Encoder</a>, <a class="wikilink wikilink-pipeline" href="/papers/2025-sheinin-scnet-pipeline/#3-gene-and-cell-attention">attention</a>, <a class="wikilink wikilink-pipeline" href="/papers/2025-sheinin-scnet-pipeline/#4-reconstruction-and-losses">loss</a>를 참고한다.</li>
+<li><strong>그림 읽기</strong> · 왼쪽 점선 상자의 cell convolution 뒤에서 matrix를 transpose하면 gene이 node가 된다. 가운데에서 gene attention은 PPI를, cell attention은 KNN을 사용한다. 오른쪽 위는 gene embedding으로 PPI edge를 복원하는 경로, 가운데는 cell embedding으로 expression을 복원하는 경로, 아래는 attention을 이용해 KNN edge를 줄이는 경로다.</li>
+<li><strong>결과와 의미</strong> · Gene embedding, cell embedding, reconstructed expression, pruned KNN graph가 서로 다른 downstream 입력이다. Reconstructed PPI는 학습의 reconstruction target과 관련된 출력이며, 다음 Figure 3의 coembedded network는 <strong>gene embedding 사이 correlation으로 새로 만든 network</strong>다. 두 network를 같은 것으로 보지 않는다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · scNET은 하나의 cell embedding만 만드는 모델이 아니다. Gene 관계, cell 관계, expression reconstruction을 함께 다룬다.</p>
+</blockquote>
+<p>출처: <a href="https://www.nature.com/articles/s41592-025-02627-0/figures/1">원문 Figure 1</a>. 기존 볼트의 figure를 사용했다.</p>
+<h2 id="figure-2-·-functional-information-in-gene-embeddings">Figure 2 · Functional information in gene embeddings</h2>
+<p><strong>Context</strong> · 모델이 expression과 PPI를 복원하더라도, gene embedding에 생물학적으로 유용한 정보가 담겼는지는 별도 확인이 필요하다. 여기서는 malaria-associated B cell data에서 학습한 gene 표현을 GO annotation 및 gene clustering과 대조한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2025-sheinin-scnet-fig2.webp" alt="2025 Sheinin - scNET Fig2" loading="lazy"><span class="figure-credit">Figure: Sheinin et al., Nature Methods (2025) · CC BY-NC-ND 4.0</span></span></p>
+<p><strong>A · Agreement with GO semantic similarity</strong></p>
+<ul>
+<li><strong>목적</strong> · Embedding에서 가까운 gene이 GO 기능으로도 가까운지 확인한다.</li>
+<li><strong>Data &amp; method</strong> · GSE149729의 B cell expression과 PPI를 통합한 gene embedding에서 gene–gene similarity를 계산하고, 기존 GO annotation에서 얻은 semantic similarity와의 일치도를 평가한다. Semantic similarity는 GO term의 의미상 가까움을 이용한 점수다. <a class="wikilink wikilink-pipeline" href="/papers/2025-sheinin-scnet-pipeline/#6-gene-embeddings-and-coembedded-networks">Pipeline Step 6</a>.</li>
+<li><strong>그림 읽기</strong> · x축은 방법, y축은 GO 관계와 representation 관계의 correlation이다. 분포가 위쪽에 있을수록 기능적 관계와 더 잘 일치한다. 그림의 violin 내부는 box 요약이며, 단순히 GO semantic similarity 자체의 분포로 읽으면 안 된다.</li>
+<li><strong>결과와 의미</strong> · scNET 분포가 비교 방법들보다 높은 방향이다. 본문은 평균 약 0.17을 보고하지만, 이 값은 violin의 중앙선인 median과 다르다. 이는 GO와의 일치도이며, 새 gene 기능이나 직접적인 protein binding을 실험으로 입증한 값은 아니다.</li>
+</ul>
+<p>^fig2a</p>
+<p><strong>B · GO enrichment across gene clusters</strong></p>
+<ul>
+<li><strong>목적</strong> · Gene pair 수준의 일치가 여러 gene을 묶었을 때도 기능적으로 해석 가능한 집단으로 이어지는지 확인한다.</li>
+<li><strong>Data &amp; method</strong> · 같은 B cell data의 scNET, counts, scLINE gene 표현을 K-means로 20–80개 cluster로 나눈 뒤, 하나 이상의 GO term이 유의하게 enriched된 cluster의 비율을 계산한다. <a class="wikilink wikilink-pipeline" href="/papers/2025-sheinin-scnet-pipeline/#6-gene-embeddings-and-coembedded-networks">Pipeline Step 6</a>.</li>
+<li><strong>그림 읽기</strong> · x축은 미리 정한 cluster 수, y축은 GO-enriched cluster 비율이다. 색은 방법이며 높을수록 기능 annotation으로 설명되는 cluster가 많다.</li>
+<li><strong>결과와 의미</strong> · 제시된 모든 K에서 scNET 비율이 counts와 scLINE보다 높다. K를 바꾸어도 이 경향이 유지되지만, cluster 하나가 단일 pathway와 정확히 일치한다는 뜻은 아니다.</li>
+</ul>
+<p><strong>C–E · UMAP views of gene representations</strong></p>
+<ul>
+<li><strong>목적</strong> · B의 정량 평가와 함께 gene 집단의 공간적 구조를 살펴본다.</li>
+<li><strong>Data &amp; method</strong> · 같은 gene들의 counts(C), scLINE(D), scNET(E) 표현을 UMAP으로 표시하고, K=30인 K-means label로 색칠했다. <a class="wikilink wikilink-pipeline" href="/papers/2025-sheinin-scnet-pipeline/#6-gene-embeddings-and-coembedded-networks">Pipeline Step 6</a>.</li>
+<li><strong>그림 읽기</strong> · <strong>점 하나는 cell이 아니라 gene</strong>이다. 색은 GO 정답이 아니라 각 representation에서 얻은 cluster label이다. C는 큰 연속 구조, D는 서로 섞인 색, E는 상대적으로 국소적으로 모인 색을 보여 준다. UMAP 축의 방향과 좌표값은 서로 직접 비교하지 않는다.</li>
+<li><strong>결과와 의미</strong> · E의 gene 집단이 더 잘 구분되어 보이는 것은 B의 기능 enrichment 결과와 함께 해석한다. K-means와 UMAP이 같은 representation에 기반하므로 색 분리만으로 독립적인 기능 검증을 했다고 보지는 않는다 (일반 지식).</li>
+</ul>
+<p><strong>Extended Data Figure 1 · GO prediction</strong> · Gene embedding으로 GO annotation을 예측하는 3-layer MLP를 학습했다. Data에 발현 gene이 50개 이상인 GO term을 대상으로 multilabel cross-entropy와 5-fold cross-validation을 사용했고, AUROC/AUPR로 scGPT·scLINE·DeepImpute와 비교했다. Gene pair 일치도와 다른 평가이며, 별도 이미지는 넣지 않는다.</p>
+<blockquote>
+<p><strong>Takeaway</strong> · Gene embedding의 유용성을 similarity, cluster enrichment, annotation prediction으로 나누어 확인했다.</p>
+</blockquote>
+<p>출처: <a href="https://www.nature.com/articles/s41592-025-02627-0/figures/2">원문 Figure 2</a>, <a href="https://www.nature.com/articles/s41592-025-02627-0/figures/6">Extended Data Figure 1</a>.</p>
+<h2 id="figure-3-·-functional-evaluation-of-coembedded-networks">Figure 3 · Functional evaluation of coembedded networks</h2>
+<p><strong>Context</strong> · Figure 2는 gene 표현에 기능 정보가 담겼는지 확인했다. 이제 embedding에서 gene network를 만들고, 일부 pathway gene만 알려 주었을 때 나머지 구성원을 찾아낼 수 있는지 평가한다. Network가 더 촘촘하거나 hub가 많아서 유리해지는 문제도 함께 다룬다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2025-sheinin-scnet-fig3.webp" alt="2025 Sheinin - scNET Fig3" loading="lazy"><span class="figure-credit">Figure: Sheinin et al., Nature Methods (2025) · CC BY-NC-ND 4.0</span></span></p>
+<p><strong>A · Correlation threshold and modularity</strong></p>
+<ul>
+<li><strong>목적</strong> · Embedding network가 기능 집단을 찾기 좋은 community 구조를 보이는지 살펴본다.</li>
+<li><strong>Data &amp; method</strong> · 같은 B cell dataset의 counts 및 scNET gene embedding에서 pairwise absolute correlation으로 network를 만들고, threshold별 community <a class="wikilink wikilink-concept" href="/concepts/modularity/">Modularity</a>를 비교했다. 본문은 Leiden을 사용했다고 설명한다. <a class="wikilink wikilink-pipeline" href="/papers/2025-sheinin-scnet-pipeline/#6-gene-embeddings-and-coembedded-networks">Pipeline Step 6</a>.</li>
+<li><strong>그림 읽기</strong> · x축은 correlation <strong>percentile threshold</strong>, y축은 modularity다. 이미지에는 50, 75, <strong>90</strong>, 95, 99가 표시되어 있다. 99는 correlation coefficient 0.99가 아니라 상위 약 1%의 pair를 남기는 기준이다.</li>
+<li><strong>결과와 의미</strong> · 표시된 모든 threshold에서 scNET modularity가 더 높고 두 network 모두 99에서 가장 높다. 이후 분석은 99th percentile을 쓴다. Modularity가 높다는 사실만으로 edge 하나하나가 실제 binding이라는 결론은 나오지 않는다.</li>
+</ul>
+<p><strong>B · Example coembedded subnetwork</strong></p>
+<ul>
+<li><strong>목적</strong> · 높은 modularity가 어떤 gene 집단으로 나타나는지 보여 준다.</li>
+<li><strong>Data &amp; method</strong> · A에서 선택한 99th-percentile scNET network의 대표 subnetwork를 시각화했다. <a class="wikilink wikilink-pipeline" href="/papers/2025-sheinin-scnet-pipeline/#6-gene-embeddings-and-coembedded-networks">Pipeline Step 6</a>.</li>
+<li><strong>그림 읽기</strong> · 점은 gene, 선은 embedding correlation으로 남긴 edge, 색은 community다. Oxidative phosphorylation, ribosome, spliceosome, proteasome 등의 기능 label이 표시되어 있다.</li>
+<li><strong>결과와 의미</strong> · 알려진 기능과 관련된 집단이 보인다. 전체 network 중 고른 예시이므로 다음 panel의 정량 평가와 함께 본다.</li>
+</ul>
+<p><strong>C · Recovery of held-out KEGG members</strong></p>
+<ul>
+<li><strong>목적</strong> · Network가 이미 알려 준 gene 주변에서 같은 pathway의 다른 gene을 찾아내는지 확인한다.</li>
+<li><strong>Data &amp; method</strong> · Dataset에서 발현 gene이 ≥30개인 KEGG pathway를 대상으로 구성원 약 2/3를 seed, 1/3을 test로 나눈다. 각 방법의 network에 <a class="wikilink wikilink-concept" href="/concepts/network-propagation/">Network Propagation</a>을 적용해 가려 둔 구성원의 순위를 평가했다. <a class="wikilink wikilink-pipeline" href="/papers/2025-sheinin-scnet-pipeline/#7-network-propagation-and-functional-benchmarks">Pipeline Step 7</a>.</li>
+<li><strong>그림 읽기</strong> · x축은 network를 만든 방법, y축은 AUPR다. 각 분포는 pathway별 평가 결과를 요약하며, 높은 값이 더 좋다. PPI 단독도 비교 대상에 포함되어 있다.</li>
+<li><strong>결과와 의미</strong> · scNET의 AUPR 분포가 비교 방법들보다 높은 방향이다. <strong>그림에는 counts가 별도 방법으로 표시되어 있지 않다</strong>. Counts 비교는 A, D, E에서 확인한다. 이 평가는 pathway membership recovery이며 실제 실험에서 pathway activity를 측정한 결과는 아니다.</li>
+</ul>
+<p><strong>D · Disease gene lists with topology-matched backgrounds</strong></p>
+<ul>
+<li><strong>목적</strong> · 서로 다른 network 크기·degree 구조의 영향을 줄인 뒤, 실제 gene 연결 정보가 주는 이득을 비교한다.</li>
+<li><strong>Data &amp; method</strong> · Disease-associated gene list 230개에서 seed/test 평가를 반복하고, network마다 만든 <strong>30개의 degree-preserving random network</strong>에 대한 AUC 분포로 z-score를 계산했다. <a class="wikilink wikilink-pipeline" href="/papers/2025-sheinin-scnet-pipeline/#7-network-propagation-and-functional-benchmarks">Pipeline Step 7</a>.</li>
+<li><strong>그림 읽기</strong> · x축은 scNET, PPI, counts network, y축은 random background에 비해 AUC가 얼마나 높은지 나타내는 z-score다. Disease list 하나와 network 하나마다 하나의 값이 생긴다.</li>
+<li><strong>결과와 의미</strong> · 본문에 보고된 평균은 scNET 약 7, PPI 약 3, counts 약 0.5다. z-score 7을 AUC 0.7이나 환자 진단 성능으로 해석하지 않는다.</li>
+</ul>
+<p><strong>E · Blood cancer gene lists</strong></p>
+<ul>
+<li><strong>목적</strong> · B cell에서 학습한 network의 이득이 관련 disease gene 집합에서도 보이는지 확인한다.</li>
+<li><strong>Data &amp; method</strong> · D와 같은 평가에서 B cell과 관련된 leukemia·lymphoma 등 <strong>9개 gene list</strong>를 따로 표시했다. <a class="wikilink wikilink-pipeline" href="/papers/2025-sheinin-scnet-pipeline/#7-network-propagation-and-functional-benchmarks">Pipeline Step 7</a>.</li>
+<li><strong>그림 읽기</strong> · 행은 disease list, 막대 색은 network, 가로축은 z-score다. 한 행 안에서 더 긴 막대가 더 높은 recovery 성능을 뜻한다.</li>
+<li><strong>결과와 의미</strong> · 9개 중 6개는 scNET, 나머지 3개는 PPI가 가장 높고 counts는 1위가 없다. Expression과 PPI 통합의 이득은 보이지만 모든 disease list에서 scNET이 우월한 것은 아니다.</li>
+</ul>
+<p><strong>Extended Data Figure 2 · Differential associations around Pdcd1</strong></p>
+<p>GBM data의 control/치료 CD8+ T cell에서 각각 network를 만든 뒤, 한쪽에만 존재하는 edge를 XOR로 남겼다. Pdcd1을 seed로 propagation한 상위 30개 gene에는 Il2ra, Ifng, Cd28, Tnfrsf9, Tnfsf11 등이 포함된다. 이 결과는 <strong>condition 사이에 달라진 network association</strong>이다. XOR만으로 edge가 어느 condition에서 더 강한지 또는 PD-1이 직접 조절하는지 알 수 없으며, control에서의 regulatory role에 관한 문장은 저자의 해석으로 구분한다. <a class="wikilink wikilink-pipeline" href="/papers/2025-sheinin-scnet-pipeline/#7-network-propagation-and-functional-benchmarks">Pipeline Step 7</a>.</p>
+<p>^pdcd1</p>
+<blockquote>
+<p><strong>Takeaway</strong> · Coembedded network는 입력 PPI를 그대로 다시 그린 것이 아니다. Dataset의 expression을 반영한 관계망으로 held-out 기능 구성원을 찾아내는지 평가했다.</p>
+</blockquote>
+<p>출처: <a href="https://www.nature.com/articles/s41592-025-02627-0/figures/3">원문 Figure 3</a>, <a href="https://www.nature.com/articles/s41592-025-02627-0/figures/7">Extended Data Figure 2</a>. Threshold 표기 차이는 <a class="wikilink wikilink-pipeline" href="/papers/2025-sheinin-scnet-pipeline/#표기-불일치-메모">Notation notes</a> 참고.</p>
+<h2 id="figure-4-·-cell-embedding-and-clustering">Figure 4 · Cell embedding and clustering</h2>
+<p><strong>Context</strong> · 앞의 분석은 gene 표현과 gene network에 초점을 맞췄다. 같은 모델의 cell embedding도 유용한지 보려면 cell의 정답 label이 알려진 data가 필요하다. 여기서는 DRG neuron과 혼합 cancer cell line에서 UMAP의 모습과 clustering 정량 점수를 함께 비교한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2025-sheinin-scnet-fig4.webp" alt="2025 Sheinin - scNET Fig4" loading="lazy"><span class="figure-credit">Figure: Sheinin et al., Nature Methods (2025) · CC BY-NC-ND 4.0</span></span></p>
+<p><strong>A–F · DRG neuron representations</strong></p>
+<ul>
+<li><strong>목적</strong> · 학습에 cell label을 주지 않고도 sensory neuron type이 구분되는지 비교한다.</li>
+<li><strong>Data &amp; method</strong> · GSE59739의 799 DRG cells에서 얻은 각 방법의 cell representation을 UMAP으로 표시했다. scGPT와 GeneFormer는 추가 fine-tuning 없이 pretrained model을 적용했다. <a class="wikilink wikilink-pipeline" href="/papers/2025-sheinin-scnet-pipeline/#8-cell-clustering-and-expression-analysis">Pipeline Step 8</a>.</li>
+<li><strong>그림 읽기</strong> · 점은 cell, 색은 ground truth인 NF·NP·PEP·TH다. A=scNET, B=counts, C=scLINE, D=MAGIC, E=scGPT, F=GeneFormer다. A에서 모인 색, B에서 여러 곳으로 갈라진 TH 등의 구조를 확인하고, C·D의 개선 및 E·F의 색 혼합을 비교한다.</li>
+<li><strong>결과와 의미</strong> · scNET에서 cell type별 구조가 더 뚜렷하다. 하지만 각 UMAP의 축 범위·회전·섬 사이 거리는 별개이므로 시각적 분리만으로 순위를 확정하지 않고 M의 ARI를 확인한다.</li>
+</ul>
+<p>^fig4af</p>
+<p><strong>G–L · Cancer cell line representations</strong></p>
+<ul>
+<li><strong>목적</strong> · 같은 cell line이 불필요하게 여러 community로 갈라지는지도 확인한다.</li>
+<li><strong>Data &amp; method</strong> · GSE118767의 902 cells, 세 human cell line(H1975, H2228, HCC827)을 A–F와 같은 방법들로 표현했다. <a class="wikilink wikilink-pipeline" href="/papers/2025-sheinin-scnet-pipeline/#8-cell-clustering-and-expression-analysis">Pipeline Step 8</a>.</li>
+<li><strong>그림 읽기</strong> · 파랑=H1975, 주황=H2228, 초록=HCC827이다. G=scNET, H=counts, I=scLINE, J=MAGIC, K=scGPT, L=GeneFormer다. H·I·J에서는 파란 H1975가 나뉘어 있고 G에서는 하나의 집단으로 모인다. K는 일부 label 구분을 남기지만 섞임이 있으며 L의 혼합은 더 크다.</li>
+<li><strong>결과와 의미</strong> · 이 dataset에서 scNET이 같은 cell line의 분절을 줄였다. 원문 본문의 해당 scNET panel 인용은 4a로 되어 있지만, 그림과 legend에서는 <strong>4g</strong>다.</li>
+</ul>
+<p>^fig4gl</p>
+<p><strong>M · Maximum ARI for DRG</strong></p>
+<ul>
+<li><strong>목적</strong> · A–F의 시각적 차이가 label 일치도로 이어지는지 평가한다.</li>
+<li><strong>Data &amp; method</strong> · DRG의 각 representation에서 Leiden resolution을 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><mn>0</mn><mo separator="true">,</mo><mn>1</mn><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">(0,1]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mclose">]</span></span></span></span> 범위로 바꾸며 ground truth와의 <a class="wikilink wikilink-concept" href="/concepts/adjusted-rand-index/">Adjusted Rand Index</a>를 계산하고 최댓값을 제시했다. <a class="wikilink wikilink-pipeline" href="/papers/2025-sheinin-scnet-pipeline/#8-cell-clustering-and-expression-analysis">Pipeline Step 8</a>.</li>
+<li><strong>그림 읽기</strong> · x축은 방법, y축은 maximum ARI다. 1에 가까울수록 정답 partition과 일치한다. ScNET 막대가 가장 높다.</li>
+<li><strong>결과와 의미</strong> · 주어진 resolution 탐색 범위에서 scNET의 최고 성능이 가장 좋다. 정답 label로 최댓값을 골랐으므로, label이 없는 새 data에서 자동으로 같은 resolution을 선택한다는 결과는 아니다 (일반 지식).</li>
+</ul>
+<p>^fig4m</p>
+<p><strong>N · Maximum ARI for cancer cell lines</strong></p>
+<ul>
+<li><strong>목적</strong> · G–L에서 보인 cell line 구조를 정량적으로 확인한다.</li>
+<li><strong>Data &amp; method</strong> · Cancer cell line dataset에서 M과 동일하게 resolution별 ARI의 최댓값을 비교했다. <a class="wikilink wikilink-pipeline" href="/papers/2025-sheinin-scnet-pipeline/#8-cell-clustering-and-expression-analysis">Pipeline Step 8</a>.</li>
+<li><strong>그림 읽기</strong> · 축과 좋은 방향은 M과 같다. scNET은 가장 높고, scGPT는 DRG에서보다 높은 점수를 보인다. 두 dataset에서 foundation model의 성능을 동일하게 묶어 해석하지 않는다.</li>
+<li><strong>결과와 의미</strong> · ScNET은 두 benchmark 모두에서 가장 높은 maximum ARI를 보였다. 비교는 논문에 사용한 data·pretrained model·zero-shot 조건에 한정하며, fine-tuning한 foundation model의 일반적인 우열을 정하지 않는다.</li>
+</ul>
+<p>^fig4n</p>
+<blockquote>
+<p><strong>Takeaway</strong> · Gene 관계를 함께 학습한 cell embedding이 두 label benchmark에서 좋은 성능을 보였다. UMAP은 구조를 살펴보는 그림이고, 정량 근거는 resolution 탐색을 거친 ARI다.</p>
+</blockquote>
+<p>출처: <a href="https://www.nature.com/articles/s41592-025-02627-0/figures/4">원문 Figure 4</a>.</p>
+<h2 id="figure-5-·-pathway-analysis-with-reconstructed-expression">Figure 5 · Pathway analysis with reconstructed expression</h2>
+<p><strong>Context</strong> · Gene/cell embedding이 유용하더라도 reconstructed expression으로 수행한 해석이 원래 생물학과 맞는지는 별도 확인해야 한다. 이 Figure는 GBM의 알려진 cell marker를 먼저 확인한 뒤, cell type 사이와 같은 cell type의 치료 전후 pathway 차이를 차례로 살펴본다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2025-sheinin-scnet-fig5.webp" alt="2025 Sheinin - scNET Fig5" loading="lazy"><span class="figure-credit">Figure: Sheinin et al., Nature Methods (2025) · CC BY-NC-ND 4.0</span></span></p>
+<p><strong>A · Marker patterns in the GBM microenvironment</strong></p>
+<ul>
+<li><strong>목적</strong> · Reconstruction이 알려진 cell type의 marker 패턴을 유지하는지 확인한다.</li>
+<li><strong>Data &amp; method</strong> · GSE156663의 control/치료를 포함한 GBM dataset에 scNET을 적용하고, reconstructed marker expression을 UMAP 위에 표시했다. <a class="wikilink wikilink-pipeline" href="/papers/2025-sheinin-scnet-pipeline/#8-cell-clustering-and-expression-analysis">Pipeline Step 8</a>.</li>
+<li><strong>그림 읽기</strong> · 점은 cell이다. 첫 그림은 기존 cell type label, 나머지는 각 gene의 reconstructed expression이며 밝을수록 높다. Cd4·Cd8a는 T cell 영역, Cd14는 macrophage 영역, P2ry12는 microglia 영역과 대조한다. Icos·Pdcd1·Mki67·Ncr1도 함께 제시한다. 색 범위는 panel별 표시값이며 원래 UMI count가 아니다. UMAP 좌표를 cell embedding에서 만들었는지 reconstruction에서 다시 계산했는지는 이 figure legend만으로 확정하지 않는다.</li>
+<li><strong>결과와 의미</strong> · 알려진 marker와 cell 영역이 대응한다. Table 1은 marker를 이용한 cell type 구분의 AUPR를 counts·MAGIC·DeepImpute와 비교한다. 이 평가는 알려진 label과의 일치이며, reconstruction된 개별 값을 새 실측으로 검증한 것은 아니다.</li>
+</ul>
+<p><strong>B · Cell-type pathways from reconstructed expression</strong></p>
+<ul>
+<li><strong>목적</strong> · Marker 몇 개를 넘어서 cell 집단의 기능을 pathway 단위로 해석할 수 있는지 확인한다.</li>
+<li><strong>Data &amp; method</strong> · GBM의 T cells, macrophages, microglia, cancer cells에서 reconstructed expression으로 differential expression 및 KEGG enrichment를 수행하고, 각 집단의 상위 20개 pathway를 모아 표시했다. 논문은 GSEA로 기술하며 현재 공개 helper는 Enrichr를 사용한다. <a class="wikilink wikilink-pipeline" href="/papers/2025-sheinin-scnet-pipeline/#8-cell-clustering-and-expression-analysis">Pipeline Step 8</a>.</li>
+<li><strong>그림 읽기</strong> · 열은 cell type, 행은 여러 집단의 상위 pathway를 합친 목록이다. 색이 진할수록 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mi>log</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>P</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">-\log(P)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">−</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.0139em;">g</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="mclose">)</span></span></span></span>가 크고 enrichment의 통계적 근거가 강하다. 이는 expression 자체나 pathway flux를 나타내는 색이 아니다.</li>
+<li><strong>결과와 의미</strong> · T cell의 TCR signaling·Th17 differentiation, microglia의 synapse 관련 pathway, cancer cell의 cell cycle·oxidative phosphorylation 등 알려진 기능에 맞는 패턴이 나타난다. Pathway에 disease 이름이 있어도 그 cell이 해당 disease를 가진다는 뜻은 아니다 (일반 지식).</li>
+</ul>
+<p><strong>C · The same analysis from original expression</strong></p>
+<ul>
+<li><strong>목적</strong> · Reconstruction을 사용했을 때의 pathway 해석이 원래 expression과 어떻게 달라지는지 비교한다.</li>
+<li><strong>Data &amp; method</strong> · B의 비교 분석을 같은 GBM dataset의 original expression으로 수행했다. <a class="wikilink wikilink-pipeline" href="/papers/2025-sheinin-scnet-pipeline/#8-cell-clustering-and-expression-analysis">Pipeline Step 8</a>.</li>
+<li><strong>그림 읽기</strong> · 열과 행의 의미는 B와 같지만, 표시된 pathway 목록·순서와 color scale은 별개다. <strong>B의 최대 색 범위는 50, C는 100</strong>이므로 같은 색의 진하기를 그대로 비교하면 안 된다.</li>
+<li><strong>결과와 의미</strong> · C에서는 macrophage 열에 enrichment가 집중되고 다른 cell type에서는 상대적으로 적다. 저자들은 이를 original data의 bias가 reconstruction으로 줄어든 결과로 해석한다. B·C만으로 어떤 분석의 모든 발견이 참인지 판단하지는 않는다.</li>
+</ul>
+<p><strong>D · Treatment-associated pathways in CD8+ T cells</strong></p>
+<ul>
+<li><strong>목적</strong> · 서로 다른 cell type을 구별하는 것보다 어려운, 같은 cell type 안의 condition 차이를 포착하는지 확인한다.</li>
+<li><strong>Data &amp; method</strong> · 전체 9,175 cells 중 CD8+ T cell을 골라 control과 P-selectin inhibition을 비교했다. 이 panel의 CD8+ subset별 cell 수와 biological replicate 수는 확인한 Methods에 따로 제시되지 않았다. T cell activation 관련 KEGG pathway 9개와 별도 negative set을 counts 및 reconstructed expression에서 평가했다. <a class="wikilink wikilink-pipeline" href="/papers/2025-sheinin-scnet-pipeline/#8-cell-clustering-and-expression-analysis">Pipeline Step 8</a>.</li>
+<li><strong>그림 읽기</strong> · 행은 pathway, 초록 글자는 9개 T cell 관련 pathway, 빨강 글자는 negative set이다. 오른쪽 청록은 scNET, 왼쪽 주황은 counts의 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mi>log</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>P</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">-\log(P)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">−</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.0139em;">g</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="mclose">)</span></span></span></span>이며 <strong>0에서 멀수록 더 유의</strong>하다. 왼쪽 막대가 음의 enrichment나 downregulation이라는 뜻은 아니다. Legend는 adjusted P라고 설명하지만 그림 축은 P value로 적혀 있다.</li>
+<li><strong>결과와 의미</strong> · 본문은 T cell 관련 9개 중 scNET에서 8개, counts에서 0개가 유의했다고 보고한다. Ribosome·spliceosome 등 negative set에서 전반적인 유의성 증가가 나타나지 않는 점도 확인했다. 이는 알려진 T cell 반응과의 정합성을 보이는 계산 결과이며, 치료 효과나 모든 pathway 활성의 직접적인 측정은 아니다.</li>
+</ul>
+<p>^fig5d</p>
+<blockquote>
+<p><strong>Takeaway</strong> · Reconstruction은 알려진 marker와 pathway 해석을 더 잘 드러낼 수 있었다. 통계적 유의성, expression 복원, 실제 생물학적 활성 측정은 구분해서 읽는다.</p>
+</blockquote>
+<p>출처: <a href="https://www.nature.com/articles/s41592-025-02627-0/figures/5">원문 Figure 5</a>, <a href="https://www.nature.com/articles/s41592-025-02627-0/tables/1">Table 1</a>.</p>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li><strong>PPI coverage</strong> · 저자들은 PPI만으로 TF localization·phosphorylation 등 간접적 regulatory event를 충분히 반영할 수 없다고 설명한다. ATAC 등 추가 modality 통합은 후속 과제다 (Discussion).</li>
+<li><strong>Dataset scale</strong> · 논문은 dataset별 분석을 목표로 한다. 큰 data를 cell subset으로 나누면 통합된 pruned KNN graph를 반환하지 않는다는 제약이 있다 (Methods). Supplementary의 규모·시간 평가는 특정 학습 환경에서 수행했으며 모든 atlas에 대한 확장성 보장은 아니다.</li>
+<li><strong>Benchmark scope</strong> · Foundation model 비교는 pretrained model의 zero-shot 조건이다. Cell clustering은 정답을 이용해 resolution별 maximum ARI를 선택했다 (Figure 4).</li>
+<li><strong>Interpretation</strong> · Coembedded edge는 functional association이며 direct PPI나 causal regulation의 증거가 아니다. Supplementary는 새 PPI 발견에 특화된 모델이 아니라고 명시한다.</li>
+<li><strong>Statistical inference</strong> · Reconstructed expression은 model output이다. 이 논문의 pathway 사례만으로 새로운 dataset의 DE P-value나 biological replicate 간 변이를 모두 검증했다고 볼 수 없다 (일반 지식).</li>
+<li><strong>Reproducibility</strong> · 논문 Methods와 현재 공개 코드의 layer 종류, pruning, loss, enrichment 구현에 차이가 있다. 원문에 없는 설정은 임의로 채우지 않고 <a class="wikilink wikilink-pipeline" href="/papers/2025-sheinin-scnet-pipeline/#표기-불일치-메모">Notation notes</a>에 구분했다.</li>
+</ul>
+<h2 id="data-and-code">Data &amp; Code</h2>
+<ul>
+<li><a href="https://www.nature.com/articles/s41592-025-02627-0">논문 원문과 Methods</a> · <a href="https://media.springernature.com/original/springer-static/esm/art%3A10.1038%2Fs41592-025-02627-0/MediaObjects/41592_2025_2627_MOESM1_ESM.pdf">Supplementary Information, Figures 1–10</a>.</li>
+<li>GEO: <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE149729">GSE149729</a>, <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE102827">GSE102827</a>, <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE118767">GSE118767</a>, <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE156663">GSE156663</a>, <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE59739">GSE59739</a>, <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE154795">GSE154795</a>. Cell cycle: <a href="https://www.ebi.ac.uk/biostudies/arrayexpress/studies/E-MTAB-2805">E-MTAB-2805</a>.</li>
+<li><a href="https://github.com/madilabcode/scNET">저자 GitHub</a> · <a href="https://pypi.org/project/scnet/">PyPI</a> · <a href="https://github.com/madilabcode/scNET/blob/main/scNET.ipynb">기본 notebook</a>. 실제 실행 준비는 <a class="wikilink wikilink-pipeline" href="/papers/2025-sheinin-scnet-pipeline/#직접-돌려-보려면">Run guide</a> 참고.</li>
+<li><strong>License</strong> · <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/">CC BY-NC-ND 4.0</a>. 이 페이지는 기존 볼트의 main figure를 사용한다. 기존 Extended Data 이미지의 embed는 빼고 본문 참조로 바꾸었다.</li>
+<li><strong>Source scope</strong> · <code>raw/</code>에 scNET PDF가 없어 이번 재구성은 공개 HTML의 본문·Methods와 Supplementary PDF 전체를 기준으로 했다. 현재 GitHub <code>main</code>의 구현은 2026-11-02에 대조했으며, 논문 당시 code version과 동일하다고 가정하지 않는다.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/graph-convolutional-network/">Graph Convolutional Network</a> · <a class="wikilink wikilink-concept" href="/concepts/attention/">Attention</a> · <a class="wikilink wikilink-concept" href="/concepts/knn-graph/">KNN Graph</a> · <a class="wikilink wikilink-concept" href="/concepts/leiden-clustering/">Leiden Clustering</a> · <a class="wikilink wikilink-concept" href="/concepts/modularity/">Modularity</a> · <a class="wikilink wikilink-concept" href="/concepts/adjusted-rand-index/">Adjusted Rand Index</a> · <a class="wikilink wikilink-concept" href="/concepts/network-propagation/">Network Propagation</a> · <a class="wikilink wikilink-concept" href="/concepts/gene-set-enrichment-analysis/">Gene Set Enrichment Analysis</a> · <a class="wikilink wikilink-concept" href="/concepts/co-expression-network-analysis/">Co-expression Network Analysis</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#prerequisites">Prerequisites</a></li><li class="toc-l2"><a href="#background">Background</a></li><li class="toc-l2"><a href="#data">Data</a></li><li class="toc-l2"><a href="#figure-1-·-dual-view-autoencoder">Figure 1 · Dual-view autoencoder</a></li><li class="toc-l2"><a href="#figure-2-·-functional-information-in-gene-embeddings">Figure 2 · Functional information in gene embeddings</a></li><li class="toc-l2"><a href="#figure-3-·-functional-evaluation-of-coembedded-networks">Figure 3 · Functional evaluation of coembedded networks</a></li><li class="toc-l2"><a href="#figure-4-·-cell-embedding-and-clustering">Figure 4 · Cell embedding and clustering</a></li><li class="toc-l2"><a href="#figure-5-·-pathway-analysis-with-reconstructed-expression">Figure 5 · Pathway analysis with reconstructed expression</a></li><li class="toc-l2"><a href="#limitations">Limitations</a></li><li class="toc-l2"><a href="#data-and-code">Data &amp;amp; Code</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/adjusted-rand-index/"><span class="kind-dot kind-concept"></span>Adjusted Rand Index (ARI)</a></li><li><a href="/concepts/attention/"><span class="kind-dot kind-concept"></span>Attention</a></li><li><a href="/concepts/co-expression-network-analysis/"><span class="kind-dot kind-concept"></span>Co-expression Network Analysis</a></li><li><a href="/concepts/gene-set-enrichment-analysis/"><span class="kind-dot kind-concept"></span>Gene Set Enrichment Analysis</a></li><li><a href="/concepts/graph-convolutional-network/"><span class="kind-dot kind-concept"></span>Graph Convolutional Network (GCN)</a></li><li><a href="/concepts/knn-graph/"><span class="kind-dot kind-concept"></span>KNN Graph</a></li><li><a href="/concepts/leiden-clustering/"><span class="kind-dot kind-concept"></span>Leiden Clustering</a></li><li><a href="/concepts/modularity/"><span class="kind-dot kind-concept"></span>Modularity</a></li><li><a href="/concepts/network-propagation/"><span class="kind-dot kind-concept"></span>Network Propagation</a></li><li><a href="/papers/2025-sheinin-scnet-pipeline/"><span class="kind-dot kind-pipeline"></span>scNET Pipeline (Sheinin 2025)</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

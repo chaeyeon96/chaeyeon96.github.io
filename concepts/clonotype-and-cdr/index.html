@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clonotype and CDR · Study Wiki</title>
+<meta name="description" content="Clonotype은 같은 조상 세포에서 나와 같은 V(D)J 재조합(특히 같은 CDR3 서열)을 공유하는 B cell 또는 T cell의 집합이다. CDR(complementarity determining region)은 항원과 직접 맞닿는 receptor의 고리 부위이고, 그중 CDR3가 가장 다양하다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/immunology/">Immunology</a></p>
+    <h1 class="note-title">Clonotype and CDR</h1>
+    <p class="lead">Clonotype은 같은 조상 세포에서 나와 같은 V(D)J 재조합(특히 같은 CDR3 서열)을 공유하는 B cell 또는 T cell의 집합이다. CDR(complementarity determining region)은 항원과 직접 맞닿는 receptor의 고리 부위이고, 그중 CDR3가 가장 다양하다.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#immunology</span><span class="chip chip-tag">#repertoire</span><span class="chip chip-tag">#bcr</span><span class="chip chip-tag">#tcr</span><span class="chip chip-tag">#vdj</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<ul>
+<li><strong>Clonotype</strong>: &quot;쌍둥이 판별 마크&quot;. 같은 clonotype의 cell이 많다 = 그 cell이 특정 항원을 만나 폭발적으로 증식했다(clonal expansion).</li>
+<li><strong>CDR</strong>: 항원을 잡는 &quot;손가락 끝&quot;. <strong>FR</strong>(framework region)은 손바닥과 마디처럼 구조를 지탱하는 뼈대.</li>
+</ul>
+<h2 id="자세히">자세히</h2>
+<h3 id="1-clonotype-정의">1. Clonotype 정의</h3>
+<ul>
+<li>V, (D), J 유전자 조합이 같고, <strong>CDR3의 아미노산(또는 염기) 서열이 같은</strong> 그룹</li>
+<li><strong>T cell</strong>: SHM이 없으므로 같은 클론이면 서열이 100% 같다.</li>
+<li><strong>B cell</strong>: <a class="wikilink wikilink-concept" href="/concepts/somatic-hypermutation/">SHM</a> 때문에 서열이 조금씩 다를 수 있지만, V(D)J 뿌리가 같으면 하나의 clonotype(clonal lineage)으로 묶는다.</li>
+</ul>
+<p><span class="figure-hidden">이 그림은 저작권 때문에 싣지 않았습니다</span></p>
+<h3 id="2-cdr과-fr">2. CDR과 FR</h3>
+<p>V region은 전부 변하는 게 아니라 변이가 심한 고리 3개가 있다.</p>
+<ul>
+<li><strong>CDR1, CDR2</strong>: 주로 V 유전자에 이미 들어 있는 서열</li>
+<li><strong>CDR3</strong>: V–D–J(또는 V–J)가 만나는 <strong>접합 부위</strong>. 조립할 때 염기가 무작위로 더해지거나 빠져서 다양성이 가장 크고 항원 특이성을 결정한다. 그래서 repertoire 분석은 &quot;CDR3가 같으냐&quot;로 클론을 나눈다.</li>
+<li><strong>FR1–FR4</strong>: CDR 사이사이의 뼈대. 잘 변하지 않는다.</li>
+</ul>
+<h3 id="3-junctional-diversity">3. Junctional diversity</h3>
+<p>VDJ를 이을 때 <strong>TdT</strong> 효소가 틈에 무작위 염기(N-nucleotide)를 넣고, 회문 구조로 P-nucleotide가 생긴다. 조각 수보다 훨씬 많은(이론상 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>10</mn><mn>18</mn></msup></mrow><annotation encoding="application/x-tex">10^{18}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">18</span></span></span></span></span></span></span></span></span></span></span></span> 이상) receptor가 가능한 이유이고, CDR3가 사람마다 cell마다 천차만별인 이유다.</p>
+<h3 id="4-negative-selection과-central-tolerance">4. Negative selection과 central tolerance</h3>
+<ul>
+<li><strong>T cell (흉선)</strong>: 자기 항원을 인식하는 TCR을 가진 cell은 apoptosis</li>
+<li><strong>B cell (골수)</strong>: 자기 반응성이면 receptor editing 기회를 주거나 제거</li>
+<li>루푸스나 <a class="wikilink wikilink-concept" href="/concepts/rheumatoid-arthritis/">RA</a>는 이 과정에 구멍이 생겨 자기 공격 cell이 빠져나와 생기는 병으로 이해된다.</li>
+</ul>
+<h3 id="5-클론은-어떻게-세나-read-수가-아니라-클론-수">5. 클론은 어떻게 세나: read 수가 아니라 클론 수</h3>
+<p>Repertoire **구성(composition)**을 볼 때는 read depth가 아니라 <strong>unique clone 수</strong>를 센다.</p>
+<p><strong>Toy example</strong> (IGHV1-24 사용량, 숫자는 설명용)</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>상황</th>
+<th>Read depth로 세면</th>
+<th>Clone 수로 세면</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>환자 A</td>
+<td>슈퍼 항체 1개가 10,000번 + 자잘한 클론 5개 × 1번</td>
+<td>10,005</td>
+<td><strong>6</strong></td>
+</tr>
+<tr>
+<td>건강인 B</td>
+<td>서로 다른 클론 100개 × 10번</td>
+<td>1,000</td>
+<td><strong>100</strong></td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>Read로 세면 &quot;A가 IGHV1-24를 10배 더 쓴다&quot;는 착시가 생긴다. 실제로는 클론 하나의 폭주일 뿐이다.</li>
+<li>Clone으로 세면 &quot;B가 IGHV1-24를 훨씬 다양하게 쓴다&quot;는 구성이 보인다.</li>
+<li>대신 <strong>clonal expansion 자체</strong>를 보고 싶을 때는 클론별 cell 수나 read 수를 본다. 목적에 따라 다르다.</li>
+<li>RNA(cDNA)로 시퀀싱하면 항체를 많이 만드는 plasmablast가 <strong>검출될 확률</strong> 자체가 높아, 클론을 1로 세더라도 결과 목록이 활성 클론 위주가 된다.</li>
+</ul>
+<p><strong>&quot;다양성이 낮을수록 질병&quot;은 아니다</strong></p>
+<ul>
+<li>질병 신호는 전체 다양성 감소보다, <strong>특정 V 유전자를 쓰는 서로 다른 클론들이 떼로 늘어나는(enrichment)</strong> 구성 변화나 <strong>과도한 SHM</strong>인 경우가 많다.</li>
+<li>전체 repertoire 다양성 감소는 오히려 <strong>노화</strong>와 더 관련이 깊다(TCR 다양성은 나이가 들면 줄어든다).</li>
+</ul>
+<h3 id="6-public-vs-private-clonotype">6. Public vs private clonotype</h3>
+<ul>
+<li><strong>Private</strong>: 한 사람에게만 있는 clonotype</li>
+<li><strong>Public</strong>: 여러 환자에게 공통으로 발견되는 clonotype → 질병 공통 원인 후보로 논문에서 주로 다룬다.</li>
+<li>TCR은 <a class="wikilink wikilink-concept" href="/concepts/hla-restriction/">HLA Restriction</a> 때문에 같은 병이어도 사람마다 서열이 달라 public clone이 적다.</li>
+</ul>
+<h3 id="7-분석-체크리스트">7. 분석 체크리스트</h3>
+<ol>
+<li><strong>Clonal expansion</strong>: 상위 클론이 전체 B/T cell의 몇 %인가</li>
+<li><strong>Isotype</strong> (B cell): IgM인가 IgG인가 → <a class="wikilink wikilink-concept" href="/concepts/class-switch-recombination/">Class Switch Recombination</a></li>
+<li><strong>Mutation</strong> (B cell): V region 변이가 얼마나 쌓였나, CDR에 몰려 있나 → <a class="wikilink wikilink-concept" href="/concepts/somatic-hypermutation/">Somatic Hypermutation</a></li>
+<li><strong>CDR3 length</strong>: 특정 질환에서 길이 편향이 나타나기도 한다</li>
+<li><strong>Clonal overlap</strong>: 조직 간, 시점 간, cell type 간 같은 클론 공유</li>
+</ol>
+<p>도구 (일반 지식): Cell Ranger(vdj), scirpy(Python), scRepertoire, immunarch(R), Change-O/IgBLAST</p>
+<h2 id="논문별-활용">논문별 활용</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2025-zaslavsky-mal-id/">2025 Zaslavsky - Mal-ID</a> (Model 1): sample마다 클론당 대표 서열 하나만 남기고(deduplication) V–J 사용량을 클론 단위로 셌다. 정규화 분모도 총 read가 아니라 총 클론 수였다.</li>
+</ul>
+<h2 id="sharing-is-not-direction">Sharing is not direction</h2>
+<p><a class="wikilink wikilink-paper" href="/papers/2024-dunlap-ra-synovium-clonal-associations/">2024 Dunlap - RA Synovium Clonal Associations</a>에서 다른 cell states가 clonotype을 공유한다는 것은 clonal relatedness를 지지한다. 어느 state에서 어느 state로 이동·분화했는지 방향이나 시간 순서를 직접 관찰한 것은 아니다. Clone 정의의 chain, CDR3 similarity, donor 구분을 함께 확인한다.</p>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/b-cell-and-bcr/">B Cell and BCR</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/t-cell-and-tcr/">T Cell and TCR</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/somatic-hypermutation/">Somatic Hypermutation</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/hla-restriction/">HLA Restriction</a></li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2021-wang-kawasaki-disease-pbmc/">2021 Wang - Kawasaki Disease PBMC</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2025-zaslavsky-mal-id/">2025 Zaslavsky - Mal-ID</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2025-wang-lifespan-immune-trajectories/">2025 Wang - Lifespan Immune Trajectories</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2024-dunlap-ra-synovium-clonal-associations/">2024 Dunlap - RA Synovium Clonal Associations</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2024-lin-covid-19-longitudinal-ifn-atlas/">2024 Lin - COVID-19 Longitudinal IFN Atlas</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2023-vasaikar-palmo/">2023 Vasaikar - PALMO</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2021-wang-parkinson-t-cells/">2021 Wang - Parkinson T Cells</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l3"><a href="#1-clonotype-정의">1. Clonotype 정의</a></li><li class="toc-l3"><a href="#2-cdr과-fr">2. CDR과 FR</a></li><li class="toc-l3"><a href="#3-junctional-diversity">3. Junctional diversity</a></li><li class="toc-l3"><a href="#4-negative-selection과-central-tolerance">4. Negative selection과 central tolerance</a></li><li class="toc-l3"><a href="#5-클론은-어떻게-세나-read-수가-아니라-클론-수">5. 클론은 어떻게 세나: read 수가 아니라 클론 수</a></li><li class="toc-l3"><a href="#6-public-vs-private-clonotype">6. Public vs private clonotype</a></li><li class="toc-l3"><a href="#7-분석-체크리스트">7. 분석 체크리스트</a></li><li class="toc-l2"><a href="#논문별-활용">논문별 활용</a></li><li class="toc-l2"><a href="#sharing-is-not-direction">Sharing is not direction</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/b-cell-and-bcr/"><span class="kind-dot kind-concept"></span>B Cell and BCR</a></li><li><a href="/concepts/class-switch-recombination/"><span class="kind-dot kind-concept"></span>Class Switch Recombination (CSR)</a></li><li><a href="/papers/2024-lin-covid-19-longitudinal-ifn-atlas/"><span class="kind-dot kind-paper"></span>COVID-19 Longitudinal IFN Atlas (Lin 2024)</a></li><li><a href="/concepts/hla-restriction/"><span class="kind-dot kind-concept"></span>HLA Restriction</a></li><li><a href="/papers/2021-wang-kawasaki-disease-pbmc/"><span class="kind-dot kind-paper"></span>Kawasaki Disease PBMC (Wang 2021)</a></li><li><a href="/papers/2025-wang-lifespan-immune-trajectories/"><span class="kind-dot kind-paper"></span>Lifespan Immune Trajectories (Wang 2025)</a></li><li><a href="/papers/2025-zaslavsky-mal-id/"><span class="kind-dot kind-paper"></span>Mal-ID (Zaslavsky 2025)</a></li><li><a href="/papers/2023-vasaikar-palmo/"><span class="kind-dot kind-paper"></span>PALMO (Vasaikar 2023)</a></li><li><a href="/papers/2021-wang-parkinson-t-cells/"><span class="kind-dot kind-paper"></span>Parkinson T Cells (Wang 2021)</a></li><li><a href="/papers/2024-dunlap-ra-synovium-clonal-associations/"><span class="kind-dot kind-paper"></span>RA Synovium Clonal Associations (Dunlap 2024)</a></li><li><a href="/concepts/somatic-hypermutation/"><span class="kind-dot kind-concept"></span>Somatic Hypermutation (SHM)</a></li><li><a href="/concepts/t-cell-and-tcr/"><span class="kind-dot kind-concept"></span>T Cell and TCR</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

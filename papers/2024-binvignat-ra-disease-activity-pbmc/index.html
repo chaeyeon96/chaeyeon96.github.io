@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RA Disease Activity PBMC (Binvignat 2024) · Study Wiki</title>
+<meta name="description" content="RA 환자 18명과 healthy 18명의 PBMC scRNA-seq으로, disease activity(DAS28-CRP)에 따라 달라지는 cell subset, gene signature, cell–cell communication을 찾았다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a></p>
+    <div class="paper-meta">
+      
+      <span class="badge">JCI Insight</span>
+      <span>2024</span>
+      <span class="muted">disease-study</span>
+      
+    </div>
+    <h1 class="note-title">RA Disease Activity PBMC (Binvignat 2024)</h1>
+    <p class="paper-full-title">Single-cell RNA-Seq analysis reveals cell subsets and gene signatures associated with rheumatoid arthritis disease activity — Binvignat et al.</p>
+    <p class="lead">RA 환자 18명과 healthy 18명의 PBMC scRNA-seq으로, disease activity(DAS28-CRP)에 따라 달라지는 cell subset, gene signature, cell–cell communication을 찾았다.</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1172/jci.insight.178499" rel="noopener">원문 (DOI)</a>
+      
+      
+      <span class="license">License · CC BY 4.0</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/immunology/">Immunology</a><a class="chip chip-link" href="/sections/single-cell-analysis/">Single-cell Analysis</a></div>
+    <div class="note-body"><h2 id="background">Background</h2>
+<p>RA blood에서 cell proportion 변화와 cell-type-specific expression이 disease activity와 어떻게 연결되는지 묻는다. Cross-sectional disease-state comparison이며 치료 반응을 예측하는 longitudinal study는 아니다. Pseudobulk와 CellChat은 각각 donor-level expression과 ligand–receptor 기반 추론을 다룬다.</p>
+<h2 id="data">Data</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Source and scale</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PBMC scRNA-seq</td>
+<td>UCSF 2016–2020, RA 18명·matched healthy 18명; 10x 3′ v3; QC 후 125,698 cells·22,159 genes</td>
+<td>Figure 1–4의 atlas·DE·pathway</td>
+</tr>
+<tr>
+<td>Activity strata</td>
+<td>DAS28-CRP available RA 16명: remission-low 9명(&lt;3.2), moderate-high 7명(≥3.2)</td>
+<td>Figure 5–7; RA 18명 전체와 분모가 다름</td>
+</tr>
+<tr>
+<td>Batch / replicate</td>
+<td>3 batches, 12 lanes; control 1명은 3 batch에서 technical replicate</td>
+<td>Batch correction; technical replicate는 independent donor 아님</td>
+</tr>
+<tr>
+<td>Inferred communication</td>
+<td>실측 RNA를 CellChat database와 결합한 prediction</td>
+<td>Figure 7; protein/physical interaction 실측 아님</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="figure-1-·-pbmc-atlas">Figure 1 · PBMC atlas</h2>
+<p><strong>Context</strong> · 질병 차이를 비교하기 전에 같은 cell taxonomy가 필요하다. Major lineage와 subset marker의 일관성을 확인한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-binvignat-ra-disease-activity-pbmc-fig1.webp" alt="2024 Binvignat - RA Disease Activity PBMC Fig1" loading="lazy"><span class="figure-credit">Figure: Binvignat et al., JCI Insight (2024) · CC BY 4.0</span></span></p>
+<p><strong>A–C · Atlas and marker concordance</strong></p>
+<ul>
+<li><strong>Purpose</strong>: PBMC subset 구성을 정의한다.</li>
+<li><strong>Data &amp; method</strong>: 실측 RNA를 Harmony·Leiden으로 분석하고 marker를 Wilcoxon rank test로 정리했다.</li>
+<li><strong>Reading</strong>: A는 UMAP, B는 top-marker expression, C는 subset 간 Spearman correlation이다.</li>
+<li><strong>Result &amp; meaning</strong>: 18 subsets를 정의했고 IFITM3-high IFN-activated monocyte를 별도로 구분했다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Figure 1은 study-design cartoon이 아니라 annotation 결과다.</p>
+</blockquote>
+<h2 id="figure-2-·-lineage-specific-subset-markers">Figure 2 · Lineage-specific subset markers</h2>
+<p><strong>Context</strong> · 전체 atlas만으로 가까운 subtype의 차이를 보기 어렵다. 각 lineage 안에서 marker 조합을 다시 확인한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-binvignat-ra-disease-activity-pbmc-fig2.webp" alt="2024 Binvignat - RA Disease Activity PBMC Fig2" loading="lazy"><span class="figure-credit">Figure: Binvignat et al., JCI Insight (2024) · CC BY 4.0</span></span></p>
+<p><strong>A–B · Subclusters and markers</strong></p>
+<ul>
+<li><strong>Purpose</strong>: 세부 annotation을 검토한다.</li>
+<li><strong>Data &amp; method</strong>: B, monocyte, CD4, CD8, NK 각각을 subcluster하고 top-ranked marker를 표시했다.</li>
+<li><strong>Reading</strong>: A는 lineage별 UMAP, B는 발현 비율·평균 발현 dot plot이다.</li>
+<li><strong>Result &amp; meaning</strong>: CD4 5개, CD8 3개, NK 2개, B 3개와 myeloid grouping 5개를 구분했다; mDC는 monocyte와 동일 세포로 해석하지 않는다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Label은 marker 조합과 reference를 함께 확인한다.</p>
+</blockquote>
+<h2 id="figure-3-·-cell-type-specific-differential-expression">Figure 3 · Cell-type-specific differential expression</h2>
+<p><strong>Context</strong> · Cell 수가 아니라 같은 subtype의 발현 차이를 묻는다. Donor를 독립 단위로 사용하기 위해 count를 sample별로 합친다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-binvignat-ra-disease-activity-pbmc-fig3.webp" alt="2024 Binvignat - RA Disease Activity PBMC Fig3" loading="lazy"><span class="figure-credit">Figure: Binvignat et al., JCI Insight (2024) · CC BY 4.0</span></span></p>
+<p><strong>A–C · Pseudobulk DE and overlap</strong></p>
+<ul>
+<li><strong>Purpose</strong>: RA-associated gene과 subset specificity를 찾는다.</li>
+<li><strong>Data &amp; method</strong>: sample×subtype count의 DESeq2, batch-adjusted likelihood ratio test를 사용했다.</li>
+<li><strong>Reading</strong>: A는 group UMAP, B는 DEG, C의 UpSet은 subtype 간 shared gene을 나타낸다.</li>
+<li><strong>Result &amp; meaning</strong>: 총 168 cell-type별 DEG 항목은 121 unique genes에 해당한다; γδ T에서는 IFNG·TNF 등 일부 inflammatory genes가 낮고 monocyte subtype마다 다른 패턴이었다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · 168과 121은 모순이 아니라 중복 집계 여부의 차이다.</p>
+</blockquote>
+<h2 id="figure-4-·-functional-enrichment">Figure 4 · Functional enrichment</h2>
+<p><strong>Context</strong> · DEG 목록이 어떤 biological process에 모이는지 확인한다. Pathway 결과는 입력 DEG와 database의 함수다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-binvignat-ra-disease-activity-pbmc-fig4.webp" alt="2024 Binvignat - RA Disease Activity PBMC Fig4" loading="lazy"><span class="figure-credit">Figure: Binvignat et al., JCI Insight (2024) · CC BY 4.0</span></span></p>
+<p><strong>Overview · GO overrepresentation</strong></p>
+<ul>
+<li><strong>Purpose</strong>: cell-type-specific pathway를 요약한다.</li>
+<li><strong>Data &amp; method</strong>: Figure 3의 up/down DEG를 clusterProfiler와 GO로 분석했다.</li>
+<li><strong>Reading</strong>: cell subtype별 gene ratio·enrichment significance를 비교한다.</li>
+<li><strong>Result &amp; meaning</strong>: B cell activation/BCR pathway 증가, γδ T의 cytokine-production 관련 pathway 감소, nonclassical monocyte의 별도 program이 나타났다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Pathway enrichment는 직접 측정한 pathway flux가 아니다.</p>
+</blockquote>
+<h2 id="figure-5-·-disease-activity-and-composition">Figure 5 · Disease activity and composition</h2>
+<p><strong>Context</strong> · RA 전체 평균은 서로 다른 activity state를 섞는다. DAS28-CRP가 있는 환자만 층화하여 composition과 density를 구분한다.</p>
+<p><a href="https://insight.jci.org/articles/view/178499#F5">Original figure 5</a></p>
+<p><strong>A–B · Embedding density</strong></p>
+<ul>
+<li><strong>Purpose</strong>: activity별 cell-state 분포를 탐색한다.</li>
+<li><strong>Data &amp; method</strong>: control과 low/high RA의 UMAP density를 비교했다.</li>
+<li><strong>Reading</strong>: density의 국소 농도와 donor별 proportion은 다른 지표다.</li>
+<li><strong>Result &amp; meaning</strong>: B cell의 naive-to-memory density shift는 보이지만 B cell proportion 검정의 유의성을 뜻하지 않는다.</li>
+</ul>
+<p><strong>C · Donor-level proportions</strong></p>
+<ul>
+<li><strong>Purpose</strong>: activity-associated subset 비율을 검정한다.</li>
+<li><strong>Data &amp; method</strong>: low 9명·high 7명·control의 donor별 PBMC-normalized 비율을 Mann–Whitney U test로 비교했다.</li>
+<li><strong>Reading</strong>: 각 점은 한 donor의 비율이며 cell 하나가 아니다.</li>
+<li><strong>Result &amp; meaning</strong>: Results는 high에서 CD4 central memory 증가, low에서 nonclassical monocyte 감소를 보고한다; Abstract의 effector-memory 표기와 불일치가 있어 아래 주의를 따른다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Activity별 분석 n=16을 전체 RA n=18과 혼용하지 않는다.</p>
+</blockquote>
+<h2 id="figure-6-·-activity-associated-gene-signatures">Figure 6 · Activity-associated gene signatures</h2>
+<p><strong>Context</strong> · 같은 RA-associated gene도 activity에 따라 다르게 발현될 수 있다. 앞선 DEG discovery와 이번 stratified analysis가 독립 validation은 아님을 전제로 읽는다.</p>
+<p><a href="https://insight.jci.org/articles/view/178499#F6">Original figure 6</a></p>
+<p><strong>Overview · Stratified expression</strong></p>
+<ul>
+<li><strong>Purpose</strong>: activity와 연결되는 gene pattern을 찾는다.</li>
+<li><strong>Data &amp; method</strong>: Figure 3의 121 unique genes를 low/high activity별로 분석했다.</li>
+<li><strong>Reading</strong>: heatmap의 control·low·high group과 subtype별 평균 발현을 함께 본다.</li>
+<li><strong>Result &amp; meaning</strong>: high-associated up 52개에는 G0S2·THBS1·IFIT2·MAFB·TNF·JUN·CXCR4, down 37개에는 HLA-DQB1·HLA-DRB5·TNFSF13B·CCL3·LRRK2가 포함된다; low-only up에는 TXNIP·LGALS2·AREG가 있다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · 동일 cohort에서 선택·평가한 signature이므로 external prognostic performance는 아직 없다.</p>
+</blockquote>
+<h2 id="figure-7-·-predicted-cell–cell-communication">Figure 7 · Predicted cell–cell communication</h2>
+<p><strong>Context</strong> · Expression 차이를 potential signaling 관계로 연결한다. CellChat probability를 실제 cytokine 전달량이나 cell 접촉으로 바꾸어 읽지 않는다.</p>
+<p><a href="https://insight.jci.org/articles/view/178499#F7">Original figure 7</a></p>
+<p><strong>A–C · Interaction counts and pathways</strong></p>
+<ul>
+<li><strong>Purpose</strong>: RA와 activity strata의 communication 차이를 찾는다.</li>
+<li><strong>Data &amp; method</strong>: CellChat 1.6.0에 log-normalized RNA를 입력하고 permutation 기반 비교를 수행했다.</li>
+<li><strong>Reading</strong>: A는 relative interaction count, B/C는 pathway weight의 group별 상대 기여다.</li>
+<li><strong>Result &amp; meaning</strong>: RA에서 NT·HGF·VISTA·IFN-II·WNT 등이 높고 activity 비교에서 변한 pathway는 high 36개·low 22개였다.</li>
+</ul>
+<p><strong>D–E · Sender–receiver structure</strong></p>
+<ul>
+<li><strong>Purpose</strong>: 어떤 cell pair가 pathway 차이를 만드는지 본다.</li>
+<li><strong>Data &amp; method</strong>: IFN-II·VEGF·NT sender/receiver heatmap 및 VISTA network를 비교했다.</li>
+<li><strong>Reading</strong>: D의 행·열은 cell과 pathway role, E의 edge는 예측 signaling이다.</li>
+<li><strong>Result &amp; meaning</strong>: VISTA는 두 activity group에서 증가했고 IFN-II의 cell-pair 구조는 activity에 따라 달랐다; IL-2는 low에서 증가하고 high에서 감소했다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · CellChat은 hypothesis generator이며 protein·perturbation validation이 필요하다.</p>
+</blockquote>
+<h2 id="methods-reference">Methods reference</h2>
+<p>Cell Ranger 3.1.0·demuxlet → Scanpy 1.9.1 → QC·normalization·technical/cell-cycle regression → HarmonyPy → Leiden(resolution 3.0) → lineage subclustering을 사용했다. DESeq2 1.38.3는 sample별 합산 raw counts를 입력하고 batch-adjusted LRT와 Gamma-Poisson fit을 사용했다; FDR ≤0.05, absolute log2FC ≥log2(1.6), base mean 0.08–4를 적용했다. CellChat 1.6.0은 <code>projectData</code>를 포함하며 50 permutations와 group 비교를 사용했다. 일반 원리는 <a class="wikilink wikilink-concept" href="/concepts/pseudobulk-analysis/">Pseudobulk Analysis</a>, <a class="wikilink wikilink-concept" href="/concepts/batch-correction/">Batch Correction</a>, <a class="wikilink wikilink-concept" href="/concepts/cellchat/">CellChat</a>를 참고한다.</p>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li>Cross-sectional cohort이고 약물·sex·ancestry 효과를 충분히 분리할 규모가 아니다. Rare subset과 synovium·neutrophil 해석에 한계가 있다.</li>
+<li><strong>Source discrepancy</strong>: Abstract는 CD4 effector memory 증가, Results/Figure 5 설명은 central memory 증가라고 적는다. 이를 같은 label로 취급하지 말고 Figure 5C·코드의 annotation을 확인한다.</li>
+<li><strong>Source discrepancy</strong>: Methods에는 100 미만 또는 1,000 초과 detected genes의 cell을 제외했다고 적는다. 통상적 threshold로 임의 수정하지 않으며 재현할 때 공개 preprocessing code와 대조한다.</li>
+<li>Figure 4 legend와 Methods의 enrichment threshold 표기가 완전히 같지 않다. 위 Figure 4 설명은 결과 방향만 요약하며 정확한 재현은 code와 Supplementary tables를 기준으로 검증해야 한다.</li>
+<li>같은 donor에서 유전자 선택과 activity 비교를 했으므로 진단·예후 classifier의 independent validation은 아니다.</li>
+</ul>
+<h2 id="data-and-code">Data &amp; Code</h2>
+<ul>
+<li><a href="https://insight.jci.org/articles/view/178499">Original article, Methods and figure legends</a>; <a href="https://insight.jci.org/articles/view/178499/sd/1">Supplemental data</a>.</li>
+<li><a href="https://cellxgene.cziscience.com/collections/e1a9ca56-f2ee-435d-980a-4f49ab7a952b">CELLxGENE collection</a>.</li>
+<li><a href="https://github.com/BMiao10/RASingleCell">Analysis code</a>, article-specified commit <code>0543692</code>; figure point values는 article의 Supporting Data Values file에 있다.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/rheumatoid-arthritis/">Rheumatoid Arthritis</a> · <a class="wikilink wikilink-concept" href="/concepts/pbmc/">PBMC</a> · <a class="wikilink wikilink-concept" href="/concepts/batch-correction/">Batch Correction</a> · <a class="wikilink wikilink-concept" href="/concepts/leiden-clustering/">Leiden Clustering</a> · <a class="wikilink wikilink-concept" href="/concepts/pseudobulk-analysis/">Pseudobulk Analysis</a> · <a class="wikilink wikilink-concept" href="/concepts/cellchat/">CellChat</a> · <a class="wikilink wikilink-concept" href="/concepts/cell-cell-communication/">Cell-Cell Communication</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#background">Background</a></li><li class="toc-l2"><a href="#data">Data</a></li><li class="toc-l2"><a href="#figure-1-·-pbmc-atlas">Figure 1 · PBMC atlas</a></li><li class="toc-l2"><a href="#figure-2-·-lineage-specific-subset-markers">Figure 2 · Lineage-specific subset markers</a></li><li class="toc-l2"><a href="#figure-3-·-cell-type-specific-differential-expression">Figure 3 · Cell-type-specific differential expression</a></li><li class="toc-l2"><a href="#figure-4-·-functional-enrichment">Figure 4 · Functional enrichment</a></li><li class="toc-l2"><a href="#figure-5-·-disease-activity-and-composition">Figure 5 · Disease activity and composition</a></li><li class="toc-l2"><a href="#figure-6-·-activity-associated-gene-signatures">Figure 6 · Activity-associated gene signatures</a></li><li class="toc-l2"><a href="#figure-7-·-predicted-cell–cell-communication">Figure 7 · Predicted cell–cell communication</a></li><li class="toc-l2"><a href="#methods-reference">Methods reference</a></li><li class="toc-l2"><a href="#limitations">Limitations</a></li><li class="toc-l2"><a href="#data-and-code">Data &amp;amp; Code</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/batch-correction/"><span class="kind-dot kind-concept"></span>Batch Correction</a></li><li><a href="/concepts/cell-cell-communication/"><span class="kind-dot kind-concept"></span>Cell-Cell Communication (CCC)</a></li><li><a href="/concepts/cellchat/"><span class="kind-dot kind-concept"></span>CellChat</a></li><li><a href="/concepts/leiden-clustering/"><span class="kind-dot kind-concept"></span>Leiden Clustering</a></li><li><a href="/concepts/pbmc/"><span class="kind-dot kind-concept"></span>PBMC (Peripheral Blood Mononuclear Cells)</a></li><li><a href="/concepts/pseudobulk-analysis/"><span class="kind-dot kind-concept"></span>Pseudobulk Analysis</a></li><li><a href="/concepts/rheumatoid-arthritis/"><span class="kind-dot kind-concept"></span>Rheumatoid Arthritis (RA)</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

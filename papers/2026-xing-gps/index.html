@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GPS (Xing 2026) · Study Wiki</title>
+<meta name="description" content="Chemical structure만으로 compound가 유발하는 transcriptomic signature를 예측하는 deep learning model GPS를 만들고, 약 700만 개 compound 중 Disease Signature를 reverse하는 hit을 찾아 lead까지 optimize한 연구. HCC와 IPF에서 in vitro, ex vivo, in vivo 검증까지 했다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a></p>
+    <div class="paper-meta">
+      
+      <span class="badge">Cell</span>
+      <span>2026</span>
+      
+      
+    </div>
+    <h1 class="note-title">GPS (Xing 2026)</h1>
+    <p class="paper-full-title">Deep-learning-based de novo discovery and design of therapeutics that reverse disease-associated transcriptional phenotypes — Jing Xing et al.</p>
+    <p class="lead">Chemical structure만으로 compound가 유발하는 transcriptomic signature를 예측하는 deep learning model GPS를 만들고, 약 700만 개 compound 중 Disease Signature를 reverse하는 hit을 찾아 lead까지 optimize한 연구. HCC와 IPF에서 in vitro, ex vivo, in vivo 검증까지 했다.</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1016/j.cell.2026.02.016" rel="noopener">원문 (DOI)</a>
+      <a class="btn btn-small btn-soft" href="/papers/2026-xing-gps-pipeline/">Pipeline 따라가기</a>
+      
+      <span class="license">License · CC BY 4.0</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/ai-drug-discovery/">AI Drug Discovery</a></div>
+    <div class="note-body"><ul>
+<li><strong>Journal</strong>: Cell 189, 2556–2572 (2026-04-30), open access (CC BY 4.0)</li>
+<li><strong>Lab</strong>: Michigan State University (Bin Chen lab 외), Stanford University. Co-first author 5명</li>
+<li><strong>GPS</strong> = Gene expression Profile predictor on chemical Structures</li>
+</ul>
+<div class="callout callout-tip">
+<div class="callout-title"><span class="callout-icon" aria-hidden="true">✦</span>Pipeline을 처음부터 따라가 보려면</div>
+<div class="callout-body">
+<p>수식, toy example, 설명 그림으로 단계별로 풀어 쓴 설명서: <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/">2026 Xing - GPS (Pipeline)</a></p>
+</div></div>
+<p><strong>Reading guide</strong> · 각 panel 첫머리의 <strong>Data &amp; method</strong>에서 어떤 data로 무엇을 계산·측정했는지 먼저 확인한다. 본문은 목적·그림 읽기·결과를 설명하고, 자세한 처리 과정과 조건은 해당 <strong>Pipeline 링크</strong>에 둔다. Figure 1→2→3→4→5→6은 model 검증→biological relevance→score 검증→hit 개선→gene 해석→IPF 적용 순서다. 약어는 <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#abbreviations">Abbreviations</a> 참고.</p>
+<p><strong>Prediction vs measurement</strong> · Signature는 여러 gene의 증가·감소 pattern을 묶은 표현이다. GPS가 내놓은 expression 변화는 <strong>예측값</strong>, RNA-seq·cell viability·protein 측정은 <strong>실험값</strong>이다. 두 값이 잘 맞는지 확인하는 분석과, compound가 실제로 효과를 보이는지 확인하는 분석을 구분해서 읽는다.</p>
+<h2 id="graphical-abstract">Graphical abstract</h2>
+<p><span class="note-figure"><img class="note-img" src="/files/2026-xing-gps-graphical-abstract.png" alt="2026 Xing - GPS Graphical abstract" loading="lazy"><span class="figure-credit">Figure: Jing Xing et al., Cell (2026) · CC BY 4.0</span></span></p>
+<p><strong>Data &amp; method</strong> · LINCS 학습 data, compound library의 GPS 예측, HCC·IPF 실험을 연결한 연구 전체의 workflow 개념도다. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#0-전체-지도">Pipeline</a></p>
+<p>네 단계 구성: <strong>1</strong> noisy data로 GPS 학습 · RCL (Robust Collaborative Learning) → <strong>2</strong> <a class="wikilink wikilink-concept" href="/concepts/signature-reversal/">Signature Reversal</a> 기반 <a class="wikilink wikilink-concept" href="/concepts/virtual-screening/">Virtual Screening</a> → <strong>3</strong> HCC, IPF에 적용 → <strong>4</strong> structure–gene–activity로 <a class="wikilink wikilink-concept" href="/concepts/mechanism-of-action/">MoA</a> 해석</p>
+<h2 id="background">Background</h2>
+<ul>
+<li>기존 virtual screening은 대부분 특정 protein target에 대한 docking이거나, screening data로 학습한 ML model이다. Disease를 기술하는 데 널리 쓰이는 transcriptomic data는 거의 활용되지 않는다.</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/signature-reversal/">Signature Reversal</a>은 <a class="wikilink wikilink-concept" href="/concepts/drug-repurposing/">Drug Repurposing</a>에 많이 쓰였지만, <a class="wikilink wikilink-concept" href="/concepts/lincs-l1000/">LINCS L1000</a>처럼 <strong>이미 profiling된 compound</strong>에만 적용할 수 있다. Novel compound screening이나 lead optimization에는 쓸 수 없었다.</li>
+<li>수백만 개 library compound의 expression profile을 실험으로 만드는 건 불가능하다. → <strong>Structure에서 expression을 예측하자.</strong></li>
+</ul>
+<h2 id="data">Data</h2>
+<p>이 연구는 <strong>공개 실측 data로 model을 학습·평가</strong>하고, <strong>compound library의 expression을 예측</strong>한 뒤, <strong>새로 수행한 실험으로 후보를 검증</strong>한다. 아래는 각 data가 어디에 쓰였는지 보여 주는 지도다.</p>
+<h3 id="public-datasets">Public datasets</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Data</th>
+<th>핵심 구성·용도</th>
+<th>관련 panel</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>LINCS L1000 Phase I</strong></td>
+<td>실측 perturbation expression. HEPG2·MCF7·PC3·VCAP, 978 landmark genes, 18,746 compound effects를 GPS <strong>학습</strong>에 사용한다.</td>
+<td><a href="#fig1a">Figure 1A</a></td>
+</tr>
+<tr>
+<td><strong>LINCS 2020 expression profiles</strong></td>
+<td>Training에 없는 compound의 <strong>high-quality 실측 profile</strong>, 4개 cell line, <strong>10 μM·24 h</strong>. 예측 up / no change / down을 채점하는 <strong>external validation 정답</strong>이다.</td>
+<td><a href="#fig1b">Figure 1B</a></td>
+</tr>
+<tr>
+<td><strong>DRP006006 RNA-seq</strong></td>
+<td>Drug 45개·cell line 23개의 whole-transcriptome data. 예측과 실측을 비교해 landmark gene 밖까지 <strong>예측 가능한 gene을 선별하는 calibration</strong>에 사용한다.</td>
+<td><a href="#fig2a-c">Figure 2A</a></td>
+</tr>
+<tr>
+<td><strong>LINCS Level 5 profiles</strong></td>
+<td>978 landmark gene의 <strong>실측 Z-score</strong>. 같은 compound의 cell line 간 반응과 aggregated profile의 유사성을 평가한다.</td>
+<td><a href="#fig2d-f">Figure 2D–F</a></td>
+</tr>
+<tr>
+<td><strong>CCLE</strong></td>
+<td>Compound 처리 전 basal expression(TPM). Selected / non-selected gene의 원래 expression 분포를 비교한다.</td>
+<td><a href="#fig2c">Figure 2C</a></td>
+</tr>
+<tr>
+<td><strong>ChEMBL v31</strong></td>
+<td>Compound 구조와 target activity annotation. 알려진 inhibitor를 골라 구조 공간과 예측 expression 공간을 비교한다.</td>
+<td><a href="#fig2g">Figure 2G–I</a>, <a href="#fig2j">Figure 2J</a></td>
+</tr>
+<tr>
+<td><strong>LINCS 2020 shRNA profiles</strong></td>
+<td>Target을 knockdown한 <strong>실측 expression</strong>. Inhibitor의 GPS 예측 반응이 해당 target knockdown 반응과 닮았는지 확인한다.</td>
+<td><a href="#fig2j">Figure 2J</a></td>
+</tr>
+<tr>
+<td><strong>기존 연구의 HCC signature·activity</strong></td>
+<td>HCC signature는 <strong>284 up·91 down genes</strong>다. 기존 compound의 실측 activity와 함께 reversal score의 유용성을 평가한다.</td>
+<td><a href="#fig3a">Figure 3A–B</a></td>
+</tr>
+<tr>
+<td><strong>CTRP HepG2</strong></td>
+<td><strong>393 compounds의 실측 drug sensitivity</strong>. Z-RGES / raw RGES의 ROC·AUROC와 상위권 hit rate를 평가한다.</td>
+<td><a href="#fig3c">Figure 3C–D</a></td>
+</tr>
+<tr>
+<td><strong>PRISM Huh7</strong></td>
+<td>실측 drug sensitivity. OCTAD sRGES와 GPS 기반 Z-RGES의 상위권 hit rate를 비교한다.</td>
+<td><a href="#fig3e">Figure 3E</a></td>
+</tr>
+<tr>
+<td><strong>Human Protein Atlas</strong></td>
+<td>Liver-cancer gene expression·survival data. UHRF1 expression과 환자 예후의 연관성을 본다.</td>
+<td><a href="#fig5h">Figure 5H</a></td>
+</tr>
+<tr>
+<td><strong>Wu et al. 10x Visium</strong></td>
+<td>Adjacent normal·HCC tissue section <strong>각 5개</strong>의 공개 spatial transcriptomics. Tissue 내 UHRF1 expression 위치를 확인한다.</td>
+<td><a href="#fig5i">Figure 5I</a></td>
+</tr>
+<tr>
+<td><strong>Habermann et al. lung scRNA-seq</strong></td>
+<td><strong>Control 10명·IPF 12명</strong>. Cell type별 disease signature를 만들고, IPF screening과 후속 해석의 기준으로 사용한다.</td>
+<td><a href="#fig6a">Figure 6A</a>, <a href="#fig6f">Figure 6F–G</a></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="compound-libraries">Compound libraries</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Library</th>
+<th>입력과 용도</th>
+<th>관련 panel</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ZINC drug-like·in-stock</strong></td>
+<td><strong>6,857,774 compounds의 chemical structure</strong>가 대규모 HCC screening의 입력이다. Expression은 GPS로 <strong>예측</strong>하며, library가 약 700만 개의 실측 expression을 제공한 것은 아니다. Niclosamide analog 탐색에도 사용한다.</td>
+<td><a href="#fig3g">Figure 3G</a>, <a href="#fig4a-b">Figure 4A–B</a></td>
+</tr>
+<tr>
+<td><strong>Enamine HTS</strong></td>
+<td>Chemical structure library. GPS로 예측한 signature가 MUC5B+ epithelial cell·myofibroblast의 IPF signature를 함께 reverse하는 후보를 찾는다.</td>
+<td><a href="#fig6g">Figure 6G–H</a></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="study-generated-data">Study-generated data</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Data</th>
+<th>종류·용도</th>
+<th>관련 panel</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>GPS expression signatures</strong></td>
+<td>Model이 생성한 <strong>예측값</strong>이다. 최종 2,198 genes의 regulation을 이용해 compound 간 유사성·Z-RGES·SGAR를 분석한다.</td>
+<td><a href="#fig2h">Figure 2H–I</a>, <a href="#fig3a">Figure 3A</a>, <a href="#fig5b">Figure 5B–C</a></td>
+</tr>
+<tr>
+<td><strong>HCC cell experiments</strong></td>
+<td>연구진이 측정한 cell viability·IC50, RNA-seq, siRNA knockdown, western blot. Niclosamide analog·ZINC hit·합성 analog의 activity·selectivity와 MoA 후보를 검증한다.</td>
+<td><a href="#fig3f">Figure 3F–G</a>, <a href="#fig4b">Figure 4B–G</a>, <a href="#fig5c">Figure 5C–G</a></td>
+</tr>
+<tr>
+<td><strong>Huh7 xenograft experiments</strong></td>
+<td>5260420 또는 MSU45302 처리와 control의 tumor growth·endpoint volume·tumor 사진, 관련 RNA-seq 등 <strong>새 실측 data</strong>다.</td>
+<td><a href="#fig3h">Figure 3H</a>, <a href="#fig4h">Figure 4H</a>, <a href="#fig5d">Figure 5D–E</a></td>
+</tr>
+<tr>
+<td><strong>IPF tissue·mouse experiments</strong></td>
+<td>Human PCLS의 protein·bulk RNA-seq, BLM fibrosis mouse의 tissue pathology 등 <strong>새 실측 data</strong>다. Pyrithyldione과 drug 18의 효과 및 cell-type signature reversal을 확인한다.</td>
+<td><a href="#fig6c">Figure 6C–H</a></td>
+</tr>
+</tbody>
+</table></div>
+<p>위 표의 <strong>학습용 expression</strong>, <strong>예측 성능의 정답</strong>, <strong>실제 compound activity</strong>는 서로 다른 용도의 data다. 세부 처리와 실험 조건은 <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#0-전체-지도">Pipeline</a>, 등록번호·code 위치는 <a href="#data-and-code">Data &amp; Code</a>에서 확인한다.</p>
+<h2 id="figure-1-·-gps-framework와-model-performance">Figure 1 · GPS framework와 model performance</h2>
+<p><strong>Context</strong> · 아직 실험하지 않은 compound까지 screening하려면, chemical structure만으로 gene expression 변화를 예측할 수 있어야 한다. 이를 학습할 LINCS data는 같은 실험을 반복해도 결과가 잘 일치하지 않을 만큼 noise가 크다. 이 Figure에서는 GPS의 전체 설계와 noise를 다루는 학습법을 소개하고, 학습에 없던 compound도 잘 예측하는지 확인한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2026-xing-gps-fig1.png" alt="2026 Xing - GPS Fig1" loading="lazy"><span class="figure-credit">Figure: Jing Xing et al., Cell (2026) · CC BY 4.0</span></span></p>
+<p><strong>A · GPS framework</strong> <span class="block-id" id="fig1a"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: LINCS Phase I의 <strong>실측 expression</strong>, compound structure·GO 정보 → GPS/RCL 학습과 후속 screening을 연결한 workflow 도식. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#1-training-data-준비">Pipeline</a></li>
+<li><strong>목적</strong>: Compound의 structure에서 출발해, 실험할 후보를 고르고 구조를 개선하기까지의 전체 과정을 보여 준다. 이 panel은 이후 figure들의 지도다.</li>
+<li><strong>그림 읽기</strong>: 위에서 아래로 읽는다. 맨 위 왼쪽에서 compound 구조를 수치로 바꾼 <a class="wikilink wikilink-concept" href="/concepts/molecular-fingerprint/">drug fingerprint</a>와 gene의 기능을 정리한 Gene Ontology(GO) 정보를 함께 넣으면, 해당 gene이 <strong>up / no change / down</strong> 중 무엇이 될지 예측한다. 오른쪽 A·B·C는 서로 다른 peer network로, noise가 큰 label을 그대로 외우지 않도록 학습 정보를 공유하는 **RCL (Robust Collaborative Learning)**을 나타낸다.</li>
+<li><strong>Data와 학습</strong>: <a class="wikilink wikilink-concept" href="/concepts/lincs-l1000/">LINCS L1000</a> Phase I의 compound effect <strong>18,746개</strong>, landmark gene <strong>978개</strong>, cell line <strong>4종</strong>(HEPG2, MCF7, PC3, VCAP)을 이용한다. 실험 Z-score가 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Z</mi><mo>&lt;</mo><mo>−</mo><mn>1.5</mn></mrow><annotation encoding="application/x-tex">Z &lt; -1.5</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7224em;vertical-align:-0.0391em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">Z</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">−</span><span class="mord">1.5</span></span></span></span>이면 down, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Z</mi><mo>&gt;</mo><mn>1.5</mn></mrow><annotation encoding="application/x-tex">Z &gt; 1.5</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7224em;vertical-align:-0.0391em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">Z</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1.5</span></span></span></span>이면 up, 그 사이는 no change로 정답을 만든다. 이 중 structure로 예측 가능한 gene <strong>307개</strong>를 선별했다(Data S1). RCL은 전체 data point의 약 **80%**를 학습에 사용했다.</li>
+<li><strong>다음 단계와 연결</strong>: 가운데에서는 ZINC compound <strong>6,857,774개</strong>의 expression signature를 예측하고 <a class="wikilink wikilink-concept" href="/concepts/disease-signature/">Disease Signature</a>와 비교한다. Disease에서 올라간 gene을 내리고 내려간 gene을 올리는 compound를 우선 고른 뒤, 맨 아래에서 hit-to-lead optimization과 <a class="wikilink wikilink-concept" href="/concepts/mechanism-of-action/">MoA</a> 해석으로 이어진다. 최종 예측 대상 <strong>2,198 genes</strong>를 정하는 과정은 <a href="#fig2a-c">Figure 2A</a>에서 설명한다.</li>
+</ul>
+<p><strong>B · External validation (학습에 없던 compound)</strong> <span class="block-id" id="fig1b"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: <strong>LINCS 2020의 high-quality 실측 expression profile</strong>을 정답으로 쓴다. Training에 없던 compound, <strong>HEPG2·MCF7·PC3·VCAP</strong>, <strong>10 μM·24 h</strong> 조건에서 GPS의 up / no change / down 예측을 F1·balanced accuracy로 평가한다. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#external-validation">Pipeline</a></li>
+<li><strong>목적</strong>: 학습 때 보지 못한 compound에서도 gene expression 변화 방향을 맞히는지 확인한다. 실제 암세포 억제 효과는 이후 Figure 4 등의 별도 실험에서 평가한다.</li>
+<li><strong>그림 읽기</strong>: 열은 4개 cell line, 위쪽 행은 F1, 아래쪽 행은 balanced accuracy다. 색은 RF·MTL·DeepCop·RCL 등의 방법을 나타내고, 분포가 높을수록 성능이 좋다. Figure legend는 10회 독립 실행의 성능을 보여 준다고 설명한다.</li>
+<li><strong>결과와 의미</strong>: RCL 계열은 전반적으로 높은 성능을 보이지만, 지표·cell line에 따라 순위가 다르다. PC3의 balanced accuracy에서는 DeepCop이 RCL보다 높게 보이므로 모든 작은 plot에서 RCL이 1위라고 읽지는 않는다. 논문은 4개 cell model에서 RCL과 baseline의 전체적인 차이가 유의했다고 보고한다(<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>&lt;</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>8</mn></mrow></msup></mrow><annotation encoding="application/x-tex">p &lt; 10^{-8}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7335em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">8</span></span></span></span></span></span></span></span></span></span></span></span>).</li>
+<li><strong>추가 비교</strong>: Tables S2–S4에서는 GNN·transformer embedding이 structural fingerprint보다 낫지 않았고, RF의 seen / unseen compound 성능 차이가 컸다. 평가 과정과 설명용 compound–gene 예시는 위 Pipeline에 모았다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Noise가 큰 LINCS data를 버리지 않고 re-weight하면, 처음 보는 compound의 expression 변화도 structure만으로 어느 정도 예측할 수 있다.</p>
+</blockquote>
+<h2 id="figure-2-·-gps-predicted-signature의-biological-relevance">Figure 2 · GPS-predicted signature의 biological relevance</h2>
+<p><strong>Context</strong> · Figure 1에서 예측 성능을 확인했지만, screening에 쓰려면 예측된 signature가 실제 biology를 반영하는지도 살펴봐야 한다. 여기서는 어떤 gene까지 신뢰하고 예측할 수 있는지, cell line별 예측을 합쳐도 되는지, 그리고 signature가 compound의 pathway와 target 정보를 담는지 차례로 확인한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2026-xing-gps-fig2.png" alt="2026 Xing - GPS Fig2" loading="lazy"><span class="figure-credit">Figure: Jing Xing et al., Cell (2026) · CC BY 4.0</span></span></p>
+<p><strong>A · Predictable genes</strong> <span class="block-id" id="fig2a-c"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: DRP006006의 <strong>실측 whole-transcriptome RNA-seq</strong>(drug 45개·cell line 23개)와 기존 selected genes → 예측·실측을 비교해 최종 2,198 genes 선별. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#calibration-data-processing">Pipeline</a></li>
+<li><strong>목적</strong>: Training data가 가진 978개 landmark gene 밖으로 예측 범위를 넓히되, 실제로 신뢰할 수 있는 gene을 고른다. GO feature <strong>1,107개</strong>로 gene을 표현하므로 training에서 직접 다루지 않은 gene에도 예측을 시도할 수 있다.</li>
+<li><strong>그림 읽기</strong>: 가장 큰 타원은 whole transcriptome, 회색 영역은 LINCS의 978 genes다. 주황색의 <strong>307개</strong>는 기존에 선별한 gene, <strong>1,891개</strong>는 LINCS landmark 밖에서 추가된 gene이다. 최종 합계는 <strong>307 + 1,891 = 2,198개</strong>다.</li>
+<li><strong>결과와 의미</strong>: 별도 whole-transcriptome calibration data(drug 45개 × cell line 23개)에서 예측과 실측을 비교해 예측 가능한 gene을 선별했다. 본문의 <strong>2,018개</strong>는 이 calibration에서 잘 예측된 gene 수이며, 기존 307개와 단순히 더하는 수가 아니다. 기존 선별 gene과 합친 최종 집합이 2,198개다. 이후 screening은 모든 gene을 무조건 믿는 대신 이 집합을 사용한다.</li>
+</ul>
+<p><strong>B · GO enrichment</strong> <span class="block-id" id="fig2b"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: Selected 2,198 genes와 background 23,981 genes → <strong>GOrilla GO enrichment</strong> 후 유의한 term을 dot plot으로 표시. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#biological-relevance-analyses">Pipeline</a></li>
+<li><strong>목적</strong>: A에서 고른 gene들이 어떤 기능에 많이 속하는지 확인해, GPS가 주로 어떤 biology를 포착하는지 살펴본다.</li>
+<li><strong>그림 읽기</strong>: 세로축은 GO term이고 BP·CC·MF는 각각 biological process· cellular component· molecular function이다. 가로축 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><msub><mrow><mi>log</mi><mo>⁡</mo></mrow><mn>10</mn></msub><mo stretchy="false">(</mo><mi>q</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">-\log_{10}(q)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">−</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop"><span class="mop">lo<span style="margin-right:0.0139em;">g</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">10</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0359em;">q</span><span class="mclose">)</span></span></span></span>는 오른쪽일수록 enrichment의 통계적 근거가 강하며, 점 크기는 fold enrichment를 나타낸다.</li>
+<li><strong>결과와 의미</strong>: Cell cycle· chromosome organization· spindle· nucleoplasm 관련 term이 나타난다. 잘 예측되는 gene이 이런 기능에 많이 속한다는 뜻이며, compound 처리 뒤 이 기능이 반드시 활성화된다는 방향 정보까지 주는 분석은 아니다.</li>
+</ul>
+<p><strong>C · Basal expression</strong> <span class="block-id" id="fig2c"></span></p>
+<ul>
+<li><strong>목적</strong>: GPS가 잘 예측하는 gene이 특정 발현 특성에 치우쳐 있는지 확인한다.</li>
+<li><strong>Data &amp; method</strong>: <strong>CCLE (Cancer Cell Line Encyclopedia)의 basal expression TPM</strong>을 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mrow><mi>log</mi><mo>⁡</mo></mrow><mn>2</mn></msub><mo stretchy="false">(</mo><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">P</mi><mi mathvariant="normal">M</mi></mrow><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\log_2(\mathrm{TPM}+1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop"><span class="mop">lo<span style="margin-right:0.0139em;">g</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathrm">TPM</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span></span></span></span>로 변환해 selected / non-selected gene의 분포를 비교했다. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#biological-relevance-analyses">Pipeline</a></li>
+<li><strong>그림 읽기</strong>: 각 줄은 cell line이며, 파랑은 selected gene, 주황은 non-selected gene으로 오른쪽일수록 평소 발현량이 높다.</li>
+<li><strong>결과와 의미</strong>: <strong>학습 cell line 4종과 다른 cell line 모두에서 selected gene의 기본 발현량이 높다.</strong> B와 함께 보면 GPS의 예측 대상은 높은 발현량과 cell cycle·transcription 관련 기능에 치우쳐 있다. → <a href="#limitations">Gene coverage limitation</a></li>
+</ul>
+<p><strong>D · Compound signatures across cell lines</strong> <span class="block-id" id="fig2d-f"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: 여러 cell line에서 측정한 10개 compound의 <strong>LINCS Level 5 실측 Z-score profile</strong> → 978-gene feature를 UMAP으로 배치. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#biological-relevance-analyses">Pipeline</a></li>
+<li><strong>목적</strong>: 같은 compound가 서로 다른 cell line에서도 어느 정도 비슷한 expression pattern을 만드는지 살펴본다.</li>
+<li><strong>그림 읽기</strong>: LINCS의 <strong>실측 profile</strong>을 UMAP으로 배치했다. 점 하나는 profile 하나이며, 색은 compound, 모양은 cell line이다. UMAP의 두 축 자체에는 특정 gene이나 expression 크기라는 직접적인 의미가 없다.</li>
+<li><strong>결과와 의미</strong>: 같은 색의 점들이 서로 다른 모양을 포함하면서 가까이 모이는 경향이 있다. Compound 고유의 반응이 cell line을 넘어 일부 보존된다는 시각적 근거이며, 이를 숫자로 비교한 것이 E다.</li>
+</ul>
+<p><strong>E · Cross-cell-line correlation</strong> <span class="block-id" id="fig2e"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: <strong>LINCS Level 5 실측 profile</strong> → 같은 compound·다른 cell line / 다른 compound·같은 cell line의 Spearman correlation 분포 비교. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#biological-relevance-analyses">Pipeline</a></li>
+<li><strong>목적</strong>: D의 묶임이 눈으로만 보이는 현상인지, profile correlation으로도 확인되는지 비교한다.</li>
+<li><strong>그림 읽기</strong>: 가로축은 LINCS profile correlation이다. 파란 box는 <strong>같은 compound·서로 다른 cell line</strong>의 조합, 노란 box는 <strong>다른 compound·같은 cell line</strong>의 조합이다. 오른쪽에 있을수록 gene 변화 pattern이 비슷하다.</li>
+<li><strong>결과와 의미</strong>: 같은 compound를 비교한 파란 분포가 대체로 오른쪽에 있다. 모든 cell line의 반응이 같다는 뜻이 아니라, compound에 공통된 정보를 모아 볼 근거가 있다는 뜻이다.</li>
+</ul>
+<p><strong>F · Aggregated signatures</strong> <span class="block-id" id="fig2f"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: <strong>LINCS Level 5 실측 Z-score</strong> → cell line 간 평균 Z-score를 표준편차로 나눈 aggregated profile을 만들고 Spearman correlation 비교. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#biological-relevance-analyses">Pipeline</a></li>
+<li><strong>목적</strong>: Cell line별 profile을 하나로 합쳐도 compound의 정보를 유지하는지 확인한다.</li>
+<li><strong>그림 읽기</strong>: 파란 box는 같은 compound의 aggregated profile과 개별 cell line profile의 correlation, 초록 box는 GPS가 사용하는 4개 cell line의 합친 profile과 다른 cell들의 합친 profile의 correlation이다. 노란 box는 서로 다른 compound를 비교하는 대조군이다.</li>
+<li><strong>결과와 의미</strong>: 같은 compound의 비교가 대조군보다 높은 correlation을 보인다. 이는 여러 cell line의 결과를 합친 signature를 downstream screening에 사용하는 근거다.</li>
+</ul>
+<p><strong>G · Chemical-feature space</strong> <span class="block-id" id="fig2g"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: <strong>ChEMBL v31의 inhibitor compound 구조</strong> → structural fingerprint·Jaccard distance 기반 UMAP. Fingerprint 표기 차이는 Pipeline에 명시. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#biological-relevance-analyses">Pipeline</a></li>
+<li><strong>목적</strong>: Compound의 구조만으로 비슷함을 정의하면 어떤 종류의 compound가 이웃이 되는지 확인한다. H와 비교하기 위한 기준이다.</li>
+<li><strong>그림 읽기</strong>: Wnt·Ras-Raf·NF-κB pathway의 9개 target을 억제하는 compound들을 구조 feature로 UMAP에 배치했다. 점 하나는 compound, 색은 target, 모양은 pathway다. Figure legend는 <a class="wikilink wikilink-concept" href="/concepts/ecfp/">ECFP6</a>를 사용했다고 설명한다.</li>
+<li><strong>결과와 의미</strong>: 같은 target을 억제하는 compound가 모이는 경향이 보인다. 구조가 비슷한 물질을 찾는 것과 같은 pathway에 작용하는 물질을 찾는 것은 서로 다른 기준일 수 있다.</li>
+</ul>
+<p><strong>H · Predicted-expression space</strong> <span class="block-id" id="fig2h"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: G와 같은 compound의 <strong>GPS 예측 2,198-gene feature</strong>(4개 model 병합) → cosine distance 기반 UMAP. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#biological-relevance-analyses">Pipeline</a></li>
+<li><strong>목적</strong>: G와 같은 compound들을 이번에는 GPS가 예측한 expression pattern으로 비교한다.</li>
+<li><strong>그림 읽기</strong>: 점·색·모양의 뜻은 G와 같고, 이웃을 정하는 feature만 구조에서 <strong>예측 gene expression</strong>으로 바뀐다. 점선 원은 target 색이 달라도 같은 pathway 모양의 compound들이 가까워지는 예시다.</li>
+<li><strong>결과와 의미</strong>: 구조나 직접 target이 달라도 같은 pathway를 건드리는 compound가 가까워진다. Predicted signature가 구조적 유사성을 넘어 pathway 수준의 공통 반응을 담는다는 해석으로 이어진다.</li>
+</ul>
+<p><strong>I · Neighbor composition</strong> <span class="block-id" id="fig2i"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: G·H의 chemical / GPS-predicted feature → compound별 15개 이웃에서 같은 target 및 같은 pathway의 compound 수 집계. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#biological-relevance-analyses">Pipeline</a></li>
+<li><strong>목적</strong>: G·H에서 보인 차이를 이웃 compound의 구성으로 정량화한다.</li>
+<li><strong>그림 읽기</strong>: 가로축은 Random·Chemistry·Gene expression이라는 이웃 선정 방식이고, 세로축은 가까운 <strong>15개 이웃</strong> 중 조건에 맞는 compound 수다. 파랑은 같은 target, 주황은 <strong>target은 다르지만 같은 pathway</strong>인 이웃이다.</li>
+<li><strong>결과와 의미</strong>: 구조 feature는 같은 target의 이웃을 많이 찾고, expression feature는 target이 달라도 같은 pathway인 이웃을 더 찾는 경향이 있다. 따라서 H의 시각적 묶임을 pathway 정보의 보존이라는 관점에서 뒷받침한다.</li>
+</ul>
+<p><strong>J · Drug–knockdown similarity</strong> <span class="block-id" id="fig2j"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: ChEMBL inhibitor의 <strong>GPS 예측 signature</strong>와 <strong>LINCS 2020 target shRNA 실측 profile</strong> → gene-set enrichment 기반 similarity를 구해 inhibitor / non-inhibitor 비교. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#biological-relevance-analyses">Pipeline</a></li>
+<li><strong>목적</strong>: Compound의 예측 signature를 이용해 그 compound가 건드리는 target의 단서를 찾을 수 있는지 시험한다.</li>
+<li><strong>그림 읽기</strong>: 가로축은 20개 target이다. 각 target에서 파랑은 알려진 inhibitor, 회색은 inhibitor가 아닌 compound이며, 세로축은 <strong>compound의 GPS 예측 profile과 해당 target의 실측 shRNA knockdown profile의 similarity score</strong>다.</li>
+<li><strong>결과와 의미</strong>: 20개 중 <strong>8개 target</strong>에서 inhibitor 쪽 similarity가 유의하게 높았다. Target을 낮춘 반응과 compound 반응이 닮을 수 있음을 보이지만, 이 비교만으로 direct binding을 확정하지는 않는다.</li>
+</ul>
+<p><strong>K · Screening-library coverage</strong> <span class="block-id" id="fig2k"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: <strong>LINCS compound 구조와 ZINC 무작위 10,000개 구조</strong> → chemical feature의 t-SNE 분포 비교. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#biological-relevance-analyses">Pipeline</a></li>
+<li><strong>목적</strong>: Screening할 ZINC library가 training compound와 구조적으로 얼마나 겹치는지 확인한다.</li>
+<li><strong>그림 읽기</strong>: 구조 feature를 t-SNE로 배치한 것으로, 빨강은 LINCS compound, 파랑은 <strong>ZINC에서 무작위로 뽑은 10,000개</strong>다. 실제로 약 700만 개 전체를 점으로 그린 것은 아니다.</li>
+<li><strong>결과와 의미</strong>: 겹치는 영역과 다른 영역이 함께 있다. 이 그림은 screening이 학습 compound의 구조를 얼마나 벗어나는지 보여 주는 지도이며, 새로운 영역에서의 예측 정확도를 직접 채점한 결과는 아니다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · GPS signature는 pathway 수준의 biology를 포착해 screening에 활용할 근거가 있다. 다만 예측 대상은 높은 basal expression과 cell cycle·transcription 관련 기능에 치우쳐 있어, 관심 disease의 중요한 gene이 그 범위에 포함되는지 함께 확인해야 한다.</p>
+</blockquote>
+<h2 id="figure-3-·-z-rges-검증과-niclosamide-analog">Figure 3 · Z-RGES 검증과 niclosamide analog</h2>
+<p><strong>Context</strong> · 이제 예측한 compound signature를 disease signature와 비교해, 실험할 candidate의 순위를 정해야 한다. 그런데 기존 RGES는 compound마다 바뀌는 gene 수의 영향을 받아 GPS 예측을 그대로 비교하기 어렵다. 이를 보정한 Z-RGES를 만들고, HCC(hepatocellular carcinoma)에서 score가 좋은 compound가 실제로 더 강한 activity를 보이는지 기존 compound와 niclosamide analog로 검증한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2026-xing-gps-fig3.png" alt="2026 Xing - GPS Fig3" loading="lazy"><span class="figure-credit">Figure: Jing Xing et al., Cell (2026) · CC BY 4.0</span></span></p>
+<p><strong>A · Disease reversal scoring</strong> <span class="block-id" id="fig3a"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: 기존 연구의 <strong>HCC 실측 disease signature</strong>(284 up·91 down)와 GPS 예측 compound signature → KS enrichment·random-set Z-normalization으로 Z-RGES 계산. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#5-z-rges-disease를-얼마나-reverse하나">Pipeline</a></li>
+<li><strong>목적</strong>: Compound의 예측 signature를 HCC signature와 비교해, 실험할 우선순위를 정할 숫자 하나를 만든다. HCC signature는 disease에서 증가한 <strong>284 genes</strong>와 감소한 <strong>91 genes</strong>로 구성된다.</li>
+<li><strong>그림 읽기</strong>: 왼쪽의 disease 변화 방향과 각 compound의 예측 up/down을 마주 본다. Disease에서 오른 gene을 compound가 내리고, 내려간 gene을 올리는 조합이 reversal이다. 오른쪽은 compound마다 예측되는 up gene 수 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.109em;">N</span></span></span></span>과 down gene 수 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi></mrow><annotation encoding="application/x-tex">M</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.109em;">M</span></span></span></span>이 다르다는 점을 보정하는 과정이다.</li>
+<li><strong>계산과 의미</strong>: 같은 수의 gene을 무작위로 뽑아 만든 KS score 분포와 실제 score를 비교해 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Z</mi><mrow><mi>u</mi><mi>p</mi></mrow></msub></mrow><annotation encoding="application/x-tex">Z_{up}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">Z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">u</span><span class="mord mathnormal mtight">p</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span>·<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Z</mi><mrow><mi>d</mi><mi>o</mi><mi>w</mi><mi>n</mi></mrow></msub></mrow><annotation encoding="application/x-tex">Z_{down}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">Z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.0269em;">w</span><span class="mord mathnormal mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>으로 표준화하고, **<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Z</mi><mtext>-</mtext><mi mathvariant="normal">R</mi><mi mathvariant="normal">G</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">S</mi></mrow><mo>=</mo><msub><mi>Z</mi><mrow><mi>u</mi><mi>p</mi></mrow></msub><mo>−</mo><msub><mi>Z</mi><mrow><mi>d</mi><mi>o</mi><mi>w</mi><mi>n</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\mathrm{Z\text{-}RGES}=Z_{up}-Z_{down}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord"><span class="mord mathrm">Z</span><span class="mord text"><span class="mord">-</span></span><span class="mord mathrm">RGES</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">Z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">u</span><span class="mord mathnormal mtight">p</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">Z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">o</span><span class="mord mathnormal mtight" style="margin-right:0.0269em;">w</span><span class="mord mathnormal mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>**을 계산한다. 더 negative할수록 disease signature를 더 강하게 reverse하는 방향이다. 이때 score는 expression pattern의 reversal 정도이며, 실제 억제 효과는 B 이후에서 별도로 확인한다. 손계산은 <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#5-z-rges-disease를-얼마나-reverse하나">Z-RGES calculation</a> 참고.</li>
+</ul>
+<p><strong>B · Score–activity correlation</strong> <span class="block-id" id="fig3b"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: 기존 연구에 보고된 anti-HCC compound의 <strong>실측 activity</strong>와 GPS 기반 Z-RGES → pIC50–Z-RGES의 Spearman correlation. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#validation-datasets-and-metrics">Pipeline</a></li>
+<li><strong>목적</strong>: Reversal score가 좋은 compound가 실제 HCC cell에서도 강한지 확인한다.</li>
+<li><strong>그림 읽기</strong>: 점 하나는 기존에 activity가 보고된 compound다. 가로축 <strong>pIC50</strong>은 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><msub><mrow><mi>log</mi><mo>⁡</mo></mrow><mn>10</mn></msub><mo stretchy="false">(</mo><mrow><mi mathvariant="normal">I</mi><mi mathvariant="normal">C</mi><mn>50</mn><mtext> </mtext><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mtext> </mtext><mi mathvariant="normal">M</mi></mrow><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">-\log_{10}(\mathrm{IC50\ in\ M})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">−</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop"><span class="mop">lo<span style="margin-right:0.0139em;">g</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">10</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathrm">IC50</span><span class="mspace"> </span><span class="mord mathrm">in</span><span class="mspace"> </span><span class="mord mathrm">M</span></span><span class="mclose">)</span></span></span></span>이므로 오른쪽일수록 강하고, 세로축 Z-RGES는 아래쪽일수록 reversal이 강하다. 따라서 기대하는 관계는 <strong>오른쪽으로 갈수록 아래로 내려가는 pattern</strong>이다.</li>
+<li><strong>결과와 의미</strong>: Spearman correlation은 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>=</mo><mo>−</mo><mn>0.554</mn></mrow><annotation encoding="application/x-tex">R=-0.554</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0077em;">R</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">−</span><span class="mord">0.554</span></span></span></span>, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>0.0049</mn></mrow><annotation encoding="application/x-tex">p=0.0049</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.0049</span></span></span></span>다. 음의 부호는 두 지표에서 좋은 방향이 각각 오른쪽과 아래쪽이기 때문에 나타난다. 기존 raw RGES에서는 같은 유의한 관계를 확인하지 못했다(Figure S2A).</li>
+</ul>
+<p><strong>C · Active-compound discrimination</strong> <span class="block-id" id="fig3c"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: <strong>CTRP HepG2 393 compounds의 실측 activity</strong>와 두 reversal score → ROC·AUROC로 active / inactive 구분 성능 비교. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#validation-datasets-and-metrics">Pipeline</a></li>
+<li><strong>목적</strong>: Z-RGES가 실제 active compound와 inactive compound를 구분하는지, raw RGES와 같은 data에서 비교한다.</li>
+<li><strong>그림 읽기</strong>: CTRP HepG2의 <strong>393 compounds</strong>를 사용한 ROC curve다. 가로축은 false positive rate, 세로축은 true positive rate이며, 왼쪽 위에 가까운 curve가 더 좋은 구분 성능을 나타낸다(ROC 독법은 일반 지식). 검정은 Z-RGES, 파랑은 raw RGES다.</li>
+<li><strong>결과와 의미</strong>: AUROC는 <strong>0.768 vs 0.463</strong>이다. Expression 변화 gene 수를 보정한 score가 이 dataset에서 active compound를 더 잘 구분했다. 이 값은 76.8%의 compound가 임상에서 성공한다는 뜻이 아니다.</li>
+</ul>
+<p><strong>D · Hit rate among top-ranked compounds</strong> <span class="block-id" id="fig3d"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: C와 같은 <strong>CTRP HepG2 393 compounds</strong> → Z-RGES / raw RGES로 정렬한 상위 후보의 실측 hit rate 계산. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#validation-datasets-and-metrics">Pipeline</a></li>
+<li><strong>목적</strong>: 실험 예산이 제한되어 상위 후보만 고를 때 Z-RGES가 도움이 되는지 확인한다.</li>
+<li><strong>그림 읽기</strong>: 가로축은 순위상 몇 위까지 고르는지, 세로축은 그 상위 집합에서 실제 active compound가 차지하는 <strong>hit rate</strong>다. 검정은 Z-RGES, 파랑은 raw RGES이고 점선은 전체 data의 active 비율이다.</li>
+<li><strong>결과와 의미</strong>: Z-RGES의 상위권 hit rate는 약 **40%**까지 올라가며, raw RGES보다 active compound를 상위에 모은다. 이는 C의 전체 구분 성능을 실제 후보 선정 상황으로 옮겨 본 결과다.</li>
+</ul>
+<p><strong>E · Comparison with measured-profile screening</strong> <span class="block-id" id="fig3e"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: <strong>PRISM Huh7 실측 activity</strong> → OCTAD의 실측-profile 기반 sRGES와 GPS 예측 기반 Z-RGES의 상위권 hit rate 비교. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#validation-datasets-and-metrics">Pipeline</a></li>
+<li><strong>목적</strong>: 예측 expression을 쓰는 GPS가 실측 LINCS profile 기반 screening과 비교해서도 후보를 찾을 수 있는지 살펴본다.</li>
+<li><strong>그림 읽기</strong>: PRISM Huh7의 activity를 기준으로, 파란 실선은 OCTAD compound의 <strong>sRGES</strong>, 검정 실선은 다른 compound의 <strong>GPS 기반 Z-RGES</strong> 순위에서의 hit rate다. 두 방법이 평가하는 compound 집합과 개수가 다르므로 legend를 함께 읽는다.</li>
+<li><strong>결과와 의미</strong>: 본문은 Z-RGES가 상위 10개에서 약간 높은 hit rate를 보였다고 설명한다. 전체 순위 범위에서 항상 더 좋다는 뜻으로 확장하지 않는다. 이 분석은 실측 profile이 없는 compound도 예측 profile로 screening할 가능성을 보여 준다.</li>
+</ul>
+<p><strong>F · Niclosamide analog validation</strong> <span class="block-id" id="fig3f"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: 실험한 <strong>niclosamide analog 7개의 HepG2·Huh7 IC50</strong>와 예측 Z-RGES → cell line별 pIC50–score correlation. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#niclosamide-analog-pilot">Pipeline</a></li>
+<li><strong>목적</strong>: 서로 전혀 다른 compound를 고르는 데 그치지 않고, 구조가 비슷한 analog 사이에서도 score가 potency 차이를 반영하는지 시험한다.</li>
+<li><strong>그림 읽기</strong>: 위쪽은 niclosamide의 공통 scaffold이고, 아래쪽 점들은 실험한 analog 7개다. 가로축은 pIC50, 세로축은 Z-RGES이며 색·모양으로 HepG2와 Huh7을 구분한다. B와 마찬가지로 오른쪽·아래쪽이 각각 좋은 방향이다.</li>
+<li><strong>결과와 의미</strong>: Correlation은 HepG2 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>=</mo><mo>−</mo><mn>0.71</mn></mrow><annotation encoding="application/x-tex">R=-0.71</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0077em;">R</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">−</span><span class="mord">0.71</span></span></span></span>, Huh7 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>=</mo><mo>−</mo><mn>0.79</mn></mrow><annotation encoding="application/x-tex">R=-0.79</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0077em;">R</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">−</span><span class="mord">0.79</span></span></span></span>다. Niclosamide 주변의 구조 변화에서도 score가 activity와 연관됨을 보였고, 이를 바탕으로 G에서 새로운 analog를 찾는다.</li>
+</ul>
+<p><strong>G · Balancing potency, selectivity and solubility</strong> <span class="block-id" id="fig3g"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: ZINC analog의 구조·예측 Z-RGES·예측 solubility와 선택 후보의 후속 실측값 → score–similarity scatter plot에 후보 실험 결과 표시. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#niclosamide-analog-pilot">Pipeline</a></li>
+<li><strong>목적</strong>: 강하게 작용하는 analog 중에서도, 정상 cell에 대한 영향과 solubility까지 고려해 다음 실험 후보를 고른다. Niclosamide는 낮은 solubility와 좁은 therapeutic window가 문제였다.</li>
+<li><strong>그림 읽기</strong>: 가로축은 Z-RGES로 왼쪽일수록 reversal이 강하고, 세로축은 niclosamide와의 structural similarity로 위쪽일수록 더 닮았다. 점의 색은 <strong>예측 solubility</strong>다. 빨간 원으로 고른 후보 주변에는 후속 실험에서 얻은 IC50·solubility·primary hepatocyte 반응을 따로 적었다.</li>
+<li><strong>결과와 의미</strong>: 아래 표를 함께 보면 score 하나만으로 최종 후보를 고르지 않았다는 점이 보인다. 특히 <strong>5338385는 더 강하지만 primary hepatocyte growth를 유도</strong>했고, <strong>5260420은 Huh7 potency가 낮아도 solubility와 primary-cell 측정에서 유리</strong>해 H의 mouse 실험으로 이어졌다.</li>
+</ul>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Compound</th>
+<th>Huh7 IC50</th>
+<th>Primary-cell result / solubility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Niclosamide</td>
+<td>1.4 μM</td>
+<td>CC50 5.2 μM, solubility 13.4 μM</td>
+</tr>
+<tr>
+<td>5338385</td>
+<td>0.33 μM</td>
+<td>Primary hepatocyte growth 유도, Z-RGES −8.13</td>
+</tr>
+<tr>
+<td>5260420</td>
+<td>14.8 μM</td>
+<td>평가한 조건에서 primary hepatocyte toxicity가 없었고, solubility 34 μM</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>H · Mouse xenograft validation</strong> <span class="block-id" id="fig3h"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: <strong>5260420 / control을 투여한 Huh7 xenograft mouse</strong>의 실측 tumor volume·사진 → 시간별 growth와 endpoint volume 비교. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#niclosamide-analog-pilot">Pipeline</a></li>
+<li><strong>목적</strong>: G에서 고른 5260420의 효과가 배양 cell을 넘어 mouse tumor model에서도 나타나는지 확인한다.</li>
+<li><strong>그림 읽기</strong>: Huh7 subcutaneous <a class="wikilink wikilink-concept" href="/concepts/xenograft-model/">xenograft</a>에서 control과 처리군을 비교한다. 왼쪽은 endpoint tumor volume, 가운데는 시간에 따른 tumor growth, 오른쪽은 적출한 tumor 사진이다. 처리군의 부피와 growth curve가 더 낮은지 본다.</li>
+<li><strong>결과와 의미</strong>: <strong>1 μg을 3일마다 2주간 intratumoral 투여</strong>했을 때 tumor volume이 유의하게 감소했다. 이는 해당 투여 조건의 preclinical 효과를 뒷받침하며, 경구 투여나 환자 치료 효과까지 확인한 결과는 아니다.</li>
+</ul>
+<p>추가로 다른 disease에서도 score를 시험했지만, 사용한 disease signature에 따라 결과가 달라졌다(Figure S2C–E). 따라서 disease signature를 어떻게 만드는지가 downstream screening의 중요한 전제다.</p>
+<blockquote>
+<p><strong>Takeaway</strong> · 예측 signature를 만든 다음에는, 그 signature로 매긴 순위가 실제 activity와 연결되는지 다시 검증해야 한다. 이 연구에서는 Z-RGES 보정이 raw RGES보다 유용했고, analog 선정과 후속 실험까지 이어졌다.</p>
+</blockquote>
+<h2 id="figure-4-·-large-scale-hcc-screening과-hit-to-lead-optimization">Figure 4 · Large-scale HCC screening과 hit-to-lead optimization</h2>
+<p><strong>Context</strong> · Figure 3에서 기존 compound와 analog로 Z-RGES를 검증했으니, 다음은 대규모 library에서 새로운 anti-HCC hit을 찾는 단계다. Screening으로 고른 hit의 activity와 normal hepatocyte에 대한 selectivity를 실험하고, MolSearch로 구조를 바꿔 더 강한 lead를 설계한다. Candidate 선정부터 합성, cell 실험과 mouse 실험까지 이어지는 흐름으로 읽으면 된다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2026-xing-gps-fig4.png" alt="2026 Xing - GPS Fig4" loading="lazy"><span class="figure-credit">Figure: Jing Xing et al., Cell (2026) · CC BY 4.0</span></span></p>
+<p><strong>A · Predicted reversal of top candidates</strong> <span class="block-id" id="fig4a-b"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: ZINC drug-like·in-stock <strong>6,857,774 compounds의 GPS 예측</strong>과 HCC signature → penalty를 반영한 Z-RGES ranking 및 상위 5개 reversal pattern 표시. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#6-screening-685만-개에서-18개로">Pipeline</a></li>
+<li><strong>목적</strong>: Niclosamide analog 주변을 벗어나, ZINC의 약 700만 개 compound 중 새로운 anti-HCC hit을 찾는다.</li>
+<li><strong>그림 읽기</strong>: 맨 위 색 띠는 gene별 HCC의 실측 변화로, 파랑은 disease에서 감소, 빨강은 증가한 gene이다. 아래 각 행은 상위 후보 compound이고, 빨간 막대는 compound가 올릴 것으로 예측한 gene, 파란 막대는 내릴 것으로 예측한 gene이다. 위의 disease 변화와 아래의 예측이 반대 방향으로 배치되는지 본다. 괄호 안은 Z-RGES다.</li>
+<li><strong>결과와 의미</strong>: 상위 5개 후보의 예측 reversal pattern을 보여 준다. 후보를 고를 때에는 HCC에서 이미 증가한 gene을 더 올리는 원치 않는 효과에 penalty를 주고, structural diversity와 ChEMBL의 기존 anti-HCC compound와의 낮은 similarity도 고려했다(Figure S4B). A의 막대 자체는 실제 cell assay 결과가 아니며, 그 결과는 B로 이어진다.</li>
+</ul>
+<p><strong>B · Experimental activity of selected candidates</strong> <span class="block-id" id="fig4b"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: 선정한 후보의 <strong>HepG2·Hep3B·Huh7 실측 growth-inhibition data</strong> → 상위 10개의 Z-RGES와 IC50·특정 농도 억제율을 표로 비교. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#6-screening-685만-개에서-18개로">Pipeline</a></li>
+<li><strong>목적</strong>: A에서 계산으로 골랐던 후보가 실제 HCC cell growth를 억제하는지 확인한다.</li>
+<li><strong>그림 읽기</strong>: 행은 상위 10개 candidate, 열은 Z-RGES와 HepG2·Hep3B·Huh7의 실측 억제 결과다. IC50은 낮을수록 적은 농도로 50% 억제한다. <strong><code>Inh 50% @ 20 μM</code> 같은 표기는 특정 농도의 억제율</strong>이므로, 완전한 dose–response curve에서 추정한 IC50과 구분한다. <code>-</code>는 이 표에서 IC50 수치가 제시되지 않은 항목이다.</li>
+<li><strong>결과와 의미</strong>: Top 10의 Z-RGES 범위는 <strong>−9.83 ~ −8.09</strong>다. 전체적으로 구매·실험한 <strong>18개 중 약 1/3</strong>이 세 cell line 모두를 유의하게 억제했다(Figure S4D). 표에는 score가 좋아도 실측 activity가 일관되게 강하지 않은 후보도 있어, 계산 뒤 실험이 필요한 이유를 보여 준다.</li>
+</ul>
+<p><strong>C · Dose–response of 44443110</strong> <span class="block-id" id="fig4c"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: <strong>44443110 처리 HCC cell·primary hepatocyte의 실측 viability</strong> → 농도별 dose–response curve와 IC50 산출. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#experimental-follow-up">Pipeline</a></li>
+<li><strong>목적</strong>: 대표 hit의 억제 효과가 농도에 따라 어떻게 변하고, cancer cell과 normal cell에 차이가 있는지 본다.</li>
+<li><strong>그림 읽기</strong>: 가로축은 compound 농도의 log scale, 세로축은 cell viability다. 색 선은 HCC cell line, 검정 선은 primary hepatocyte다. 같은 농도에서 cancer cell의 viability는 낮아지고 primary cell은 더 유지되는 구간이 있는지 본다.</li>
+<li><strong>결과와 의미</strong>: 44443110은 세 HCC cell line에서 수 μM의 IC50을 보였고, primary hepatocyte IC50은 <strong>20.5 μM</strong>였다. Potency와 정상 cell에 대한 영향을 함께 비교해야 한다는 예다.</li>
+</ul>
+<p><strong>D · Dose–response of PB56874852</strong> <span class="block-id" id="fig4d"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: <strong>PB56874852 처리 HCC cell·primary hepatocyte의 실측 viability</strong> → 농도별 dose–response curve로 potency·selectivity 비교. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#experimental-follow-up">Pipeline</a></li>
+<li><strong>목적</strong>: 후속 optimization의 출발점으로 선택한 PB56874852의 potency와 selectivity를 확인한다.</li>
+<li><strong>그림 읽기</strong>: C와 같은 축·색 기준으로 읽는다. Cancer cell의 선이 떨어지는 농도에서도 검정 primary-cell 선이 상대적으로 유지되는지 비교한다.</li>
+<li><strong>결과와 의미</strong>: Huh7·Hep3B의 IC50은 각각 <strong>4.1 μM</strong>, HepG2는 약 <strong>20 μM</strong>다. Primary hepatocyte에서는 <strong>100 μM까지도 50% 억제에 도달하지 않았다.</strong> 따라서 세 cancer cell 모두에 똑같이 약 4 μM이라고 요약하지 않고, cell line별 차이와 selectivity를 함께 본다. 이 assay 결과만으로 사람에서의 안전성을 확정하는 것은 아니다.</li>
+</ul>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Compound</th>
+<th>Z-RGES</th>
+<th>HepG2 IC50</th>
+<th>Hep3B IC50</th>
+<th>Huh7 IC50</th>
+<th>Primary hepatocyte</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>44443110</td>
+<td>−9.83</td>
+<td>2.0 μM</td>
+<td>3.7 μM</td>
+<td>3.2 μM</td>
+<td>IC50 20.5 μM</td>
+</tr>
+<tr>
+<td>PB56874852</td>
+<td>−9.51</td>
+<td>~20 μM</td>
+<td>4.1 μM</td>
+<td>4.1 μM</td>
+<td>100 μM까지 IC50 미도달</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>E · Predicted vs measured expression</strong> <span class="block-id" id="fig4e"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: <strong>PB56874852 처리 Huh7의 실측 RNA-seq</strong>와 GPS 예측 up/down → 실측 변화 순서에 예측 gene regulation을 대응시켜 비교. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#experimental-follow-up">Pipeline</a></li>
+<li><strong>목적</strong>: PB56874852의 실측 gene expression 변화가 GPS 예측과도 맞는지 확인한다. C·D의 cell growth 측정과는 검증 대상이 다르다.</li>
+<li><strong>그림 읽기</strong>: 위 색 띠는 PB56874852 <strong>10 μM</strong>을 처리한 Huh7의 RNA-seq 변화이고, 아래 막대는 같은 gene 순서에 놓은 GPS 예측 up/down이다. 실측 증가·감소와 예측 방향이 맞는지 본다.</li>
+<li><strong>결과와 의미</strong>: 10 μM에서는 예측과 실측 pattern이 비슷했다. 4 μM에서는 differential expression gene이 적고 같은 correlation이 나타나지 않았다(Figure S4F). 따라서 예측을 평가할 때 처리 농도와 training 조건을 함께 고려해야 한다.</li>
+</ul>
+<p><strong>F · MolSearch analog design</strong> <span class="block-id" id="fig4f"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: PB56874852 구조·화학 변환 규칙과 GPS/Z-RGES 평가 → MCTS로 analog를 탐색하고 예측 ΔZ-RGES 표시. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#7-molsearch-hit을-lead로-개선">Pipeline</a></li>
+<li><strong>목적</strong>: 찾은 hit을 그대로 끝내지 않고, 구조를 조금씩 바꾸어 더 좋은 lead를 찾는 <a class="wikilink wikilink-concept" href="/concepts/hit-to-lead-optimization/">Hit-to-Lead Optimization</a>을 수행한다.</li>
+<li><strong>그림 읽기</strong>: 왼쪽이 시작 compound PB56874852, 오른쪽이 <a class="wikilink wikilink-concept" href="/concepts/monte-carlo-tree-search/">Monte Carlo Tree Search</a> 기반 MolSearch가 제안한 analog다. 빨강은 바뀐 구조 부분이고, 아래 <strong>ΔZ-RGES</strong>는 원래 compound에 비해 score가 얼마나 변했는지다. 음수면 더 강한 reversal 방향으로 개선된 것이다.</li>
+<li><strong>결과와 의미</strong>: 대표 제안들의 ΔZ-RGES는 <strong>−3.2, −1.7, −0.86, −0.82</strong>다. Furan을 halobenzene 등으로 바꾸는 제안이 나왔지만, 이 숫자는 계산상 개선 정도다. 실제 potency가 좋아졌는지는 합성·실험한 G에서 확인한다. 두 stage의 역할은 <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#7-molsearch-hit을-lead로-개선">MolSearch workflow</a> 참고.</li>
+</ul>
+<p><strong>G · Activity of synthesized analogs</strong> <span class="block-id" id="fig4g"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: 설계·합성한 analog의 <strong>3개 HCC cell line 실측 dose–response data</strong> → curve fitting으로 얻은 IC50 비교. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#experimental-follow-up">Pipeline</a></li>
+<li><strong>목적</strong>: MolSearch의 제안을 참고해 chemist가 설계·합성한 analog가 실제로 더 강한지 확인한다.</li>
+<li><strong>그림 읽기</strong>: 위쪽은 공통 scaffold이고 R1이 바꾼 부분이다. 표에서 행은 합성 compound, 열은 세 HCC cell line의 **실측 IC50(μM)**이다. 같은 열에서 값이 낮을수록 그 cell line에서 더 강하다.</li>
+<li><strong>결과와 의미</strong>: MSU-45302는 세 cell line 모두에서 IC50이 <strong>1 μM 미만</strong>이었다. 따라서 F의 예측 개선과 G의 실험 개선이 연결되었으며, R1을 바꾸는 방식에 따라 activity도 달라진다는 점을 확인했다.</li>
+</ul>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Compound</th>
+<th>R1</th>
+<th>Huh7 IC50</th>
+<th>HepG2 IC50</th>
+<th>Hep3B IC50</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MSU-45067</td>
+<td>benzene</td>
+<td>4.1 μM</td>
+<td>1.9 μM</td>
+<td>7.3 μM</td>
+</tr>
+<tr>
+<td>MSU-45306</td>
+<td>pyridine</td>
+<td>3.4 μM</td>
+<td>3.2 μM</td>
+<td>5.0 μM</td>
+</tr>
+<tr>
+<td>MSU-45301</td>
+<td>para-bromobenzene</td>
+<td><strong>0.34 μM</strong></td>
+<td>1.6 μM</td>
+<td>1.5 μM</td>
+</tr>
+<tr>
+<td><strong>MSU-45302</strong></td>
+<td>CF₃-benzene</td>
+<td><strong>0.47 μM</strong></td>
+<td><strong>0.99 μM</strong></td>
+<td><strong>0.85 μM</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>추가 실험에서는 sorafenib과의 activity 비교(Figure S5A), oral <strong>100 mg/kg</strong>에서의 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mrow><mi>m</mi><mi>a</mi><mi>x</mi></mrow></msub></mrow><annotation encoding="application/x-tex">C_{max}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">ma</span><span class="mord mathnormal mtight">x</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> <strong>29 μmol/L</strong>와 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mrow><mn>1</mn><mi mathvariant="normal">/</mi><mn>2</mn></mrow></msub></mrow><annotation encoding="application/x-tex">t_{1/2}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9703em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1/2</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span></span></span></span> <strong>2.5 h</strong>도 보고했다(Figure S5B–C). 이는 G의 IC50 표와 별도의 실험이다.</p>
+<p><strong>H · Lead efficacy in a mouse model</strong> <span class="block-id" id="fig4h"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: <strong>MSU45302 / control을 투여한 Huh7 xenograft mouse</strong>의 실측 tumor volume·사진 → growth curve와 endpoint 비교. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#experimental-follow-up">Pipeline</a></li>
+<li><strong>목적</strong>: 개선한 lead MSU45302가 mouse tumor model에서도 효과를 보이는지 확인한다.</li>
+<li><strong>그림 읽기</strong>: 왼쪽은 endpoint tumor volume, 오른쪽은 시간별 growth curve, 아래는 적출 tumor 사진이다. Control과 MSU45302 처리군을 각 plot에서 따로 비교하고, 별표와 <code>ns</code>의 위치를 함께 본다.</li>
+<li><strong>결과와 의미</strong>: Huh7 xenograft에 <strong>1 μg을 3일마다 2주간 intratumoral 투여</strong>했다. Growth curve의 day 15에는 유의한 차이(*)가 표시되어 있지만, endpoint bar 비교에는 **<code>ns</code>**가 표시되어 있다. 따라서 모든 tumor-volume 비교가 유의했다고 한꺼번에 표현하지 않고, 시간별 분석과 endpoint 분석의 결과를 구분한다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Screening으로 찾은 hit(PB56874852, IC50 ~4 μM)을 MolSearch로 개선해 sub-μM lead(MSU45302)를 만들었다. AI 예측 → 합성 → 검증까지 한 사이클을 실제로 돌렸다.</p>
+</blockquote>
+<h2 id="figure-5-·-sgar과-moa-uhrf1">Figure 5 · SGAR과 MoA (UHRF1)</h2>
+<p><strong>Context</strong> · Figure 4에서 HCC cell의 성장을 억제하는 lead를 얻었지만, 어떤 gene 변화가 그 효과와 연결되는지는 아직 남아 있다. 이 연구에서는 compound마다 GPS로 예측한 gene expression 변화와 실험으로 측정한 activity를 함께 비교할 수 있다. SGAR로 activity와 연관된 gene 후보를 좁힌 뒤, UHRF1을 중심으로 실제 RNA·protein 변화와 cell growth에 미치는 영향을 확인한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2026-xing-gps-fig5.png" alt="2026 Xing - GPS Fig5" loading="lazy"><span class="figure-credit">Figure: Jing Xing et al., Cell (2026) · CC BY 4.0</span></span></p>
+<p><strong>A · Signature similarity and compound activity</strong> <span class="block-id" id="fig5a"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: Compound 26개의 <strong>GPS 예측 signature</strong>와 실측 activity summary → signature를 UMAP으로 배치하고 activity·chemical series 표시. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#experimental-and-public-data-validation">Pipeline</a></li>
+<li><strong>목적</strong>: 서로 구조가 다른 compound라도 강한 anti-HCC activity를 보이면 비슷한 expression 반응을 예측하는지 살펴본다. 여기서는 anti-HCC compound <strong>26개</strong>를 사용하며 MSU45302 analog <strong>15개</strong>가 포함된다.</li>
+<li><strong>그림 읽기</strong>: GPS가 예측한 signature를 UMAP으로 배치했다. 점 하나는 compound, 모양은 chemical series, 색은 실측 activity를 요약한 <strong>pIC50</strong>이다. 빨강 쪽일수록 강하고 파랑 쪽일수록 약하다. 가까운 점은 예측 expression pattern이 비슷하다는 뜻이다.</li>
+<li><strong>결과와 의미</strong>: 중간 activity의 compound는 같은 chemical series끼리 모이는 경향이 있고, 높은 activity의 compound는 scaffold가 달라도 가까워졌다. 이는 구조와 효과 사이에 어떤 gene 반응이 연결될 수 있다는 단서이며, 그 gene을 찾는 분석이 B·C다.</li>
+</ul>
+<p><strong>B · SGAR analysis concept</strong> <span class="block-id" id="fig5b"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: 같은 26개 compound의 구조·GPS 예측·실측 activity를 연결한 <strong>SGAR 분석 개념도</strong>. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#방법">Pipeline</a></li>
+<li><strong>목적</strong>: Structure를 바꿨을 때 activity가 달라지는 현상을 gene expression과 연결한다. 이 접근을 **SGAR (Structure–Gene–Activity Relationship)**이라고 부른다.</li>
+<li><strong>그림 읽기</strong>: 아래 왼쪽은 compound structure, 아래 오른쪽은 실측 activity, 위쪽은 GPS의 gene regulation 예측이다. Gene마다 compound를 예측된 regulation에 따라 나누고, 각 그룹의 실측 activity가 다른지 비교한다고 생각하면 된다.</li>
+<li><strong>결과와 의미</strong>: &quot;이 gene을 내릴 것으로 예측되는 compound들이 더 강한가&quot;라는 관계를 검사하는 설계다. 화살표를 direct binding이나 원인 관계가 이미 증명되었다는 의미로 읽지 않는다. 그룹 나누기와 IC50 예시는 <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#방법">SGAR example</a> 참고.</li>
+</ul>
+<p><strong>C · Genes associated with activity</strong> <span class="block-id" id="fig5c"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: Compound 26개의 <strong>gene별 GPS regulation 예측과 실측 IC50</strong> → 예측 그룹별 activity를 비교하고 pIC50 summary를 box plot으로 표시. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#방법">Pipeline</a></li>
+<li><strong>목적</strong>: B의 분석을 여러 gene에 반복해, activity와 연관된 gene을 고른다. 전체 분석에서 <strong>15 genes</strong>를 찾았고, 이 panel에는 WDR75·KIF23·UHRF1·MCM6 예시가 나온다.</li>
+<li><strong>그림 읽기</strong>: 각 작은 plot은 gene 하나다. 가로축의 Down·None은 그 gene에 대한 <strong>GPS 예측 그룹</strong>이며, 점 하나는 compound다. 세로축은 실험 activity를 요약한 <strong>pIC50</strong>이므로 위쪽일수록 강하다. 앞의 IC50 예시에서는 낮은 값이 좋았지만, 이 panel은 지표를 변환했으므로 좋은 방향이 위쪽이다.</li>
+<li><strong>결과와 의미</strong>: Down 그룹의 pIC50이 None 그룹보다 높은 경향이 보인다. 즉, 해당 gene을 내릴 것으로 예측한 compound들이 실험에서도 더 강했다는 연관성을 찾은 것이다. Down이라는 표시는 이 단계에서 실제 측정한 gene 감소가 아니라 예측값이다.</li>
+<li><strong>검정법 표기</strong>: STAR Methods의 <strong>Quantify Gene-Structure-Activity Relationships</strong>는 세 cell line의 평균 IC50을 이용한 <strong>rank-sum tests</strong>라고 설명하지만, Figure 5C legend는 <strong>two-sided t test</strong>라고 적혀 있다. 원문 내부의 표기가 다르므로 두 검정법을 같은 것으로 간주하지 않는다.</li>
+</ul>
+<p><strong>D · Measured RNA changes of candidate genes</strong> <span class="block-id" id="fig5d"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: <strong>MSU45302 처리 xenograft·PB56874852 처리 Huh7의 실측 RNA-seq</strong> → 대조군 대비 DE 결과를 candidate-gene heatmap으로 표시. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#experimental-and-public-data-validation">Pipeline</a></li>
+<li><strong>목적</strong>: C에서 예측으로 찾은 gene들이 compound 처리 후 실제 RNA-seq에서도 변하는지 확인한다.</li>
+<li><strong>그림 읽기</strong>: 행은 candidate gene, 열은 MSU45302 처리와 PB56874852의 <strong>10 μM·4 μM</strong> 조건이다. MSU45302는 xenograft의 RNA-seq, PB56874852는 Huh7 cell의 RNA-seq이다. 빨강은 증가, 파랑은 감소 방향이며 수치에는 DE 검정의 유의성이 반영되어 있다. 숫자의 의미는 legend의 정의와 함께 읽는다.</li>
+<li><strong>결과와 의미</strong>: Effective로 표시된 처리 조건에서 여러 candidate gene이 실제로 감소했고, UHRF1도 그중 하나였다. 4 μM의 less-effective 조건과 비교함으로써 gene 변화가 처리 조건에 따라 달라진다는 점도 볼 수 있다.</li>
+</ul>
+<p><strong>E · RNA-seq agreement between two compounds</strong> <span class="block-id" id="fig5e"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: D의 두 compound에 대한 <strong>실측 RNA-seq DE 결과</strong> → gene별 log2 fold change를 두 축에 놓아 공통 변화 비교. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#experimental-and-public-data-validation">Pipeline</a></li>
+<li><strong>목적</strong>: 서로 다른 두 compound가 공통으로 변화시키는 gene을 실측 data에서 좁힌다.</li>
+<li><strong>그림 읽기</strong>: 점 하나는 gene이다. 가로축은 MSU45302 처리의 log2 fold change, 세로축은 PB56874852 처리의 log2 fold change다. 왼쪽 아래는 두 처리에서 모두 감소한 gene이다. 회색·분홍·주황은 각각 유의한 결과가 0개·1개·2개 조건에서 나온 경우를 구분한다.</li>
+<li><strong>결과와 의미</strong>: UHRF1은 두 조건에서 감소하며 주목할 gene으로 표시된다. D가 선택한 gene의 방향·유의성을 요약한다면, E는 전체 gene 변화 속에서 그 위치를 보여 준다. 이 결과를 근거로 F·G에서 UHRF1을 더 직접적으로 시험한다.</li>
+</ul>
+<p><strong>F · UHRF1 knockdown and cell viability</strong> <span class="block-id" id="fig5f"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: <strong>UHRF1 siRNA / control siRNA 처리 HepG2의 실측 viability</strong> → 시간별 growth 비교. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#experimental-and-public-data-validation">Pipeline</a></li>
+<li><strong>목적</strong>: UHRF1을 직접 줄이는 것 자체가 HCC cell growth에 영향을 주는지 확인한다.</li>
+<li><strong>그림 읽기</strong>: 가로축은 시간, 세로축은 상대 cell viability다. 초록은 control siRNA, 빨강은 UHRF1 siRNA를 처리한 HepG2 cell이다. 같은 시간에서 두 선의 차이를 본다.</li>
+<li><strong>결과와 의미</strong>: UHRF1 knockdown군의 viability 증가가 control보다 작다. 이는 UHRF1이 이 cell model의 growth에 기여함을 뒷받침한다. Compound 처리로 UHRF1이 변했다는 관찰에서 한 단계 더 나아가, gene 자체를 조작했을 때의 효과를 본 실험이다.</li>
+</ul>
+<p><strong>G · UHRF1 protein after compound treatment</strong> <span class="block-id" id="fig5g"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: <strong>MSU45302 / control 처리 Huh7·HepG2의 실측 protein</strong> → UHRF1 western blot과 GAPDH loading control 비교. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#experimental-and-public-data-validation">Pipeline</a></li>
+<li><strong>목적</strong>: RNA 변화뿐 아니라 UHRF1 protein도 compound 처리 후 줄어드는지 확인한다.</li>
+<li><strong>그림 읽기</strong>: Western blot의 왼쪽은 control, 오른쪽은 MSU45302 처리군이다. Huh7·HepG2에서 UHRF1 band의 진하기를 비교하고, GAPDH는 loading control로 함께 본다. 본문에 적힌 처리 농도는 Huh7 <strong>5 μM</strong>, HepG2 <strong>10 μM</strong>다.</li>
+<li><strong>결과와 의미</strong>: 처리군에서 UHRF1 protein band가 약해졌다. D·E의 RNA 변화와 방향이 맞지만, protein 양이 줄었다는 결과만으로 compound가 UHRF1에 직접 결합한다고 확정할 수는 없다.</li>
+</ul>
+<p><strong>H · Patient survival association</strong> <span class="block-id" id="fig5h"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: <strong>Human Protein Atlas의 liver-cancer expression·survival data</strong> → UHRF1 high / low군 survival curve와 log-rank test. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#experimental-and-public-data-validation">Pipeline</a></li>
+<li><strong>목적</strong>: Cell 실험에서 주목한 UHRF1이 환자의 disease outcome과도 연관되는지 확인한다.</li>
+<li><strong>그림 읽기</strong>: Human Protein Atlas의 liver cancer data에서 UHRF1 low-expression군 <strong>257명</strong>과 high-expression군 <strong>105명</strong>의 survival curve를 비교한다. 시간에 따라 높은 survival을 유지하는 쪽의 예후가 더 좋다.</li>
+<li><strong>결과와 의미</strong>: High-expression군의 survival이 더 나쁜 방향으로 나타났다(<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>&lt;</mo><mn>0.001</mn></mrow><annotation encoding="application/x-tex">p &lt; 0.001</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7335em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.001</span></span></span></span>). 이는 환자 data에서의 prognostic association이며, 환자에게 MSU45302를 투여해 효과를 확인한 clinical trial 결과는 아니다.</li>
+</ul>
+<p><strong>I · Spatial expression in tissue</strong> <span class="block-id" id="fig5i"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: <strong>Wu et al.의 공개 10x Visium data</strong>(adjacent normal·HCC 각 5 sections) → QC·normalization 후 tissue 좌표에 UHRF1 expression 표시. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#experimental-and-public-data-validation">Pipeline</a></li>
+<li><strong>목적</strong>: UHRF1이 실제 HCC tissue의 어느 위치에서 발현되는지 확인한다.</li>
+<li><strong>그림 읽기</strong>: 위쪽은 adjacent normal tissue, 아래쪽은 HCC tissue다. 빨간 spot은 UHRF1 expression이 검출되는 위치이며 진하기는 expression 정도를 나타낸다. 회색 영역과 빨간 spot의 분포를 비교한다.</li>
+<li><strong>결과와 의미</strong>: HCC에서 UHRF1 expression이 더 넓게 관찰된다. Gene이 disease tissue에 존재한다는 공간적 근거를 더하며, H의 survival association·F의 knockdown·G의 protein 변화와 함께 MoA 후보를 뒷받침한다.</li>
+</ul>
+<p>UHRF1은 RING-finger E3 ubiquitin ligase 계열이자 DNA methylation regulator다. 저자들은 여러 결과를 종합해 MSU45302의 효과가 <strong>부분적으로 UHRF1 억제와 연결될 가능성</strong>을 제시한다. 예측 연관성, RNA·protein 변화, gene 조작 실험이 각각 어떤 근거를 더했는지 구분해서 읽는 것이 핵심이다.</p>
+<blockquote>
+<p><strong>Takeaway</strong> · Phenotypic screening과 달리 예측 transcriptome이 같이 있어서, target을 몰라도 MoA 후보(UHRF1)를 좁힐 수 있었다. 다만 direct binding은 증명하지 않았다.</p>
+</blockquote>
+<h2 id="figure-6-·-ipf-cell-type-specific-signature-reversal">Figure 6 · IPF: cell-type-specific signature reversal</h2>
+<p><strong>Context</strong> · 앞선 HCC 사례에 이어, IPF(idiopathic pulmonary fibrosis)에서도 signature reversal로 candidate를 찾을 수 있는지 살펴본다. 여기서는 single-cell RNA-seq으로 cell type별 disease signature를 만들고, 먼저 기존 drug를 시험해 어떤 cell population의 signature가 효과와 연결되는지 분석한다. 이어 MUC5B+ epithelial cell과 myofibroblast signature를 함께 reverse하는 새로운 compound를 GPS로 찾는다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2026-xing-gps-fig6.png" alt="2026 Xing - GPS Fig6" loading="lazy"><span class="figure-credit">Figure: Jing Xing et al., Cell (2026) · CC BY 4.0</span></span></p>
+<p><strong>A · Cell-type-specific disease signatures</strong> <span class="block-id" id="fig6a"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: <strong>Habermann et al. lung scRNA-seq</strong>(control 10명·IPF 12명) → UMAP·cell-type별 DE로 disease signature 생성. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#9-ipf-변형-single-cell-signature로-하기">Pipeline</a></li>
+<li><strong>목적</strong>: IPF lung에는 여러 cell type이 있으므로, tissue 전체의 평균만 보지 않고 cell type마다 disease에서 무엇이 달라졌는지 찾는다.</li>
+<li><strong>그림 읽기</strong>: <a class="wikilink wikilink-concept" href="/concepts/single-cell-rna-seq/">Single-cell RNA-seq</a>를 UMAP으로 배치한 것으로, 점은 cell, 색은 cell population이다. <strong>라벨 옆 숫자는 해당 population에서 유의하게 달라진 gene 수</strong>를 나타낸다. 점의 색 자체가 drug의 치료 효과를 보여 주는 것은 아니다.</li>
+<li><strong>분석과 의미</strong>: Control <strong>10명</strong>, IPF <strong>12명</strong>의 data에서 cell type별로 IPF vs control을 비교하고, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">∣</mo><msub><mrow><mi>log</mi><mo>⁡</mo></mrow><mn>2</mn></msub><mi>F</mi><mi>C</mi><mo stretchy="false">∣</mo><mo>&gt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\lvert\log_2 FC\rvert &gt; 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">∣</span><span class="mop"><span class="mop">lo<span style="margin-right:0.0139em;">g</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mclose">∣</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span>, adjusted <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>&lt;</mo><mn>0.05</mn></mrow><annotation encoding="application/x-tex">p &lt; 0.05</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7335em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.05</span></span></span></span>로 signature를 만든다. Healthy lung에 대응 population이 없는 KRT5−/KRT17+ cell·transitional AT2는 IPF 안의 AT1과 비교했다. BLM mouse 및 human bulk RNA-seq signature도 함께 준비해 B의 screening 입력으로 쓴다.</li>
+</ul>
+<p><strong>B · Repurposing candidates by signature reversal</strong> <span class="block-id" id="fig6b"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: Cell-type 등 disease signature와 <strong>실측 LINCS profile 기반 OCTAD score</strong> → 후보 drug별 sRGES를 Z-normalize한 heatmap. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#9-ipf-변형-single-cell-signature로-하기">Pipeline</a></li>
+<li><strong>목적</strong>: 먼저 기존 compound의 실측 profile을 이용해 후보를 찾고, 어떤 cell-type signature가 실제 효과와 연결될지 탐색한다.</li>
+<li><strong>그림 읽기</strong>: 행은 drug, 열은 cell-type 등에서 만든 disease signature다. 색은 reversal score를 Z-normalize한 값으로, 이 heatmap에서는 파란색 쪽이 더 강한 reversal 방향이다. 첫 행의 pyrithyldione이 어느 열에서 낮은 score를 보이는지 본다.</li>
+<li><strong>결과와 의미</strong>: OCTAD로 기존 drug <strong>20개</strong>를 골라 mouse PCLS에서 시험한 뒤 human PCLS 평가로 진행했다. Pyrithyldione은 MUC5B+ epithelial signature 등에서 강한 reversal을 보였고, C·D에서 실제 tissue와 mouse model의 효과를 확인한다. 이 단계의 repurposing과 G의 GPS 기반 novel-compound screening을 구분해서 읽는다.</li>
+</ul>
+<p><strong>C · Fibrotic markers in human lung slices</strong> <span class="block-id" id="fig6c"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: <strong>환자 유래 human PCLS의 drug / DMSO 처리 후 실측 fibrosis-marker protein</strong> → loading control에 normalize하고 fold change 비교. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#pcls-and-mouse-validation">Pipeline</a></li>
+<li><strong>목적</strong>: B에서 고른 pyrithyldione이 사람 폐 조직에서 실제 fibrosis-related protein을 줄이는지 확인한다.</li>
+<li><strong>그림 읽기</strong>: <a class="wikilink wikilink-concept" href="/concepts/precision-cut-lung-slices/">PCLS</a>는 폐 조직을 얇게 잘라 배양하는 ex vivo model이다. 각 plot은 COL1A·FN1·SMA·CTHRC1 중 하나의 marker다. DMSO는 vehicle control, PRTH는 pyrithyldione, NTB는 nintedanib이며, 세로축은 control 대비 fold change다. 값이 1보다 작으면 해당 marker가 감소한 것이다.</li>
+<li><strong>결과와 의미</strong>: Pyrithyldione 처리 후 marker가 감소했고, 저자들은 <strong>8명 환자</strong>의 PCLS에서 일관된 반응을 보고했다. Nintedanib과 함께 비교해 tissue 수준의 activity를 뒷받침하지만, marker 감소를 환자의 lung function 개선과 같은 결과로 보지는 않는다.</li>
+</ul>
+<p><strong>D · Fibrosis in a mouse model</strong> <span class="block-id" id="fig6d"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: <strong>BLM fibrosis mouse의 pyrithyldione / vehicle 처리 후 폐 조직 사진</strong> → Masson's trichrome의 collagen 면적 비율로 fibrosis index 계산. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#pcls-and-mouse-validation">Pipeline</a></li>
+<li><strong>목적</strong>: 사람 조직 배양에서 관찰한 효과가 BLM-induced lung fibrosis mouse model에서도 나타나는지 확인한다.</li>
+<li><strong>그림 읽기</strong>: CTL은 control, BLM+DMSO는 fibrosis model의 vehicle군, BLM+PRTH는 pyrithyldione 처리군이다. 왼쪽 fibrosis index는 collagen-stained area의 비율이며, 오른쪽 조직 사진에서는 Masson's trichrome의 <strong>파란 collagen 침착</strong>을 비교한다.</li>
+<li><strong>결과와 의미</strong>: PRTH군에서 fibrosis index와 collagen 침착이 감소했다. Legend의 조건은 <strong>100 μM in 50 μL saline</strong>, oropharyngeal aspiration으로 <strong>매일 2주간</strong> 투여다. 이는 해당 model과 투여 조건에서의 anti-fibrotic effect를 보여 준다.</li>
+</ul>
+<p><strong>E · Estimated myofibroblast fraction</strong> <span class="block-id" id="fig6e"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: <strong>Pyrithyldione / DMSO 처리 PCLS의 bulk RNA-seq</strong> → CIBERSORTx로 myofibroblast fraction을 추정하고 환자 내 paired 비교. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#pcls-and-mouse-validation">Pipeline</a></li>
+<li><strong>목적</strong>: Marker가 줄어든 것과 함께, fibrosis에 관여하는 cell population의 비율도 변하는지 살펴본다.</li>
+<li><strong>그림 읽기</strong>: 처리 전후 PCLS의 <strong>bulk RNA-seq</strong>를 CIBERSORTx로 deconvolution해 myofibroblast fraction을 추정했다. DMSO와 PRTH의 box를 비교하고, 같은 환자의 adjacent slice를 잇는 선으로 paired 변화를 본다. 이 panel은 <strong>3명 환자</strong>의 비교다.</li>
+<li><strong>결과와 의미</strong>: PRTH군에서 추정 myofibroblast fraction이 감소했다. 이는 RNA data에서 추정한 composition 변화이며, cell을 직접 세어 확인한 숫자와 구분한다. C의 marker 측정과 함께 어느 cell population이 반응에 관련될지 좁히는 근거다.</li>
+</ul>
+<p><strong>F · Reversal of measured disease genes</strong> <span class="block-id" id="fig6f"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: 처리 전후 <strong>PCLS 실측 bulk RNA-seq</strong>와 scRNA-seq 유래 cell-type disease signature → 반대 방향으로 변한 gene을 대응시킨 heatmap. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#pcls-and-mouse-validation">Pipeline</a></li>
+<li><strong>목적</strong>: Pyrithyldione 처리 후 실제 RNA-seq에서 어느 cell-type signature가 반대 방향으로 움직였는지 확인한다.</li>
+<li><strong>그림 읽기</strong>: MUC5B+ epithelial cell과 myofibroblast의 disease gene 목록을 PCLS의 처리 전후 expression에 대응시켰다. Disease에서 증가한 gene은 처리 후 감소하고, disease에서 감소한 gene은 처리 후 증가하는지를 비교한다. 따라서 색 한 가지가 항상 좋은 것이 아니라 <strong>disease 방향과 처리 방향이 반대인지</strong>가 중요하다.</li>
+<li><strong>결과와 의미</strong>: Myofibroblast signature 일부와 더 많은 MUC5B+ epithelial signature gene이 reverse되었다. 이 결과는 epithelial과 mesenchymal 두 population을 함께 고려할 근거가 된다. 추가 GO 분석에서는 iron ion transport 관련 term이 보고되었다(Data S14).</li>
+</ul>
+<p><strong>G · GPS screening for new compounds</strong> <span class="block-id" id="fig6g"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: Enamine HTS compound의 <strong>GPS 예측</strong>과 두 cell-type signature → Z-RGES로 후보를 선별하고 실험에서 activity를 보인 4개 후보의 예측 reversal 표시. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#pcls-and-mouse-validation">Pipeline</a></li>
+<li><strong>목적</strong>: 기존 drug에서 얻은 단서를 이용해, MUC5B+ epithelial cell과 myofibroblast 두 signature를 함께 reverse하는 새로운 compound를 찾는다.</li>
+<li><strong>그림 읽기</strong>: 위쪽은 MUC5B+ signature, 아래쪽은 myofibroblast signature다. 각 색 띠는 disease 변화이고, 아래 행은 candidate별 예측 up/down 및 Z-RGES다. Compound 하나가 양쪽 signature 모두에서 reversal 방향을 보이는지 확인한다.</li>
+<li><strong>결과와 의미</strong>: Enamine HTS library에서 상위 <strong>40개</strong>를 고르고 structural liability·mutagenicity·cLogP 등을 고려해 <strong>19개</strong>를 실험했다. 그중 <strong>4개</strong>가 한 환자의 PCLS에서 marker를 낮췄으며, G는 그 네 후보를 보여 준다. 모든 19개가 효과를 보였다는 뜻은 아니며, H에서 drug 18을 더 평가한다.</li>
+</ul>
+<p><strong>H · Drug 18 validation in human PCLS</strong> <span class="block-id" id="fig6h"></span></p>
+<ul>
+<li><strong>Data &amp; method</strong>: <strong>Drug 18 / DMSO 처리 human PCLS의 실측 protein</strong> → western blot과 loading-control-normalized marker fold change 비교. → <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#pcls-and-mouse-validation">Pipeline</a></li>
+<li><strong>목적</strong>: 새 compound drug 18의 anti-fibrotic activity가 여러 환자의 폐 조직에서도 재현되는지 확인한다.</li>
+<li><strong>그림 읽기</strong>: 왼쪽은 DMSO와 drug 18 처리 후의 western blot으로 FN1·SMA·CTHRC1 band를 비교하고, beta-actin은 loading control로 본다. 오른쪽 막대는 각 protein의 control 대비 fold change이며, 아래 구조식은 drug 18의 chemical structure다.</li>
+<li><strong>결과와 의미</strong>: <strong>10 μM</strong>에서 FN1·SMA·CTHRC1이 여러 환자의 PCLS에서 유의하게 감소했다. 따라서 계산으로 고른 새로운 scaffold가 사람 조직의 marker assay에서도 activity를 보였다는 근거다. Pyrithyldione과 drug 18은 서로 다른 후보이며, 앞선 HCC의 MSU45302와도 구분한다.</li>
+</ul>
+<p>이 Figure에서 pyrithyldione은 기존 drug를 재활용하는 출발점이자 disease biology를 탐색하는 도구다. 저자들은 life-threatening side effect 가능성을 지적하며, IPF clinical trial로 진행하려면 추가 optimization과 평가가 필요하다고 설명한다. 그 한계 속에서 novel compound를 찾는 G·H의 역할을 함께 읽는다.</p>
+<blockquote>
+<p><strong>Takeaway</strong> · Single-cell data로 cell type별 signature를 만들면 <strong>여러 cell population을 동시에 겨냥</strong>하는 compound를 찾을 수 있다. Repurposing(pyrithyldione)과 novel compound(drug 18)를 모두 보여 줬다.</p>
+</blockquote>
+<h2 id="limitations">Limitations</h2>
+<p>저자들이 밝힌 한계:</p>
+<ul>
+<li>LINCS training data가 978 landmark genes, cell line 4종, 주로 10 μM·24 h 조건에 한정된다. 다른 조건에서는 성능이 떨어진다 (Figure S1F).</li>
+<li>GPS는 structure와 transcriptional change의 <strong>correlation</strong>을 학습한 것이지 mechanistic causality를 밝히지 않는다.</li>
+<li>SGAR은 direct ligand–protein binding을 알려 주지 않는다. AlphaFold 3 같은 structure-based modeling과 보완해야 한다.</li>
+<li>Transcriptomic prediction만으로는 drug activity와 side effect를 다 설명할 수 없다. 다른 omics 통합이 필요하다.</li>
+<li>찾은 compound들은 clinical trial까지 추가 preclinical validation이 필요하다.</li>
+</ul>
+<p>Figure에서 읽을 수 있는 추가 한계 (해석):</p>
+<ul>
+<li><strong>Gene coverage의 편향</strong>: <a href="#fig2b">Figure 2B</a>·<a href="#fig2c">2C</a>의 selected genes는 높은 basal expression과 cell cycle·transcription 관련 기능에 치우쳐 있다. 질병의 핵심 gene이 예측 대상 2,198개 밖에 있으면 screening score에 반영되지 않으므로 <strong>disease signature의 포함 범위를 확인</strong>해야 한다. 저발현·질병/조직 특이 gene을 놓칠 가능성은 추가 해석이며, 해당 gene군의 성능 저하를 직접 검증한 결과는 아니다.</li>
+</ul>
+<h2 id="data-and-code">Data &amp; Code</h2>
+<ul>
+<li><strong>Panel 설명의 대조 근거</strong>: <span class="link-missing" title="아직 사이트에 없는 페이지">Original PDF</span>의 Figure 1–6·legend·관련 Results·STAR Methods를 대조했다. 각 panel의 Data &amp; method는 핵심 출처와 분석만 요약하며, 상세 절차·조건·예시는 연결한 Pipeline에 둔다. Figure 5C의 검정법 차이는 해당 panel과 <a class="wikilink wikilink-pipeline" href="/papers/2026-xing-gps-pipeline/#논문-안의-표기-불일치-메모">Notation notes</a>에 표시했다.</li>
+<li>RNA-seq: GEO GSE291867, GSE291190, GSE291833</li>
+<li>구성: (1) RCL, (2) GPS4Drug, 그 외 screening·optimization tool. Web portal과 Docker container를 공개했다고 밝힘.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<p><a class="wikilink wikilink-concept" href="/concepts/disease-signature/">Disease Signature</a> · <a class="wikilink wikilink-concept" href="/concepts/signature-reversal/">Signature Reversal</a> · <a class="wikilink wikilink-concept" href="/concepts/connectivity-map/">Connectivity Map</a> · <a class="wikilink wikilink-concept" href="/concepts/drug-repurposing/">Drug Repurposing</a> · <a class="wikilink wikilink-concept" href="/concepts/lincs-l1000/">LINCS L1000</a> · <a class="wikilink wikilink-concept" href="/concepts/compound-library/">Compound Library</a> · <a class="wikilink wikilink-concept" href="/concepts/single-cell-rna-seq/">Single-cell RNA-seq</a> · <a class="wikilink wikilink-concept" href="/concepts/molecular-fingerprint/">Molecular Fingerprint</a> · <a class="wikilink wikilink-concept" href="/concepts/ecfp/">ECFP</a> · <a class="wikilink wikilink-concept" href="/concepts/virtual-screening/">Virtual Screening</a> · <a class="wikilink wikilink-concept" href="/concepts/rges/">RGES</a> · <a class="wikilink wikilink-concept" href="/concepts/hit-to-lead-optimization/">Hit-to-Lead Optimization</a> · <a class="wikilink wikilink-concept" href="/concepts/monte-carlo-tree-search/">Monte Carlo Tree Search</a> · <a class="wikilink wikilink-concept" href="/concepts/mechanism-of-action/">Mechanism of Action</a> · <a class="wikilink wikilink-concept" href="/concepts/ic50/">IC50</a> · <a class="wikilink wikilink-concept" href="/concepts/xenograft-model/">Xenograft Model</a> · <a class="wikilink wikilink-concept" href="/concepts/precision-cut-lung-slices/">Precision-Cut Lung Slices</a> · <a class="wikilink wikilink-concept" href="/concepts/target-based-vs-phenotypic-screening/">Target-based vs Phenotypic Screening</a></p>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#graphical-abstract">Graphical abstract</a></li><li class="toc-l2"><a href="#background">Background</a></li><li class="toc-l2"><a href="#data">Data</a></li><li class="toc-l3"><a href="#public-datasets">Public datasets</a></li><li class="toc-l3"><a href="#compound-libraries">Compound libraries</a></li><li class="toc-l3"><a href="#study-generated-data">Study-generated data</a></li><li class="toc-l2"><a href="#figure-1-·-gps-framework와-model-performance">Figure 1 · GPS framework와 model performance</a></li><li class="toc-l2"><a href="#figure-2-·-gps-predicted-signature의-biological-relevance">Figure 2 · GPS-predicted signature의 biological relevance</a></li><li class="toc-l2"><a href="#figure-3-·-z-rges-검증과-niclosamide-analog">Figure 3 · Z-RGES 검증과 niclosamide analog</a></li><li class="toc-l2"><a href="#figure-4-·-large-scale-hcc-screening과-hit-to-lead-optimization">Figure 4 · Large-scale HCC screening과 hit-to-lead optimization</a></li><li class="toc-l2"><a href="#figure-5-·-sgar과-moa-uhrf1">Figure 5 · SGAR과 MoA (UHRF1)</a></li><li class="toc-l2"><a href="#figure-6-·-ipf-cell-type-specific-signature-reversal">Figure 6 · IPF: cell-type-specific signature reversal</a></li><li class="toc-l2"><a href="#limitations">Limitations</a></li><li class="toc-l2"><a href="#data-and-code">Data &amp;amp; Code</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/compound-library/"><span class="kind-dot kind-concept"></span>Compound Library</a></li><li><a href="/concepts/connectivity-map/"><span class="kind-dot kind-concept"></span>Connectivity Map (CMap)</a></li><li><a href="/concepts/disease-signature/"><span class="kind-dot kind-concept"></span>Disease Signature</a></li><li><a href="/concepts/drug-repurposing/"><span class="kind-dot kind-concept"></span>Drug Repurposing</a></li><li><a href="/concepts/ecfp/"><span class="kind-dot kind-concept"></span>ECFP</a></li><li><a href="/papers/2026-xing-gps-pipeline/"><span class="kind-dot kind-pipeline"></span>GPS Pipeline 따라가기</a></li><li><a href="/concepts/hit-to-lead-optimization/"><span class="kind-dot kind-concept"></span>Hit-to-Lead Optimization</a></li><li><a href="/concepts/ic50/"><span class="kind-dot kind-concept"></span>IC50</a></li><li><a href="/concepts/lincs-l1000/"><span class="kind-dot kind-concept"></span>LINCS L1000</a></li><li><a href="/concepts/mechanism-of-action/"><span class="kind-dot kind-concept"></span>Mechanism of Action (MoA)</a></li><li><a href="/concepts/molecular-fingerprint/"><span class="kind-dot kind-concept"></span>Molecular Fingerprint</a></li><li><a href="/concepts/monte-carlo-tree-search/"><span class="kind-dot kind-concept"></span>Monte Carlo Tree Search (MCTS)</a></li><li><a href="/concepts/precision-cut-lung-slices/"><span class="kind-dot kind-concept"></span>Precision-Cut Lung Slices (PCLS)</a></li><li><a href="/concepts/rges/"><span class="kind-dot kind-concept"></span>RGES (Reverse Gene Expression Score)</a></li><li><a href="/concepts/signature-reversal/"><span class="kind-dot kind-concept"></span>Signature Reversal</a></li><li><a href="/concepts/single-cell-rna-seq/"><span class="kind-dot kind-concept"></span>Single-cell RNA-seq</a></li><li><a href="/concepts/target-based-vs-phenotypic-screening/"><span class="kind-dot kind-concept"></span>Target-based vs Phenotypic Screening</a></li><li><a href="/concepts/virtual-screening/"><span class="kind-dot kind-concept"></span>Virtual Screening</a></li><li><a href="/concepts/xenograft-model/"><span class="kind-dot kind-concept"></span>Xenograft Model</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

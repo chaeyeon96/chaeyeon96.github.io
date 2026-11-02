@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kawasaki Disease PBMC (Wang 2021) · Study Wiki</title>
+<meta name="description" content="급성 Kawasaki disease(KD) 환자의 치료 전후 PBMC를 scRNA-seq으로 분석했다. Cell composition, inflammatory transcription, BCR/TCR의 변화를 구분해 읽는다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a></p>
+    <div class="paper-meta">
+      
+      <span class="badge">Nature Communications</span>
+      <span>2021</span>
+      <span class="muted">disease-study</span>
+      
+    </div>
+    <h1 class="note-title">Kawasaki Disease PBMC (Wang 2021)</h1>
+    <p class="paper-full-title">Single-cell RNA sequencing of peripheral blood mononuclear cells from acute Kawasaki disease patients — Wang et al.</p>
+    <p class="lead">급성 Kawasaki disease(KD) 환자의 치료 전후 PBMC를 scRNA-seq으로 분석했다. Cell composition, inflammatory transcription, BCR/TCR의 변화를 구분해 읽는다.</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1038/s41467-021-25771-5" rel="noopener">원문 (DOI)</a>
+      
+      
+      <span class="license">License · CC BY 4.0</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/immunology/">Immunology</a><a class="chip chip-link" href="/sections/single-cell-analysis/">Single-cell Analysis</a></div>
+    <div class="note-body"><h2 id="background">Background</h2>
+<p>Kawasaki disease(KD)의 급성 염증이 어느 PBMC population에서 나타나는지, IVIG 전후 cell abundance와 cell-intrinsic expression이 어떻게 달라지는지 묻는다. 혈액의 변화와 coronary artery의 병변은 같은 관측 대상이 아니며, 이 연구의 모든 KD 환자는 IVIG에 반응했다.</p>
+<h2 id="data">Data</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Source and scale</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Paired PBMC scRNA-seq</td>
+<td>새 실측: KD 7명, 발열 5일째 IVIG 전과 치료 완료·해열 24 h 후; healthy 3명; QC 후 84,986 cells</td>
+<td>Figure 1–5의 composition·expression</td>
+</tr>
+<tr>
+<td>Paired receptor sequencing</td>
+<td>실측: productive paired BCR 23,044 cells, TCR 48,456 cells</td>
+<td>Figure 4D–E, 5F의 isotype·clone tracking</td>
+</tr>
+<tr>
+<td>Flow cytometry / blood count</td>
+<td>독립 실측: KD 16명, healthy 20명; routine count에는 sequencing cohort 포함</td>
+<td>Figure 2, 4B, 5B의 orthogonal validation</td>
+</tr>
+<tr>
+<td>GSE73577</td>
+<td>공개 실측 microarray: KD 19명의 IVIG 전후 PBMC</td>
+<td>Supplementary Figure 4의 pseudobulk 방향 비교</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="figure-1-·-pbmc-landscape">Figure 1 · PBMC landscape</h2>
+<p><strong>Context</strong> · 먼저 전체 PBMC의 구성을 확인해야 subset 변화와 유전자 발현 변화를 혼동하지 않는다. 치료 전·후·healthy를 같은 annotation으로 비교한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2021-wang-kawasaki-disease-pbmc-fig1.webp" alt="2021 Wang - Kawasaki Disease PBMC Fig1" loading="lazy"><span class="figure-credit">Figure: Wang et al., Nature Communications (2021) · CC BY 4.0</span></span></p>
+<p><strong>A–C · Matched cell atlas</strong></p>
+<ul>
+<li><strong>Purpose</strong>: 조건별 major cell composition을 확인한다.</li>
+<li><strong>Data &amp; method</strong>: 실측 PBMC scRNA-seq을 Seurat로 통합하고 SingleR와 canonical marker로 annotation했다.</li>
+<li><strong>Reading</strong>: 각 점은 cell, 색은 cell type이며 A/B/C는 치료 전/후/healthy다.</li>
+<li><strong>Result &amp; meaning</strong>: 치료 전 KD에서는 B cell·monocyte 비중이 크고 T/NK 비중이 작았다; pooled UMAP의 비율은 donor별 검정을 대체하지 않는다.</li>
+</ul>
+<h3 id="annotation-reference">Annotation reference</h3>
+<ul>
+<li><strong>Annotation</strong> · Cluster를 SingleR로 자동 annotation한 뒤(Supplementary Fig. 1), canonical marker 발현으로 다듬었다.</li>
+<li><strong>Major cell type 비율 (전체 PBMC 기준)</strong></li>
+</ul>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Cell type</th>
+<th>Marker</th>
+<th>비율</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>T cell</td>
+<td>CD3D, CD3E, CD3G</td>
+<td>60.00%</td>
+</tr>
+<tr>
+<td>CD4+ T</td>
+<td>CD4</td>
+<td>36.94%</td>
+</tr>
+<tr>
+<td>CD8+ T</td>
+<td>CD8A, CD8B</td>
+<td>18.53%</td>
+</tr>
+<tr>
+<td>NK</td>
+<td>NCAM1(CD56), KLRB1, NKG7</td>
+<td>5.44%</td>
+</tr>
+<tr>
+<td>B cell</td>
+<td>CD19, MS4A1(CD20), CD38</td>
+<td>22.27%</td>
+</tr>
+<tr>
+<td>Monocyte</td>
+<td>CD14, CD68, FCGR3A(CD16)</td>
+<td>9.60%</td>
+</tr>
+<tr>
+<td>mDC</td>
+<td>CD1C</td>
+<td>0.26%</td>
+</tr>
+<tr>
+<td>pDC</td>
+<td>LILRA4</td>
+<td>0.18%</td>
+</tr>
+<tr>
+<td>HSPC</td>
+<td>CD34</td>
+<td>0.12%</td>
+</tr>
+<tr>
+<td>(오염) Erythrocyte</td>
+<td>HBB</td>
+<td>0.99%</td>
+</tr>
+<tr>
+<td>(오염) Megakaryocyte</td>
+<td>PPBP</td>
+<td>0.92%</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>KD vs healthy</strong> · 치료 전 KD 환자는 monocyte와 B cell 비율이 늘고, T cell과 NK cell 비율이 줄었다. 기존 임상 보고와 같은 방향이다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Annotation은 marker 조합으로 확인하고 composition 검정은 Figure 2에서 읽는다.</p>
+</blockquote>
+<h2 id="figure-2-·-independent-composition-validation">Figure 2 · Independent composition validation</h2>
+<p><strong>Context</strong> · UMAP에서 보이는 차이가 소수 donor나 capture의 영향인지 확인해야 한다. Sequencing과 독립 flow cytometry, routine count를 나란히 놓는다.</p>
+<p><a href="https://www.nature.com/articles/s41467-021-25771-5#Fig2">Original figure 2</a></p>
+<p><strong>A · Sequencing proportions</strong></p>
+<ul>
+<li><strong>Purpose</strong>: cell type 비율을 donor별로 비교한다.</li>
+<li><strong>Data &amp; method</strong>: KD 7명·healthy 3명의 scRNA-seq 비율을 two-sided t-test로 비교했다.</li>
+<li><strong>Reading</strong>: 색은 donor, boxplot은 condition별 분포다.</li>
+<li><strong>Result &amp; meaning</strong>: B cell 증가와 CD8 T 감소가 관찰되지만 작은 cohort에서 일부 차이는 유의하지 않았다.</li>
+</ul>
+<p><strong>B–C · Flow cytometry and blood count</strong></p>
+<ul>
+<li><strong>Purpose</strong>: 독립 측정에서 같은 방향이 나오는지 확인한다.</li>
+<li><strong>Data &amp; method</strong>: KD 16명·healthy 20명의 flow cytometry 및 두 cohort의 routine monocyte count를 비교했다.</li>
+<li><strong>Reading</strong>: B의 선은 paired 전후 변화이고 C에서는 sequencing donor를 별도 색으로 표시한다.</li>
+<li><strong>Result &amp; meaning</strong>: B/NK/CD8 변화와 전반적 monocyte 감소를 지지하며, P1의 예외적 monocyte 증가는 routine count에서도 나타났다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · 기술 간 일치와 donor 예외를 함께 남겨야 한다.</p>
+</blockquote>
+<h2 id="figure-3-·-monocyte-inflammatory-programs">Figure 3 · Monocyte inflammatory programs</h2>
+<p><strong>Context</strong> · 구성 변화만으로 어떤 세포가 염증 신호를 내는지는 알 수 없다. Monocyte subtype과 cytokine transcription을 분리해 조사한다.</p>
+<p><a href="https://www.nature.com/articles/s41467-021-25771-5#Fig3">Original figure 3</a></p>
+<p><strong>A · CD16 monocytes</strong></p>
+<ul>
+<li><strong>Purpose</strong>: monocyte 내부 subset 변화를 확인한다.</li>
+<li><strong>Data &amp; method</strong>: paired scRNA-seq에서 CD16+ monocyte 비율을 비교했다.</li>
+<li><strong>Reading</strong>: 전체 PBMC가 아니라 monocyte 내 비율의 condition 차이를 읽는다.</li>
+<li><strong>Result &amp; meaning</strong>: IVIG 후 CD16+ 비율은 낮아졌지만 치료 전과 healthy의 차이는 유의하지 않았다.</li>
+</ul>
+<p><strong>B · Differential expression</strong></p>
+<ul>
+<li><strong>Purpose</strong>: monocyte의 inflammatory program을 찾는다.</li>
+<li><strong>Data &amp; method</strong>: sample-level count를 DESeq2로 비교하고 functional enrichment를 수행했다.</li>
+<li><strong>Reading</strong>: heatmap의 행은 gene, 열은 sample이며 scaled CPM을 표시한다.</li>
+<li><strong>Result &amp; meaning</strong>: 치료 전 S100·Fc receptor·complement 관련 발현은 높고 MHC II 발현은 KD에서 낮았다.</li>
+</ul>
+<p><strong>C–D · Cytokine sources</strong></p>
+<ul>
+<li><strong>Purpose</strong>: IL1B와 TNF의 주요 발현 population을 찾는다.</li>
+<li><strong>Data &amp; method</strong>: PBMC별 cytokine dot plot과 monocyte sample-level DESeq2 비교를 사용했다.</li>
+<li><strong>Reading</strong>: dot size는 발현 cell 비중, 색은 평균 발현이며 D는 donor별 CPM이다.</li>
+<li><strong>Result &amp; meaning</strong>: IL1B/TNF는 주로 monocyte에서 발현되며 치료 전 높았다; RNA는 분비 protein 양의 직접 측정이 아니다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Monocyte의 abundance와 cell-intrinsic inflammatory expression이 함께 변한다.</p>
+</blockquote>
+<h2 id="figure-4-·-b-cell-activation-and-bcr-expansion">Figure 4 · B cell activation and BCR expansion</h2>
+<p><strong>Context</strong> · B cell 수가 줄어도 antibody-producing state가 늘 수 있다. 따라서 plasma cell, transcription, receptor clonality를 따로 확인한다.</p>
+<p><a href="https://www.nature.com/articles/s41467-021-25771-5#Fig4">Original figure 4</a></p>
+<p><strong>A–B · Plasma cells</strong></p>
+<ul>
+<li><strong>Purpose</strong>: plasma cell 변화가 독립 측정에서도 보이는지 묻는다.</li>
+<li><strong>Data &amp; method</strong>: scRNA-seq 및 독립 flow cytometry의 CD19+CD24−CD38++ population을 비교했다.</li>
+<li><strong>Reading</strong>: A는 donor별 비율, B는 paired flow 비율이다.</li>
+<li><strong>Result &amp; meaning</strong>: IVIG 후 plasma cell 증가가 관찰되어 전체 B cell 감소와 구분된다.</li>
+</ul>
+<p><strong>C–D · Programs and isotypes</strong></p>
+<ul>
+<li><strong>Purpose</strong>: B cell activation과 isotype 변화를 확인한다.</li>
+<li><strong>Data &amp; method</strong>: B cell DESeq2 및 paired scBCR의 IGHA/IGHG 비율을 사용했다.</li>
+<li><strong>Reading</strong>: C의 scaled expression과 D의 condition별 isotype 비율을 읽는다.</li>
+<li><strong>Result &amp; meaning</strong>: 치료 전 cell-cycle program이 높고 치료 후 IGHA/IGHG 비율은 높아졌다.</li>
+</ul>
+<p><strong>E · Clonal tracking</strong></p>
+<ul>
+<li><strong>Purpose</strong>: 치료 전후 같은 BCR clone의 크기를 비교한다.</li>
+<li><strong>Data &amp; method</strong>: size ≥3 clonotype을 paired sample에서 추적하고 Fisher test를 적용했다.</li>
+<li><strong>Reading</strong>: bar의 색은 IGHV family이며 별표는 FDR &lt;0.01 clone이다.</li>
+<li><strong>Result &amp; meaning</strong>: 대부분 환자에서 치료 후 oligoclonal expansion이 늘었으나 target antigen이나 IVIG의 직접 효과는 입증하지 않는다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · B cell abundance 감소와 plasma/BCR activation 증가가 동시에 가능하다.</p>
+</blockquote>
+<h2 id="figure-5-·-t-cell-states-and-tcr-expansion">Figure 5 · T cell states and TCR expansion</h2>
+<p><strong>Context</strong> · B cell의 receptor 변화에 이어 T cell도 phenotype과 clonal expansion이 동반되는지 본다. Subset 수와 기능적 발현은 다른 지표다.</p>
+<p><a href="https://www.nature.com/articles/s41467-021-25771-5#Fig5">Original figure 5</a></p>
+<p><strong>A–B · CD8 subsets</strong></p>
+<ul>
+<li><strong>Purpose</strong>: CD8 감소를 설명하는 subset을 찾는다.</li>
+<li><strong>Data &amp; method</strong>: scRNA-seq과 독립 flow cytometry에서 naive 및 effector-memory 비율을 비교했다.</li>
+<li><strong>Reading</strong>: healthy 대비 비율과 paired 치료 전후 선을 구분한다.</li>
+<li><strong>Result &amp; meaning</strong>: KD는 naive CD8 비중이 높고 effector-memory 비중이 낮았으며 flow에서도 방향이 유지됐다.</li>
+</ul>
+<p><strong>C–E · Transcription and metabolism</strong></p>
+<ul>
+<li><strong>Purpose</strong>: T cell activation의 transcriptional 근거를 찾는다.</li>
+<li><strong>Data &amp; method</strong>: CD4/CD8별 DESeq2, hallmark GSEA, MYC/FOXP3 발현을 분석했다.</li>
+<li><strong>Reading</strong>: D의 NES 방향은 치료 전 up/down을 뜻하고 E는 sample-level CPM이다.</li>
+<li><strong>Result &amp; meaning</strong>: 치료 전 MYC target·oxidative phosphorylation이 높고 치료 후 CD4의 FOXP3 발현이 높았다; Treg 수 증가와 동일하지 않다.</li>
+</ul>
+<p><strong>F · TCR clones</strong></p>
+<ul>
+<li><strong>Purpose</strong>: TCR repertoire의 전후 변화를 확인한다.</li>
+<li><strong>Data &amp; method</strong>: productive paired TCR에서 size ≥3 clone을 추적하고 Fisher test를 사용했다.</li>
+<li><strong>Reading</strong>: bar는 clone 크기, 색은 TRBV family이며 BCR panel과 비교할 수 있다.</li>
+<li><strong>Result &amp; meaning</strong>: 대부분 환자에서 치료 후 clonal TCR 비중이 늘었으며 특정 TRBV family 우세는 찾지 못했다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · 급성 KD의 T cell 변화는 subset composition, metabolic program, clone을 함께 봐야 한다.</p>
+</blockquote>
+<h2 id="methods-reference">Methods reference</h2>
+<p>Cell Ranger 3.0.1/GRCh38 → Seurat 3.0.2 → QC·log normalization·2,000 variable genes·CCA integration → SNN clustering → SingleR와 marker 검토를 사용했다. 기본 QC는 2,000–60,000 UMI, mitochondrial &lt;5%이며 P1 pre-treatment만 UMI 하한 1,000을 적용했다. DE는 sample-level count의 DESeq2, enrichment는 GO/Reactome·hallmark GSEA, repertoire는 productive paired chain과 immunarch를 사용했다. 일반 원리는 <a class="wikilink wikilink-concept" href="/concepts/cell-type-annotation/">Cell Type Annotation</a>, <a class="wikilink wikilink-concept" href="/concepts/pseudobulk-analysis/">Pseudobulk Analysis</a>, <a class="wikilink wikilink-concept" href="/concepts/clonotype-and-cdr/">Clonotype and CDR</a>에서 연결한다.</p>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li>Sequencing cohort는 KD 7명·healthy 3명으로 작고 모두 IVIG responder이며 coronary artery lesion이 없었다. IVIG resistance나 coronary lesion의 predictor를 검증한 연구가 아니다.</li>
+<li>치료 후 관찰은 질병의 시간 경과와 IVIG·aspirin 효과가 섞여 있다. 전후 차이를 약물의 인과효과로 읽지 않는다.</li>
+<li>PBMC는 coronary tissue·neutrophil을 대표하지 않는다. Receptor expansion으로 unknown antigen이나 superantigen 부재를 확정할 수도 없다.</li>
+</ul>
+<h2 id="data-and-code">Data &amp; Code</h2>
+<ul>
+<li><a href="https://www.nature.com/articles/s41467-021-25771-5">Original article and Methods</a>, main Figure 1–5; Supplementary Information의 annotation·QC·repertoire 보조 분석을 함께 확인한다.</li>
+<li><a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE168732">Processed data: GSE168732</a>; raw OEP001162는 privacy-related restricted access이며 저자에게 요청한다.</li>
+<li><a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE73577">External microarray: GSE73577</a>, <a href="https://github.com/zhenwang100/scKD">analysis code</a>.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/cell-type-annotation/">Cell Type Annotation</a> · <a class="wikilink wikilink-concept" href="/concepts/leiden-clustering/">Leiden Clustering</a> (resolution) · <a class="wikilink wikilink-concept" href="/concepts/knn-graph/">KNN Graph</a> · <a class="wikilink wikilink-concept" href="/concepts/pbmc/">PBMC</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#background">Background</a></li><li class="toc-l2"><a href="#data">Data</a></li><li class="toc-l2"><a href="#figure-1-·-pbmc-landscape">Figure 1 · PBMC landscape</a></li><li class="toc-l3"><a href="#annotation-reference">Annotation reference</a></li><li class="toc-l2"><a href="#figure-2-·-independent-composition-validation">Figure 2 · Independent composition validation</a></li><li class="toc-l2"><a href="#figure-3-·-monocyte-inflammatory-programs">Figure 3 · Monocyte inflammatory programs</a></li><li class="toc-l2"><a href="#figure-4-·-b-cell-activation-and-bcr-expansion">Figure 4 · B cell activation and BCR expansion</a></li><li class="toc-l2"><a href="#figure-5-·-t-cell-states-and-tcr-expansion">Figure 5 · T cell states and TCR expansion</a></li><li class="toc-l2"><a href="#methods-reference">Methods reference</a></li><li class="toc-l2"><a href="#limitations">Limitations</a></li><li class="toc-l2"><a href="#data-and-code">Data &amp;amp; Code</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/cell-type-annotation/"><span class="kind-dot kind-concept"></span>Cell Type Annotation</a></li><li><a href="/concepts/clonotype-and-cdr/"><span class="kind-dot kind-concept"></span>Clonotype and CDR</a></li><li><a href="/concepts/knn-graph/"><span class="kind-dot kind-concept"></span>KNN Graph</a></li><li><a href="/concepts/leiden-clustering/"><span class="kind-dot kind-concept"></span>Leiden Clustering</a></li><li><a href="/concepts/pbmc/"><span class="kind-dot kind-concept"></span>PBMC (Peripheral Blood Mononuclear Cells)</a></li><li><a href="/concepts/pseudobulk-analysis/"><span class="kind-dot kind-concept"></span>Pseudobulk Analysis</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

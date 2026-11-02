@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>sciCSR (Ng 2024) · Study Wiki</title>
+<meta name="description" content="5′ scRNA-seq BAM에서 productive/sterile IgH transcripts를 구분하고 B-cell-specific CSR/SHM ordering으로 state transition을 추론한다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a></p>
+    <div class="paper-meta">
+      
+      <span class="badge">Nature Methods</span>
+      <span>2024</span>
+      <span class="muted">method</span>
+      
+    </div>
+    <h1 class="note-title">sciCSR (Ng 2024)</h1>
+    <p class="paper-full-title">sciCSR infers B cell state transition and predicts class-switch recombination dynamics using single-cell transcriptomic data — Ng et al.</p>
+    <p class="lead">5′ scRNA-seq BAM에서 productive/sterile IgH transcripts를 구분하고 B-cell-specific CSR/SHM ordering으로 state transition을 추론한다.</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1038/s41592-023-02060-1" rel="noopener">원문 (DOI)</a>
+      <a class="btn btn-small btn-soft" href="/papers/2024-ng-scicsr-pipeline/">Pipeline 따라가기</a>
+      
+      <span class="license">License · CC BY 4.0</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/immunology/">Immunology</a><a class="chip chip-link" href="/sections/single-cell-analysis/">Single-cell Analysis</a></div>
+    <div class="note-body"><div class="callout callout-tip">
+<div class="callout-title"><span class="callout-icon" aria-hidden="true">✦</span>Method walkthrough</div>
+<div class="callout-body">
+<p><a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/">2024 Ng - sciCSR (Pipeline)</a>에서 BAM 분류, NMF/NNLS, CSR potential, CellRank, TPT와 stationary distribution을 수식·toy example으로 연결한다.</p>
+</div></div>
+<h2 id="background">Background</h2>
+<p>Mature B cell에서는 transcriptome 전체의 splicing kinetics가 maturation을 충분히 표현하지 못할 수 있다. 반면 <a class="wikilink wikilink-concept" href="/concepts/somatic-hypermutation/">SHM</a>과 <a class="wikilink wikilink-concept" href="/concepts/class-switch-recombination/">CSR</a>은 B-cell biology에 직접 관련된다. Sterile IgH transcript는 VDJ 없이 target constant region 앞에서 시작하는 transcript이며 CSR 준비 상태의 단서이지 완료된 switching의 증거는 아니다. sciCSR는 이 정보로 transition을 추론하되 실제 lineage를 추적하는 기술은 아니다.</p>
+<h2 id="data">Data</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Dataset / source</th>
+<th>Measured or simulated</th>
+<th>Role / figures</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Stewart E-MTAB-9544; King E-MTAB-9005</td>
+<td>Human peripheral blood HB6 donor의 sorted subsets 및 tonsil B cells, 10x 5′ scRNA</td>
+<td>Human signature training·read validation; Figures 1, 2, 4</td>
+</tr>
+<tr>
+<td>Mathew E-MTAB-9478/9491; Luo E-MTAB-10081</td>
+<td>Influenza 후 mouse lymph node/lung/spleen 및 age-varied peritoneal B cells; paired scRNA/BCR</td>
+<td>Mouse reference signatures; Figure 4 / Extended Data</td>
+</tr>
+<tr>
+<td>Synthetic IgH transcripts</td>
+<td>CR3022 VDJ + human C exons 및 sterile sequences, scenario당 10⁶ reads; polyester 3′/5′ bias</td>
+<td>Alignment/classification ground truth; Figure 2B,C,E</td>
+</tr>
+<tr>
+<td>자체 IFNγ culture E-MTAB-13050</td>
+<td>Healthy donor 3명; naive B cells; D0/D3/D6 scRNA/BCR 및 flow</td>
+<td>Sterile transcription의 실험 검증; Figure 3</td>
+</tr>
+<tr>
+<td>Kim GSE195673, SRP356296</td>
+<td>Vaccination donor 07/20; week 4/7/15/29, GC cells 중심; scRNA + scBCR</td>
+<td>W7→W15, W15→W29 future-distribution validation; Figure 5</td>
+</tr>
+<tr>
+<td>Gómez-Escolar GSE189775 / SRP348368</td>
+<td>OVA-immunized mouse splenic B cells, Aicda KO / WT</td>
+<td>Stationary distribution의 perturbation validation; Figure 6B</td>
+</tr>
+<tr>
+<td>Hong GSE145922 / SRP250728</td>
+<td>BXD2 mouse splenocytes, Il23 p19 KO / WT; scRNA/BCR</td>
+<td>CSR/SHM/velocity comparison; Figure 6C–F</td>
+</tr>
+</tbody>
+</table></div>
+<p>Paper 전체의 dataset별 최종 cell 수는 여기서 임의로 통합하지 않았다. Reference-trained signature와 predicted flux/stationary distribution은 실측 counts·BCR isotype와 구별한다.</p>
+<h2 id="figure-1-·-biological-footprints-of-shm-and-csr">Figure 1 · Biological footprints of SHM and CSR</h2>
+<p><strong>Context</strong> · B cell maturation은 transcriptome 전체 변화뿐 아니라 BCR 자체 변화로도 관찰할 수 있다. SHM과 CSR이 서로 다른 sequencing evidence를 남기는 점에서 알고리즘을 출발시킨다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-ng-scicsr-fig1.png" alt="2024 Ng - sciCSR Fig1" loading="lazy"><span class="figure-credit">Figure: Ng et al., Nature Methods (2024) · CC BY 4.0</span></span></p>
+<p>Figure: Ng et al., Nature Methods (2024) · CC BY 4.0. Publisher figure image; legend는 아래에서 재구성했다.</p>
+<h3 id="a-·-igh-locus-and-maturation">A · IgH locus and maturation</h3>
+<ul>
+<li><strong>목적</strong>: SHM과 CSR의 차이를 이해한다.</li>
+<li><strong>Data &amp; method</strong>: IgH locus의 biological schematic; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-1-·-inputs-and-molecular-classification">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: VDJ mutation과 constant-region recombination을 구분한다.</li>
+<li><strong>결과와 의미</strong>: Sterile transcription은 CSR 가능성을 시사하지만 AID action·DNA repair 완료를 직접 측정하지 않는다.</li>
+</ul>
+<h3 id="b-·-shm-evidence">B · SHM evidence</h3>
+<ul>
+<li><strong>목적</strong>: BCR sequence에서 maturation signal을 얻는다.</li>
+<li><strong>Data &amp; method</strong>: scBCR sequence와 assigned germline V allele의 비교; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-3-·-shm-alternative">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Observed-vs-germline mismatch를 읽는다.</li>
+<li><strong>결과와 의미</strong>: Mutation fraction을 cell ordering의 대안으로 사용한다.</li>
+</ul>
+<h3 id="c-·-csr-evidence">C · CSR evidence</h3>
+<ul>
+<li><strong>목적</strong>: 동일 molecule의 read 조합으로 transcript를 분류한다.</li>
+<li><strong>Data &amp; method</strong>: Cell barcode·UMI별 VDJ/C/5′ C read evidence; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-1-·-inputs-and-molecular-classification">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: 표의 존재/부재 조합을 비교한다.</li>
+<li><strong>결과와 의미</strong>: Productive는 VDJ+C, sterile은 5′ C이면서 VDJ 없음; 모호한 C-only molecule은 uninformative다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · CSR와 SHM은 같은 지표가 아니라 B-cell maturation을 보는 서로 다른 입력이다.</p>
+</blockquote>
+<h2 id="figure-2-·-read-level-validation">Figure 2 · Read-level validation</h2>
+<p><strong>Context</strong> · Sterile transcript를 이용하려면 먼저 그 read가 실제로 포착되고 올바른 isotype에 정렬되는지 확인해야 한다. Experimental coverage와 ground-truth simulation으로 library preparation과 aligner 영향을 분리한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-ng-scicsr-fig2.png" alt="2024 Ng - sciCSR Fig2" loading="lazy"><span class="figure-credit">Figure: Ng et al., Nature Methods (2024) · CC BY 4.0</span></span></p>
+<p>Figure: Ng et al., Nature Methods (2024) · CC BY 4.0. Publisher figure image; legend는 아래에서 재구성했다.</p>
+<h3 id="a-·-read-coverage">A · Read coverage</h3>
+<ul>
+<li><strong>목적</strong>: Unswitched cells에도 5′ C signal이 있는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Stewart sorted B subsets의 5′ scRNA alignment; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-1-·-inputs-and-molecular-classification">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Human chr14 minus strand이므로 genomic axis가 역방향이며 AGCT motif와 coverage를 대조한다.</li>
+<li><strong>결과와 의미</strong>: Naive/IgM-memory의 IGHG1/IGHG2 앞 signal이 sterile transcription과 일치한다; read 위치는 해석의 근거이지 DNA recombination 확인이 아니다.</li>
+</ul>
+<h3 id="b-·-library-end-bias">B · Library-end bias</h3>
+<ul>
+<li><strong>목적</strong>: 5′와 3′ protocol의 차이를 평가한다.</li>
+<li><strong>Data &amp; method</strong>: Synthetic sterile IgG1/IgA1/IgE reads를 STAR/HISAT2에 정렬; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-1-·-inputs-and-molecular-classification">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Light=5′ C, dark=C exon; 3′/5′ simulation을 비교한다.</li>
+<li><strong>결과와 의미</strong>: 3′ bias는 핵심 5′ C evidence를 놓쳐 이 방식의 기본 입력은 5′ library다.</li>
+</ul>
+<h3 id="c-·-isotype-mixtures">C · Isotype mixtures</h3>
+<ul>
+<li><strong>목적</strong>: 비슷한 subclass가 섞여도 구별되는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Known IgG/IgA subclass mixture의 simulated reads; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-1-·-inputs-and-molecular-classification">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Cross가 ground truth, 두 aligner bar가 reconstruction이다.</li>
+<li><strong>결과와 의미</strong>: Subclasses를 대체로 복원하지만 이는 지정 simulation 조건의 검증이다.</li>
+</ul>
+<h3 id="d-·-cell-subset-counts">D · Cell-subset counts</h3>
+<ul>
+<li><strong>목적</strong>: 분류된 count가 B biology와 맞는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Stewart data의 productive/sterile count matrix; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-1-·-inputs-and-molecular-classification">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Dot 크기는 positive-cell fraction, 색은 expression이다.</li>
+<li><strong>결과와 의미</strong>: Classical memory의 switched productive와 unswitched subsets의 sterile expression을 구분한다.</li>
+</ul>
+<h3 id="e-·-sampling-asymmetry">E · Sampling asymmetry</h3>
+<ul>
+<li><strong>목적</strong>: Productive count가 왜 sparse한지 확인한다.</li>
+<li><strong>Data &amp; method</strong>: Synthetic productive/sterile IgG1·IgA1의 read positions; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-1-·-inputs-and-molecular-classification">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: VDJ/C/5′ C별 비율을 비교한다.</li>
+<li><strong>결과와 의미</strong>: Productive의 VDJ evidence가 드물어 sterile:productive count ratio를 그대로 switching rate로 쓰면 안 된다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Uninformative read를 억지로 productive/sterile로 분류하지 않는 것이 중요하다.</p>
+</blockquote>
+<h2 id="figure-3-·-in-vitro-validation-of-sterile-transcription">Figure 3 · In vitro validation of sterile transcription</h2>
+<p><strong>Context</strong> · Read-level 구분이 가능해도 biological stimulus에 적절히 반응하는지 검증해야 한다. Naive B cells를 IgG-polarizing condition에 배양하고 sterile signal·productive isotype·flow를 나란히 본다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-ng-scicsr-fig3.png" alt="2024 Ng - sciCSR Fig3" loading="lazy"><span class="figure-credit">Figure: Ng et al., Nature Methods (2024) · CC BY 4.0</span></span></p>
+<p>Figure: Ng et al., Nature Methods (2024) · CC BY 4.0. Publisher figure image; legend는 아래에서 재구성했다.</p>
+<h3 id="a-·-culture-design">A · Culture design</h3>
+<ul>
+<li><strong>목적</strong>: IgG-directed stimulus를 정의한다.</li>
+<li><strong>Data &amp; method</strong>: Donor 3명 naive B cells에 anti-IgM·CD40L·IFNγ, D0/D3/D6 sampling; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-6-·-experimental-and-predictive-validation">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: 조건과 시간선 및 scRNA/BCR/flow의 역할을 구분한다.</li>
+<li><strong>결과와 의미</strong>: Matched measurements로 sterile induction과 actual isotype를 별도 평가한다.</li>
+</ul>
+<h3 id="b-·-time-structure">B · Time structure</h3>
+<ul>
+<li><strong>목적</strong>: 배양 중 transcriptomic state가 바뀌는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Culture scRNA의 UMAP; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-6-·-experimental-and-predictive-validation">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: 색은 D0/D3/D6이며 거리는 시간 자체가 아니다.</li>
+<li><strong>결과와 의미</strong>: 후기 cells의 state 변화가 관찰된다.</li>
+</ul>
+<h3 id="c-·-proliferation">C · Proliferation</h3>
+<ul>
+<li><strong>목적</strong>: 후기 state에 proliferation이 동반되는지 본다.</li>
+<li><strong>Data &amp; method</strong>: 같은 UMAP 위 MKI67 expression; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-6-·-experimental-and-predictive-validation">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: MKI67-high 영역을 B와 비교한다.</li>
+<li><strong>결과와 의미</strong>: D3/D6의 proliferative activity와 일치한다.</li>
+</ul>
+<h3 id="d-·-sterile-induction">D · Sterile induction</h3>
+<ul>
+<li><strong>목적</strong>: Target sterile transcripts가 증가하는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Donor·day별 sciCSR sterile counts; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-6-·-experimental-and-predictive-validation">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Column=isotype, row=time, dot size=fraction이다.</li>
+<li><strong>결과와 의미</strong>: Sterile IgG, 특히 IgG3가 유도된다.</li>
+</ul>
+<h3 id="e-·-bcr-isotypes">E · BCR isotypes</h3>
+<ul>
+<li><strong>목적</strong>: 완료된 productive isotype 변화의 규모를 본다.</li>
+<li><strong>Data &amp; method</strong>: 같은 culture의 scBCR-seq isotype assignments; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-6-·-experimental-and-predictive-validation">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: IgM과 switched axes의 scale 차이에 주의한다.</li>
+<li><strong>결과와 의미</strong>: 종료 시 IgG-positive cell은 약 1% 수준으로 sterile induction과 즉시 동일하지 않다.</li>
+</ul>
+<h3 id="f-·-flow-validation">F · Flow validation</h3>
+<ul>
+<li><strong>목적</strong>: Sequencing 밖의 assay에서도 확인한다.</li>
+<li><strong>Data &amp; method</strong>: Intracellular/surface isotype flow cytometry; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-6-·-experimental-and-predictive-validation">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Day별 positive fraction을 비교한다; D3은 donors pooled sample이다.</li>
+<li><strong>결과와 의미</strong>: Productive switching의 작은 규모와 일치하며 독립 donor replicate 수를 과대평가하지 않는다.</li>
+</ul>
+<h3 id="g-·-ifnγ-response">G · IFNγ response</h3>
+<ul>
+<li><strong>목적</strong>: Sterile-positive cells의 molecular program을 묻는다.</li>
+<li><strong>Data &amp; method</strong>: IgG sterile+ vs IgM+ IgG sterile− DE; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-6-·-experimental-and-predictive-validation">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Positive logFC가 sterile+ enrichment, pathway genes는 색으로 강조된다.</li>
+<li><strong>결과와 의미</strong>: IFNγ response-associated genes가 enriched된다.</li>
+</ul>
+<h3 id="h-·-candidate-signaling-genes">H · Candidate signaling genes</h3>
+<ul>
+<li><strong>목적</strong>: 어떤 signaling components가 차이를 보이는지 본다.</li>
+<li><strong>Data &amp; method</strong>: IFNGR1/JAK2/STAT1의 donor·time별 expression; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-6-·-experimental-and-predictive-validation">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Dot size와 expression 색을 구별한다.</li>
+<li><strong>결과와 의미</strong>: D3/D6의 signaling-associated transcription 증가를 보인다.</li>
+</ul>
+<h3 id="i-·-positive-cell-fractions">I · Positive-cell fractions</h3>
+<ul>
+<li><strong>목적</strong>: Donor-level 일관성과 통계적 지지를 본다.</li>
+<li><strong>Data &amp; method</strong>: 세 gene의 positive-cell percentages; two-sided t-test와 BH; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-6-·-experimental-and-predictive-validation">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Donor별 연결선과 timepoint의 두 cell groups를 비교한다.</li>
+<li><strong>결과와 의미</strong>: D3 IFNGR1 p=0.011, JAK2 p=0.021이 보고되며 모든 gene/timepoint가 유의한 것은 아니다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Sterile transcription을 CSR completion과 분리해서 해석하면 stimulus-response biology가 보인다.</p>
+</blockquote>
+<h2 id="figure-4-·-from-isotype-counts-to-transition-models">Figure 4 · From isotype counts to transition models</h2>
+<p><strong>Context</strong> · Transcript별 counts는 sparse하고 dataset마다 scale이 다르다. Reference signatures로 B-cell ordering을 만들고 transcriptomic neighborhood에 제한적인 방향 정보를 넣어 transition을 모델링한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-ng-scicsr-fig4.png" alt="2024 Ng - sciCSR Fig4" loading="lazy"><span class="figure-credit">Figure: Ng et al., Nature Methods (2024) · CC BY 4.0</span></span></p>
+<p>Figure: Ng et al., Nature Methods (2024) · CC BY 4.0. Publisher figure image; legend는 아래에서 재구성했다.</p>
+<h3 id="a-·-reference-signatures">A · Reference signatures</h3>
+<ul>
+<li><strong>목적</strong>: Isotype profile을 낮은 차원으로 요약한다.</li>
+<li><strong>Data &amp; method</strong>: Human/mouse atlas의 productive·sterile counts에 NMF; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-2-·-nmf-and-csr-potential">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Isotype signatures와 cell-specific weights를 구분한다.</li>
+<li><strong>결과와 의미</strong>: Naive-like weight를 반전·정규화한 CSR potential은 높을수록 switched-like이며 앞으로 남은 switching 능력의 직접 척도가 아니다.</li>
+</ul>
+<h3 id="b-·-maturation-ordering">B · Maturation ordering</h3>
+<ul>
+<li><strong>목적</strong>: CSR potential이 알려진 state와 맞는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Stewart blood/King tonsil의 potential·isotype expression; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-2-·-nmf-and-csr-potential">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: x=potential, 위 state 분포와 아래 transcript trend를 함께 읽는다.</li>
+<li><strong>결과와 의미</strong>: Naive-to-switched ordering을 지지하지만 실제 elapsed time은 아니다.</li>
+</ul>
+<h3 id="c-·-cellrank-and-tpt">C · CellRank and TPT</h3>
+<ul>
+<li><strong>목적</strong>: Ordering을 transition probability와 flux로 연결한다.</li>
+<li><strong>Data &amp; method</strong>: 새 data에 pretrained signatures 또는 matched BCR SHM을 적용; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-4-·-cellrank-transition-matrix">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: CSR 또는 SHM→CellRank→TPT의 분기를 따라간다.</li>
+<li><strong>결과와 의미</strong>: CSR와 SHM은 각각 선택 가능한 pseudotime 입력이며 본문 비교는 별도 모델로 수행한다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Cell ordering, one-step transition probability, reactive flux, stationary distribution은 서로 다른 결과다.</p>
+</blockquote>
+<h2 id="figure-5-·-predicting-later-bcr-distributions">Figure 5 · Predicting later BCR distributions</h2>
+<p><strong>Context</strong> · Reference ordering이 그럴듯한지 넘어, 앞 시점의 scRNA로 뒤 시점의 독립 BCR distribution을 예측하는지 검사한다. Donor별로 실제 repertoire가 달라 donor-specific prediction이 필요하다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-ng-scicsr-fig5.png" alt="2024 Ng - sciCSR Fig5" loading="lazy"><span class="figure-credit">Figure: Ng et al., Nature Methods (2024) · CC BY 4.0</span></span></p>
+<p>Figure: Ng et al., Nature Methods (2024) · CC BY 4.0. Publisher figure image; legend는 아래에서 재구성했다.</p>
+<h3 id="a-·-vaccination-design">A · Vaccination design</h3>
+<ul>
+<li><strong>목적</strong>: Training-like input과 later outcome을 분리한다.</li>
+<li><strong>Data &amp; method</strong>: Kim dataset의 vaccine follow-up와 lymph-node GC sampling; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-6-·-experimental-and-predictive-validation">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Week 7/15/29의 assay 시간선을 읽는다.</li>
+<li><strong>결과와 의미</strong>: 동일 snapshot 안의 fit만이 아니라 시간차 validation을 수행한다.</li>
+</ul>
+<h3 id="b-·-observed-repertoires">B · Observed repertoires</h3>
+<ul>
+<li><strong>목적</strong>: 두 donor의 target 분포를 확인한다.</li>
+<li><strong>Data &amp; method</strong>: Donor 07/20의 week 7/15/29 scBCR isotypes; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-6-·-experimental-and-predictive-validation">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: 색은 timepoint, x는 BCR fraction이다.</li>
+<li><strong>결과와 의미</strong>: Donor별 repertoire 변화가 달라 pooled average prediction은 충분하지 않다.</li>
+</ul>
+<h3 id="c-·-week-7-to-week-15">C · Week 7 to week 15</h3>
+<ul>
+<li><strong>목적</strong>: 앞 시점이 다음 분포를 예측하는지 본다.</li>
+<li><strong>Data &amp; method</strong>: W7 scRNA TPT inward flux vs W15 measured BCR; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-6-·-experimental-and-predictive-validation">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Bubble color=flux, size=significance; 오른쪽 predicted/observed bars다.</li>
+<li><strong>결과와 의미</strong>: Cosine similarity는 donor 07=0.948, donor 20=0.949이며 donor-specific switching patterns를 재현한다.</li>
+</ul>
+<h3 id="d-·-week-15-to-week-29">D · Week 15 to week 29</h3>
+<ul>
+<li><strong>목적</strong>: 더 늦은 시점에도 검증한다.</li>
+<li><strong>Data &amp; method</strong>: W15 scRNA TPT inward flux vs W29 measured BCR; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-6-·-experimental-and-predictive-validation">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: C와 같은 axes이며 inference snapshot만 바뀐다.</li>
+<li><strong>결과와 의미</strong>: Cosine similarity는 donor 07=0.949, donor 20=0.728로 차이가 있다; 전체 median=0.949라는 요약이 낮은 한 prediction을 가리면 안 된다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · 예측 대상은 future population isotype distribution이지 특정 cell의 확정된 운명이 아니다.</p>
+</blockquote>
+<h2 id="figure-6-·-perturbations-and-alternative-dynamical-signals">Figure 6 · Perturbations and alternative dynamical signals</h2>
+<p><strong>Context</strong> · Temporal validation 다음에는 known perturbation을 recapitulate하는지 본다. 동일 dataset에서 CSR·SHM·RNA velocity가 어떤 state를 강조하는지도 비교한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-ng-scicsr-fig6.png" alt="2024 Ng - sciCSR Fig6" loading="lazy"><span class="figure-credit">Figure: Ng et al., Nature Methods (2024) · CC BY 4.0</span></span></p>
+<p>Figure: Ng et al., Nature Methods (2024) · CC BY 4.0. Publisher figure image; legend는 아래에서 재구성했다.</p>
+<h3 id="a-·-knockout-datasets">A · Knockout datasets</h3>
+<ul>
+<li><strong>목적</strong>: Perturbation의 biological contrast를 정의한다.</li>
+<li><strong>Data &amp; method</strong>: Aicda KO 및 Il23 p19 KO mouse splenic B cells와 각 WT; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-5-·-tpt-and-uncertainty">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: 두 실험과 paired scRNA/scBCR를 구별한다.</li>
+<li><strong>결과와 의미</strong>: CSR machinery와 cytokine perturbation을 다른 맥락에서 평가한다.</li>
+</ul>
+<h3 id="b-·-aicda-knockout">B · Aicda knockout</h3>
+<ul>
+<li><strong>목적</strong>: AID deficiency의 isotype distribution을 복원하는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Gómez-Escolar WT/KO별 sciCSR stationary distribution과 measured BCR; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-5-·-tpt-and-uncertainty">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: 색으로 predicted/observed, error bar로 bootstrap 95% CI를 읽는다.</li>
+<li><strong>결과와 의미</strong>: CSR가 감소한 KO 분포를 recapitulate한다; stationary prediction과 Fig5 inward-flux prediction을 혼동하지 않는다.</li>
+</ul>
+<h3 id="c-·-il23-knockout">C · Il23 knockout</h3>
+<ul>
+<li><strong>목적</strong>: 다른 perturbation에도 대응하는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Hong WT/KO별 stationary distribution과 measured BCR; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-5-·-tpt-and-uncertainty">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: WT/KO panel과 isotype-specific bar를 비교한다.</li>
+<li><strong>결과와 의미</strong>: IgG2b-related distribution 차이를 반영한다.</li>
+</ul>
+<h3 id="d-·-model-comparison-setup">D · Model comparison setup</h3>
+<ul>
+<li><strong>목적</strong>: 같은 cell manifold에서 입력 효과를 비교한다.</li>
+<li><strong>Data &amp; method</strong>: Hong dataset에 CSR/SHM/scVelo-based transition models; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-5-·-tpt-and-uncertainty">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: UMAP cell labels와 세 입력 분기를 읽는다.</li>
+<li><strong>결과와 의미</strong>: Graph 외 방향 정보가 달라지면 Markov walk도 달라진다.</li>
+</ul>
+<h3 id="e-·-stationary-occupancy">E · Stationary occupancy</h3>
+<ul>
+<li><strong>목적</strong>: 각 모델이 어떤 state를 강조하는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Observed cell fraction 및 세 모델의 stationary distribution; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-5-·-tpt-and-uncertainty">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Row별 state-fraction heatmap을 비교한다.</li>
+<li><strong>결과와 의미</strong>: RNA velocity와 CSR/SHM의 long-run occupancy가 다르며 같은 dynamical quantity를 추정한다고 가정하면 안 된다.</li>
+</ul>
+<h3 id="f-·-sampled-trajectories">F · Sampled trajectories</h3>
+<ul>
+<li><strong>목적</strong>: 모델별 방문 state를 공간적으로 본다.</li>
+<li><strong>Data &amp; method</strong>: 각 transition matrix의 Markov random walks; <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/#step-5-·-tpt-and-uncertainty">Pipeline</a>.</li>
+<li><strong>그림 읽기</strong>: Contour는 simulated visits density이지 실제 time-lapse cell path가 아니다.</li>
+<li><strong>결과와 의미</strong>: B-cell-native inputs가 velocity에서 약한 일부 maturation transitions를 포착한다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Perturbation validation은 유용하지만 inferred transition을 experimental lineage tracing으로 대체하지 않는다.</p>
+</blockquote>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li>5′-enriched reads와 올바른 genomic coordinates가 필요하다. 3′ count matrix만으로 sterile IgH를 복원한다고 주장하지 않는다.</li>
+<li>Productive calls는 VDJ+C evidence가 필요해 sparse하다. Paired scBCR isotype가 있으면 이를 이용하며 sterile/productive count ratio를 rate로 해석하지 않는다.</li>
+<li>CSR potential은 observed maturation ordering이다. AID absence 등으로 sterile transcription이 실제 CSR로 이어지지 않을 수 있다.</li>
+<li>TPT는 선택한 source/target과 sampled-state composition에 민감하다(Extended Data 7). Missing isotype는 inferred route를 바꾸며 MFPT는 calendar time이 아니다.</li>
+<li>Supplementary Note 1에서 한 isotype가 &gt;95%인 상황은 prediction 저하를 보인다. Note 2의 state당 10-cell robustness는 균형 잡힌 3-state simulation 결과이지 모든 rare population에 적용되는 minimum n이 아니다.</li>
+<li>Published Methods의 kernel은 0.8 connectivity + 0.2 pseudotime다. 최신 CellRank default로 바꾸어 읽지 않는다. Mouse NMF H=3→IgM signatures 합치기는 Supplementary Methods를 따라야 한다.</li>
+</ul>
+<h2 id="data-and-code">Data &amp; Code</h2>
+<ul>
+<li><a href="https://www.nature.com/articles/s41592-023-02060-1">Original article and Methods</a>; <a href="https://static-content.springer.com/esm/art%3A10.1038%2Fs41592-023-02060-1/MediaObjects/41592_2023_2060_MOESM1_ESM.pdf">full Supplementary Information</a> Notes 1–3, Methods, Figure 1, Table 1 검토.</li>
+<li><a href="https://github.com/Fraternalilab/sciCSR">sciCSR source</a>, <a href="https://doi.org/10.5281/zenodo.8005705">processed data</a>. Accession은 Data 표 참고.</li>
+<li>Main figures는 publisher image를 직접 확인했다. Supplementary source-data spreadsheets 전체 재분석·package 실행은 수행하지 않았다.</li>
+</ul>
+<h2 id="related-concepts">Related concepts</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/class-switch-recombination/">Class Switch Recombination</a> · <a class="wikilink wikilink-concept" href="/concepts/somatic-hypermutation/">Somatic Hypermutation</a> · <a class="wikilink wikilink-concept" href="/concepts/b-cell-and-bcr/">B Cell and BCR</a> · <a class="wikilink wikilink-concept" href="/concepts/trajectory-analysis/">Trajectory Analysis</a> · <a class="wikilink wikilink-concept" href="/concepts/cnmf/">cNMF</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#background">Background</a></li><li class="toc-l2"><a href="#data">Data</a></li><li class="toc-l2"><a href="#figure-1-·-biological-footprints-of-shm-and-csr">Figure 1 · Biological footprints of SHM and CSR</a></li><li class="toc-l3"><a href="#a-·-igh-locus-and-maturation">A · IgH locus and maturation</a></li><li class="toc-l3"><a href="#b-·-shm-evidence">B · SHM evidence</a></li><li class="toc-l3"><a href="#c-·-csr-evidence">C · CSR evidence</a></li><li class="toc-l2"><a href="#figure-2-·-read-level-validation">Figure 2 · Read-level validation</a></li><li class="toc-l3"><a href="#a-·-read-coverage">A · Read coverage</a></li><li class="toc-l3"><a href="#b-·-library-end-bias">B · Library-end bias</a></li><li class="toc-l3"><a href="#c-·-isotype-mixtures">C · Isotype mixtures</a></li><li class="toc-l3"><a href="#d-·-cell-subset-counts">D · Cell-subset counts</a></li><li class="toc-l3"><a href="#e-·-sampling-asymmetry">E · Sampling asymmetry</a></li><li class="toc-l2"><a href="#figure-3-·-in-vitro-validation-of-sterile-transcription">Figure 3 · In vitro validation of sterile transcription</a></li><li class="toc-l3"><a href="#a-·-culture-design">A · Culture design</a></li><li class="toc-l3"><a href="#b-·-time-structure">B · Time structure</a></li><li class="toc-l3"><a href="#c-·-proliferation">C · Proliferation</a></li><li class="toc-l3"><a href="#d-·-sterile-induction">D · Sterile induction</a></li><li class="toc-l3"><a href="#e-·-bcr-isotypes">E · BCR isotypes</a></li><li class="toc-l3"><a href="#f-·-flow-validation">F · Flow validation</a></li><li class="toc-l3"><a href="#g-·-ifnγ-response">G · IFNγ response</a></li><li class="toc-l3"><a href="#h-·-candidate-signaling-genes">H · Candidate signaling genes</a></li><li class="toc-l3"><a href="#i-·-positive-cell-fractions">I · Positive-cell fractions</a></li><li class="toc-l2"><a href="#figure-4-·-from-isotype-counts-to-transition-models">Figure 4 · From isotype counts to transition models</a></li><li class="toc-l3"><a href="#a-·-reference-signatures">A · Reference signatures</a></li><li class="toc-l3"><a href="#b-·-maturation-ordering">B · Maturation ordering</a></li><li class="toc-l3"><a href="#c-·-cellrank-and-tpt">C · CellRank and TPT</a></li><li class="toc-l2"><a href="#figure-5-·-predicting-later-bcr-distributions">Figure 5 · Predicting later BCR distributions</a></li><li class="toc-l3"><a href="#a-·-vaccination-design">A · Vaccination design</a></li><li class="toc-l3"><a href="#b-·-observed-repertoires">B · Observed repertoires</a></li><li class="toc-l3"><a href="#c-·-week-7-to-week-15">C · Week 7 to week 15</a></li><li class="toc-l3"><a href="#d-·-week-15-to-week-29">D · Week 15 to week 29</a></li><li class="toc-l2"><a href="#figure-6-·-perturbations-and-alternative-dynamical-signals">Figure 6 · Perturbations and alternative dynamical signals</a></li><li class="toc-l3"><a href="#a-·-knockout-datasets">A · Knockout datasets</a></li><li class="toc-l3"><a href="#b-·-aicda-knockout">B · Aicda knockout</a></li><li class="toc-l3"><a href="#c-·-il23-knockout">C · Il23 knockout</a></li><li class="toc-l3"><a href="#d-·-model-comparison-setup">D · Model comparison setup</a></li><li class="toc-l3"><a href="#e-·-stationary-occupancy">E · Stationary occupancy</a></li><li class="toc-l3"><a href="#f-·-sampled-trajectories">F · Sampled trajectories</a></li><li class="toc-l2"><a href="#limitations">Limitations</a></li><li class="toc-l2"><a href="#data-and-code">Data &amp;amp; Code</a></li><li class="toc-l2"><a href="#related-concepts">Related concepts</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/b-cell-and-bcr/"><span class="kind-dot kind-concept"></span>B Cell and BCR</a></li><li><a href="/concepts/class-switch-recombination/"><span class="kind-dot kind-concept"></span>Class Switch Recombination (CSR)</a></li><li><a href="/concepts/cnmf/"><span class="kind-dot kind-concept"></span>cNMF (Consensus Non-negative Matrix Factorization)</a></li><li><a href="/papers/2024-ng-scicsr-pipeline/"><span class="kind-dot kind-pipeline"></span>sciCSR · Pipeline</a></li><li><a href="/concepts/somatic-hypermutation/"><span class="kind-dot kind-concept"></span>Somatic Hypermutation (SHM)</a></li><li><a href="/concepts/trajectory-analysis/"><span class="kind-dot kind-concept"></span>Trajectory Analysis</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

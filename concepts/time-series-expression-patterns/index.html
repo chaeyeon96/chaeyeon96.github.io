@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Time-series Expression Patterns · Study Wiki</title>
+<meta name="description" content="여러 시점에서 측정한 발현을 gene별로 시간에 따른 변화 모양으로 묶어, 약물 반응이나 질병 진행의 타이밍을 이해하는 분석.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/single-cell-analysis/">Single-cell Analysis</a></p>
+    <h1 class="note-title">Time-series Expression Patterns</h1>
+    <p class="lead">여러 시점에서 측정한 발현을 gene별로 시간에 따른 변화 모양으로 묶어, 약물 반응이나 질병 진행의 타이밍을 이해하는 분석.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#single-cell</span><span class="chip chip-tag">#longitudinal</span><span class="chip chip-tag">#clustering</span><span class="chip chip-tag">#time-series</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p>치료 후 0, 4, 12주에 측정했다면 &quot;초반에 확 올랐다 유지&quot;, &quot;늦게 올라감&quot;, &quot;잠깐 올랐다 내려옴&quot; 같은 모양이 있습니다. 같은 모양끼리 gene을 묶으면 반응의 단계별 생물학을 볼 수 있습니다.</p>
+<h2 id="자세히">자세히</h2>
+<h3 id="절차">절차</h3>
+<ol>
+<li><strong>시간 효과가 있는 gene 고르기</strong>: 종단 DE(시간 효과, 또는 group × time interaction)로 후보를 먼저 거른다 → <a class="wikilink wikilink-concept" href="/concepts/differential-expression/">Differential Expression</a></li>
+<li><strong>행렬 준비</strong>: cell type별·시점별 평균 발현 (row: gene, column: 0w, 4w, 12w). 가능하면 sample 단위 pseudobulk로.</li>
+<li><strong>Gene별 Z-score</strong>: 절대량이 아니라 <strong>변화 추이</strong>만 보기 위해 필수.</li>
+<li><strong>Clustering</strong>
+<ul>
+<li><strong>K-means</strong>: 단순, gene마다 하나의 cluster</li>
+<li><strong>Mfuzz (soft / fuzzy c-means)</strong>: gene이 여러 패턴에 소속 확률을 가짐. noise에 강해 시계열에 자주 쓰임. fuzziness <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi></mrow><annotation encoding="application/x-tex">m</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">m</span></span></span></span>은 보통 1.25–2.</li>
+</ul>
+</li>
+<li><strong>Cluster 수</strong>: 4–6개에서 시작해 패턴이 중복되지 않는 선에서 결정.</li>
+</ol>
+<pre><code class="language-r">library(Mfuzz)
+eset &lt;- ExpressionSet(as.matrix(avg_expr))  # genes × timepoints
+eset_s &lt;- standardise(eset)                  # gene별 Z-score
+cl &lt;- mfuzz(eset_s, c = 6, m = 1.25)
+mfuzz.plot(eset_s, cl = cl, mfrow = c(2, 3), time.labels = c(&quot;0w&quot;, &quot;4w&quot;, &quot;12w&quot;))
+</code></pre>
+<h3 id="흔한-패턴과-해석">흔한 패턴과 해석</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>패턴</th>
+<th>모양</th>
+<th>의미 예</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Early up</td>
+<td>0 → 4주 급증 후 유지</td>
+<td>초기 약물 효과</td>
+</tr>
+<tr>
+<td>Late up</td>
+<td>4주까지 조용하다 12주 증가</td>
+<td>장기 적응, 늦은 반응</td>
+</tr>
+<tr>
+<td>Transient</td>
+<td>4주에 정점 후 회복</td>
+<td>일시적 반응</td>
+</tr>
+<tr>
+<td>Early down</td>
+<td>초반 급감 후 유지</td>
+<td>빠르게 억제되는 염증 경로</td>
+</tr>
+<tr>
+<td>Late down</td>
+<td>늦게 감소</td>
+<td>서서히 꺼지는 경로</td>
+</tr>
+<tr>
+<td>Rebound</td>
+<td>내려갔다 다시 올라감</td>
+<td>효과 소실, 보상 반응</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="clustering-이후">Clustering 이후</h3>
+<ul>
+<li>패턴별 <strong>enrichment</strong> → 시기별 생물학 → <a class="wikilink wikilink-concept" href="/concepts/gene-set-enrichment-analysis/">Gene Set Enrichment Analysis</a></li>
+<li><strong>반응군 vs 비반응군</strong>에서 같은 gene이 다른 패턴에 속하는지 비교</li>
+<li>패턴 대표 gene을 <a class="wikilink wikilink-concept" href="/concepts/gene-set-scoring/">score</a>로 만들어 cell type, sample별로 확인</li>
+<li>Trajectory의 pseudotime과 실제 시간을 연결해 해석 → <a class="wikilink wikilink-concept" href="/concepts/trajectory-analysis/">Trajectory Analysis</a></li>
+</ul>
+<h3 id="주의">주의</h3>
+<ul>
+<li>시점이 3개면 가능한 모양이 제한적이다. 과도한 cluster 수는 noise를 패턴으로 오해한다.</li>
+<li>평균을 내기 전 sample 수와 시점별 결측을 확인한다.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/differential-expression/">Differential Expression</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/trajectory-analysis/">Trajectory Analysis</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/mixed-effects-model/">Mixed Effects Model</a></li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2024-lin-covid-19-longitudinal-ifn-atlas/">2024 Lin - COVID-19 Longitudinal IFN Atlas</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2023-vasaikar-palmo/">2023 Vasaikar - PALMO</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l3"><a href="#절차">절차</a></li><li class="toc-l3"><a href="#흔한-패턴과-해석">흔한 패턴과 해석</a></li><li class="toc-l3"><a href="#clustering-이후">Clustering 이후</a></li><li class="toc-l3"><a href="#주의">주의</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/papers/2024-lin-covid-19-longitudinal-ifn-atlas/"><span class="kind-dot kind-paper"></span>COVID-19 Longitudinal IFN Atlas (Lin 2024)</a></li><li><a href="/papers/2023-vasaikar-palmo/"><span class="kind-dot kind-paper"></span>PALMO (Vasaikar 2023)</a></li><li><a href="/concepts/scrna-seq-workflow/"><span class="kind-dot kind-concept"></span>scRNA-seq Workflow</a></li><li><a href="/concepts/trajectory-analysis/"><span class="kind-dot kind-concept"></span>Trajectory Analysis</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

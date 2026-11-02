@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OASIS (Edahiro 2025) · Study Wiki</title>
+<meta name="description" content="일본인 multi-omics cohort에서 germline, repertoire, somatic variation의 효과를 cell type뿐 아니라 연속적인 cell state에 연결한 atlas.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a></p>
+    <div class="paper-meta">
+      
+      <span class="badge">Nature Genetics</span>
+      <span>2025</span>
+      <span class="muted">atlas</span>
+      
+    </div>
+    <h1 class="note-title">OASIS (Edahiro 2025)</h1>
+    <p class="paper-full-title">Deciphering state-dependent immune features from multi-layer omics data at single-cell resolution — Edahiro et al.</p>
+    <p class="lead">일본인 multi-omics cohort에서 germline, repertoire, somatic variation의 효과를 cell type뿐 아니라 연속적인 cell state에 연결한 atlas.</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1038/s41588-025-02266-3" rel="noopener">원문 (DOI)</a>
+      
+      
+      <span class="license">License · CC BY-NC-ND 4.0</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/immunology/">Immunology</a><a class="chip chip-link" href="/sections/single-cell-analysis/">Single-cell Analysis</a></div>
+    <div class="note-body"><h2 id="background">Background</h2>
+<p>Bulk expression은 서로 다른 immune cell의 신호를 평균하므로 genetic regulation의 위치와 상태를 구분하기 어렵다. 기존 sc-eQTL resource의 ancestry 편중까지 줄이기 위해, OASIS는 Japanese cohort의 single-cell expression을 여러 omics layer의 공통 좌표로 사용한다.</p>
+<h2 id="data">Data</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Input / source</th>
+<th>Measured scope</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OASIS PBMC · 235 Japanese participants</td>
+<td>COVID-19 88, healthy 147; 10x 5′ scRNA/scVDJ; QC 후 1,506,953 cells</td>
+<td>Cell atlas, eQTL, repertoire, somatic-event mapping</td>
+</tr>
+<tr>
+<td>WGS / SNP array</td>
+<td>Cohort의 germline와 somatic variation</td>
+<td>eQTL, mCA/LOY/mtDNA 분석</td>
+</tr>
+<tr>
+<td>Olink Explore</td>
+<td>227 samples, 2,925 proteins 측정; QC 후 2,852</td>
+<td>PRS 관련 protein 변화</td>
+</tr>
+<tr>
+<td>Stool metagenomics</td>
+<td>Healthy 131 samples</td>
+<td>Microbial abundance와 immune neighborhoods의 association</td>
+</tr>
+<tr>
+<td>OneK1K / Roadmap / GWAS</td>
+<td>외부 eQTL, chromatin annotations, East Asian traits</td>
+<td>Replication, functional enrichment, colocalization</td>
+</tr>
+<tr>
+<td>CH05 recombinant antibody</td>
+<td>연구진이 제작·측정한 antigen-binding assay</td>
+<td>특정 expanded BCR의 SARS-CoV-2 reactivity 검증</td>
+</tr>
+</tbody>
+</table></div>
+<p>각 modality의 participant 수는 같지 않다. eQTL, protein, somatic 분석의 exclusion도 다르므로 전체 235명을 모든 test의 n으로 쓰지 않는다. 계산된 eQTL effect, PRS, clone assignment는 실측 input에서 추정한 값이다.</p>
+<h2 id="figure-1-·-cohort-and-cell-atlas">Figure 1 · Cohort and cell atlas</h2>
+<p><strong>Context</strong> · 먼저 각 omics를 연결할 기준이 필요하다. PBMC의 cell type/state와 cohort 구성을 지도처럼 정리한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2025-edahiro-oasis-fig1.webp" alt="2025 Edahiro - OASIS Fig1" loading="lazy"><span class="figure-credit">Figure: Edahiro et al., Nature Genetics (2025) · CC BY-NC-ND 4.0</span></span></p>
+<p><strong>A · Study design</strong></p>
+<ul>
+<li><strong>목적</strong>: 어떤 층위의 데이터를 같은 사람에서 연결했는가?</li>
+<li><strong>Data &amp; method</strong>: OASIS의 scRNA/scVDJ, genetics, plasma, stool 자료를 연결한다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: 실험별 연결과 participant 범위를 구분한다.</li>
+<li><strong>결과와 의미</strong>: 한 종류의 assay가 아니라 single-cell expression을 중심으로 통합한 resource다.</li>
+</ul>
+<p><strong>B · Cell landscape</strong></p>
+<ul>
+<li><strong>목적</strong>: 분석할 immune populations가 무엇인가?</li>
+<li><strong>Data &amp; method</strong>: QC 후 PBMC expression을 integration·marker annotation했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: UMAP의 cell color는 7 major types와 28 fine types다.</li>
+<li><strong>결과와 의미</strong>: 동일한 major type 안에서도 서로 다른 state를 후속 분석할 수 있다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Atlas의 단위는 cell이지만 genetic association의 독립 표본은 participant다.</p>
+</blockquote>
+<h2 id="figure-2-·-germline-and-microbiome-associations">Figure 2 · Germline and microbiome associations</h2>
+<p><strong>Context</strong> · Atlas에 좌표를 만든 뒤 variation이 어느 cell type에서 expression과 연결되는지 묻는다. Microbiome은 별도의 association layer로 비교한다.</p>
+<p><a href="https://www.nature.com/articles/s41588-025-02266-3/figures/2">Original Figure 2</a></p>
+<p><strong>A–D · cis-eQTL discovery and sharing</strong></p>
+<ul>
+<li><strong>목적</strong>: Genetic effect가 type별로 얼마나 다른가?</li>
+<li><strong>Data &amp; method</strong>: Participant×type pseudobulk에 cis-eQTL mapping과 effect comparison을 적용했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: A는 발견 수, B는 cell depth와 effect, C–D는 sharing을 읽는다.</li>
+<li><strong>결과와 의미</strong>: 발견력은 cell 수와 관련되며 lineage별 shared effect와 type-specific effect가 공존한다.</li>
+</ul>
+<p><strong>E–F · Regulatory context</strong></p>
+<ul>
+<li><strong>목적</strong>: Cell-specific effect가 어떤 regulatory region에 있는가?</li>
+<li><strong>Data &amp; method</strong>: Primary eQTL을 Roadmap promoter/enhancer annotation과 대조했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: Heatmap과 effect-size별 enrichment를 비교한다.</li>
+<li><strong>결과와 의미</strong>: Enhancer enrichment는 promoter보다 cell context가 뚜렷하다.</li>
+</ul>
+<p><strong>G–H · Gut microbiome</strong></p>
+<ul>
+<li><strong>목적</strong>: Microbial abundance와 함께 변하는 immune neighborhood가 있는가?</li>
+<li><strong>Data &amp; method</strong>: Healthy 131명의 metagenomics와 Milo neighborhoods를 연결했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: Node size는 cell 수, color는 adjusted log2 FC다.</li>
+<li><strong>결과와 의미</strong>: R. gnavus와의 방향성 패턴은 보이지만 개별 neighborhood의 유의한 DA 발견은 없으므로 확정된 효과로 쓰지 않는다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · eQTL 발견 수와 생물학적 효과 크기는 같은 것이 아니다.</p>
+</blockquote>
+<h2 id="figure-3-·-genetics-of-immune-repertoires">Figure 3 · Genetics of immune repertoires</h2>
+<p><strong>Context</strong> · Expression 조절과 별개로 antigen receptor 구성도 genetic background의 영향을 받는다. Cell type을 나누면 HLA restriction의 맥락을 시험할 수 있다.</p>
+<p><a href="https://www.nature.com/articles/s41588-025-02266-3/figures/3">Original Figure 3</a></p>
+<p><strong>A–C · HLA restriction and interaction</strong></p>
+<ul>
+<li><strong>목적</strong>: HLA–TRAV association이 T-cell subset과 COVID-19에 따라 달라지는가?</li>
+<li><strong>Data &amp; method</strong>: HLA amino-acid variants와 productive TCR gene usage를 association/interaction test했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: Regional plot은 HLA 위치별 −log10 P, QQ plot은 관측과 null을 비교한다.</li>
+<li><strong>결과와 의미</strong>: CD4/CD8에 따른 class II/I association과 infection interaction이 관찰된다.</li>
+</ul>
+<p><strong>D–E · Repertoire-wide associations</strong></p>
+<ul>
+<li><strong>목적</strong>: TCR과 BCR의 summary features를 조절하는 loci는 무엇인가?</li>
+<li><strong>Data &amp; method</strong>: VDJ usage PCs, CDR3/SHM summary에 genome-wide regression을 적용했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: Feature×locus heatmap의 significance를 읽는다.</li>
+<li><strong>결과와 의미</strong>: Repertoire의 일부 차이가 germline background와 연결되며 antigen specificity 자체를 직접 측정한 결과는 아니다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Clone 수, clone size, gene usage는 서로 다른 repertoire 요약이다.</p>
+</blockquote>
+<h2 id="figure-4-·-dynamic-eqtls">Figure 4 · Dynamic eQTLs</h2>
+<p><strong>Context</strong> · 같은 cell type에서도 inflammatory state는 연속적으로 바뀐다. Type 평균으로 숨겨진 genotype×state interaction을 검사한다.</p>
+<p><a href="https://www.nature.com/articles/s41588-025-02266-3/figures/4">Original Figure 4</a></p>
+<p><strong>A–C · State-dependent effects</strong></p>
+<ul>
+<li><strong>목적</strong>: Genetic effect가 state를 따라 달라지는가?</li>
+<li><strong>Data &amp; method</strong>: Myeloid module score를 10 bins로 나눠 pseudobulk mixed models와 GO 분석을 했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: A는 binning, B는 dynamic eGenes, C는 enriched processes다.</li>
+<li><strong>결과와 의미</strong>: Inflammatory-response와 IFN-γ-response module은 일부 다른 dynamic regulation을 포착한다.</li>
+</ul>
+<p><strong>D–F · Functional regions</strong></p>
+<ul>
+<li><strong>목적</strong>: Dynamic signal은 static eQTL과 다른 region에 있는가?</li>
+<li><strong>Data &amp; method</strong>: Dynamic/static eQTL을 Roadmap annotations와 비교했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: Enrichment heatmap, OR/CI와 pathway를 함께 읽는다.</li>
+<li><strong>결과와 의미</strong>: 연속 state를 고려하면 static 평균과 다른 enhancer-related signal이 드러난다.</li>
+</ul>
+<p><strong>G · Single-cell effects</strong></p>
+<ul>
+<li><strong>목적</strong>: 한 type 내부의 어디에서 effect가 큰가?</li>
+<li><strong>Data &amp; method</strong>: Genotype×harmonized PCs를 NB mixed model로 추정했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: UMAP color는 βtotal이지 gene expression 자체가 아니다.</li>
+<li><strong>결과와 의미</strong>: SLFN5 등 예에서 state별 genetic effect의 위치를 세밀하게 표현한다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Dynamic eQTL은 expression 변화 그 자체가 아니라 genetic effect가 state에 의존한다는 뜻이다.</p>
+</blockquote>
+<h2 id="figure-5-·-gwas-interpretation">Figure 5 · GWAS interpretation</h2>
+<p><strong>Context</strong> · State-dependent regulation이 phenotype genetics를 설명하는 데 도움이 되는지 확인한다. Locus-level colocalization과 cohort-level PRS를 구분한다.</p>
+<p><a href="https://www.nature.com/articles/s41588-025-02266-3/figures/5">Original Figure 5</a></p>
+<p><strong>A · Colocalization atlas</strong></p>
+<ul>
+<li><strong>목적</strong>: GWAS와 eQTL이 같은 causal signal을 공유하는가?</li>
+<li><strong>Data &amp; method</strong>: 13 traits와 OASIS eQTL을 coloc으로 비교했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: Type×trait 발견 수와 shared/type-specific event를 읽는다.</li>
+<li><strong>결과와 의미</strong>: 연관된 locus를 cell context와 candidate gene으로 좁힌다.</li>
+</ul>
+<p><strong>B–G · PLD4 and ETS2</strong></p>
+<ul>
+<li><strong>목적</strong>: Static average가 놓친 signal이 있는가?</li>
+<li><strong>Data &amp; method</strong>: PLD4/SLE와 ETS2/UC의 static·dynamic eQTL/GWAS를 대조했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: Regional association과 state별 βtotal을 나란히 읽는다.</li>
+<li><strong>결과와 의미</strong>: 특정 state의 regulation이 GWAS interpretation을 강화하지만 colocalization만으로 gene perturbation 효과를 증명하지 않는다.</li>
+</ul>
+<p><strong>H · PRS and expression</strong></p>
+<ul>
+<li><strong>목적</strong>: Polygenic burden의 expression association은 infection context에 따라 다른가?</li>
+<li><strong>Data &amp; method</strong>: COVID-19/healthy별 PRS quantile과 pseudobulk/protein 분석을 수행했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: 관측 DEG/DEP 수를 permutation 결과와 비교한다.</li>
+<li><strong>결과와 의미</strong>: Genetic risk와 immune expression의 관계도 condition에 의존한다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Locus-level shared signal과 genome-wide PRS association은 다른 증거다.</p>
+</blockquote>
+<h2 id="figure-6-·-somatic-clone-deconvolution">Figure 6 · Somatic clone deconvolution</h2>
+<p><strong>Context</strong> · Germline은 대부분의 cell이 공유하지만 somatic event는 일부 clone에만 있다. Bulk event를 cell에 배정해야 어떤 phenotype을 동반하는지 알 수 있다.</p>
+<p><a href="https://www.nature.com/articles/s41588-025-02266-3/figures/6">Original Figure 6</a></p>
+<p><strong>A–E · mCA mapping</strong></p>
+<ul>
+<li><strong>목적</strong>: 어떤 cell clone이 chromosomal alteration을 갖는가?</li>
+<li><strong>Data &amp; method</strong>: SNP-array mCA를 Numbat의 allele/expression model과 연결했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: Clone color, cell-type OR, pathway enrichment를 구분한다.</li>
+<li><strong>결과와 의미</strong>: 같은 participant 안에서 altered/normal cells를 비교할 수 있다.</li>
+</ul>
+<p><strong>F–G · Expanded BCR validation</strong></p>
+<ul>
+<li><strong>목적</strong>: Expanded clone의 antibody는 viral antigen에 반응하는가?</li>
+<li><strong>Data &amp; method</strong>: CH05 BCR similarity와 recombinant antibody ELISA를 검사했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: Network의 clone/isotype과 ELISA control·triplicate variability를 읽는다.</li>
+<li><strong>결과와 의미</strong>: CH05의 expanded BCR는 시험한 SARS-CoV-2 antigens에 반응하지 않아 정상적인 antigen-driven expansion을 지지하지 않았다; mCA가 expansion을 유발했다는 인과 증명은 아니다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Clone mapping과 antigen-binding assay는 서로 다른 질문에 답한다.</p>
+</blockquote>
+<h2 id="figure-7-·-mosaic-loss-of-y">Figure 7 · Mosaic loss of Y</h2>
+<p><strong>Context</strong> · LOY는 aging과 함께 변할 수 있으므로 infection association에 age가 섞일 수 있다. Sample-level와 cell-level 분석을 분리한다.</p>
+<p><a href="https://www.nature.com/articles/s41588-025-02266-3/figures/7">Original Figure 7</a></p>
+<p><strong>A–D · LOY distribution</strong></p>
+<ul>
+<li><strong>목적</strong>: Age와 COVID-19를 고려해 LOY가 어디에 있는가?</li>
+<li><strong>Data &amp; method</strong>: Male scRNA의 Y-region expression 및 array evidence를 이용해 logistic regression과 type OR를 계산했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: Age 순 fraction, adjusted OR/CI, UMAP과 heatmap을 비교한다.</li>
+<li><strong>결과와 의미</strong>: LOY의 cell-type/context 분포를 제시하지만 RNA zero만으로 genomic deletion이 확정되는 것은 아니다.</li>
+</ul>
+<p><strong>E–F · Expression and abundance</strong></p>
+<ul>
+<li><strong>목적</strong>: LOY-bearing cells와 LOY-high samples는 어떤 차이를 보이는가?</li>
+<li><strong>Data &amp; method</strong>: LOY/normal pseudobulk DEG와 Milo DA를 각각 수행했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: Pathway enrichment와 neighborhood log2 FC는 별개 출력이다.</li>
+<li><strong>결과와 의미</strong>: Cell-intrinsic expression 비교와 sample composition 차이를 구분해야 한다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Age adjustment와 RNA dropout 가능성을 함께 읽어야 한다.</p>
+</blockquote>
+<h2 id="figure-8-·-mitochondrial-heteroplasmy">Figure 8 · Mitochondrial heteroplasmy</h2>
+<p><strong>Context</strong> · Chromosome-scale event 외에 mtDNA variation도 clone의 표지가 될 수 있다. WGS에서 찾은 allele을 scRNA reads에서 추적한다.</p>
+<p><a href="https://www.nature.com/articles/s41588-025-02266-3/figures/8">Original Figure 8</a></p>
+<p><strong>A–D · mtDNA variation to cells</strong></p>
+<ul>
+<li><strong>목적</strong>: Bulk heteroplasmy가 어떤 immune populations에 분포하는가?</li>
+<li><strong>Data &amp; method</strong>: WGS mtDNA calls를 cellSNP-lite와 vireoSNP로 cell에 배정했다; <a href="#analysis-guide">Analysis guide</a>.</li>
+<li><strong>그림 읽기</strong>: Genome 위치, WGS VAF–cell fraction correlation, type별 OR를 읽는다.</li>
+<li><strong>결과와 의미</strong>: mtDNA variation도 cell state/type와 연결할 수 있으나 allele fraction과 altered-cell fraction은 같은 양이 아니다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Multi-omics는 서로 다른 resolution의 측정을 연결하는 방법이다.</p>
+</blockquote>
+<h2 id="analysis-guide">Analysis guide</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Analysis</th>
+<th>Confirmed settings / interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cis-eQTL</td>
+<td>scran normalization; &gt;1% cells expressing gene; sample×type &gt;10 cells; tensorQTL; TSS ±1 Mb; MAF&gt;0.05; 1,000 permutations; q&lt;0.05</td>
+</tr>
+<tr>
+<td>Covariates</td>
+<td>15 expression PCs, 2 genetic PCs, age, sex, 10x chemistry, COVID-19 status</td>
+</tr>
+<tr>
+<td>Dynamic eQTL</td>
+<td>10 roughly equal-cell bins; participant random intercept; linear/quadratic genotype×state terms; LRT; BH FDR&lt;0.05</td>
+</tr>
+<tr>
+<td>Single-cell dynamic model</td>
+<td>NB mixed model with genotype×hPC terms; βtotal combines main and interaction effects</td>
+</tr>
+<tr>
+<td>Colocalization</td>
+<td>Lead GWAS-centered 500-kb windows, MHC excluded, PP.H4&gt;0.8</td>
+</tr>
+<tr>
+<td>Somatic assignment</td>
+<td>Numbat init_k=10/max_entropy=1; mtDNA WGS VAF&gt;0.1 with &gt;0.9 homoplasmic; vireo posterior assignment QC</td>
+</tr>
+</tbody>
+</table></div>
+<p>이 논문은 새 universal predictor의 성능시험이 아니라 atlas를 여러 질문에 활용한 연구다. Assay별 측정, participant-level regression, cell-level assignment를 혼동하지 않는다.</p>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li>일본인 PBMC와 COVID-19/healthy cohort의 resource이며 다른 ancestry·tissue·disease에 같은 effect를 보장하지 않는다.</li>
+<li>Cell 수가 많아도 독립적인 donor 수는 늘지 않는다; genotype/clinical association에서 pseudoreplication을 피해야 한다.</li>
+<li>Colocalization, microbiome association, LOY association은 intervention의 인과 효과와 다르다.</li>
+<li>LOY의 RNA 기반 operational definition은 dropout에 민감할 수 있고, somatic clone assignment도 확률적 추정이다.</li>
+<li>Figure 2의 R. gnavus 방향성 패턴은 유의한 neighborhood discovery와 구분한다.</li>
+</ul>
+<h2 id="data-and-code">Data &amp; Code</h2>
+<ul>
+<li><a href="https://www.nature.com/articles/s41588-025-02266-3">Original article and Methods</a></li>
+<li>EGA: <strong>EGAS00001008016</strong>; controlled access와 공개 summary의 접근 조건은 원문 Data availability를 따른다.</li>
+<li>Main Methods와 figure legends를 확인했다. Supplementary Methods 파일은 확보했지만 모든 QC 세부값·Supplementary Tables의 row-level audit는 아직 하지 않았다.</li>
+<li>Figure 1은 기존 asset을 유지했다. 새 제한 라이선스 figure는 복제하지 않고 원문 figure page로 연결했다.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li>
+<p><a class="wikilink wikilink-concept" href="/concepts/pbmc/">PBMC</a> · <a class="wikilink wikilink-concept" href="/concepts/single-cell-rna-seq/">Single-cell RNA-seq</a></p>
+</li>
+<li>
+<p>비슷한 아시아 cohort atlas: <a class="wikilink wikilink-paper" href="/papers/2025-kock-aida/">2025 Kock - AIDA</a></p>
+</li>
+<li>
+<p><a class="wikilink wikilink-concept" href="/concepts/colocalization/">Colocalization</a></p>
+</li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#background">Background</a></li><li class="toc-l2"><a href="#data">Data</a></li><li class="toc-l2"><a href="#figure-1-·-cohort-and-cell-atlas">Figure 1 · Cohort and cell atlas</a></li><li class="toc-l2"><a href="#figure-2-·-germline-and-microbiome-associations">Figure 2 · Germline and microbiome associations</a></li><li class="toc-l2"><a href="#figure-3-·-genetics-of-immune-repertoires">Figure 3 · Genetics of immune repertoires</a></li><li class="toc-l2"><a href="#figure-4-·-dynamic-eqtls">Figure 4 · Dynamic eQTLs</a></li><li class="toc-l2"><a href="#figure-5-·-gwas-interpretation">Figure 5 · GWAS interpretation</a></li><li class="toc-l2"><a href="#figure-6-·-somatic-clone-deconvolution">Figure 6 · Somatic clone deconvolution</a></li><li class="toc-l2"><a href="#figure-7-·-mosaic-loss-of-y">Figure 7 · Mosaic loss of Y</a></li><li class="toc-l2"><a href="#figure-8-·-mitochondrial-heteroplasmy">Figure 8 · Mitochondrial heteroplasmy</a></li><li class="toc-l2"><a href="#analysis-guide">Analysis guide</a></li><li class="toc-l2"><a href="#limitations">Limitations</a></li><li class="toc-l2"><a href="#data-and-code">Data &amp;amp; Code</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/colocalization/"><span class="kind-dot kind-concept"></span>Colocalization</a></li><li><a href="/concepts/pbmc/"><span class="kind-dot kind-concept"></span>PBMC (Peripheral Blood Mononuclear Cells)</a></li><li><a href="/concepts/single-cell-rna-seq/"><span class="kind-dot kind-concept"></span>Single-cell RNA-seq</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

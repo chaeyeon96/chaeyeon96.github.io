@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RGES (Reverse Gene Expression Score) · Study Wiki</title>
+<meta name="description" content="Compound의 drug signature가 Disease Signature를 얼마나 reverse하는지 나타내는 점수. 더 negative할수록 disease를 잘 reverse한다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/ai-drug-discovery/">AI Drug Discovery</a></p>
+    <h1 class="note-title">RGES (Reverse Gene Expression Score)</h1>
+    <p class="lead">Compound의 drug signature가 Disease Signature를 얼마나 reverse하는지 나타내는 점수. 더 negative할수록 disease를 잘 reverse한다.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#scoring</span><span class="chip chip-tag">#transcriptomics</span><span class="chip chip-tag">#connectivity</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p><a class="wikilink wikilink-concept" href="/concepts/signature-reversal/">Signature Reversal</a>을 숫자 하나로 요약한 것입니다. Disease에서 올라간 gene을 compound가 내리고, 내려간 gene을 올릴수록 점수가 더 음수가 됩니다.</p>
+<h2 id="자세히">자세히</h2>
+<p><strong>계산 원리</strong> (일반 지식, <a class="wikilink wikilink-concept" href="/concepts/connectivity-map/">Connectivity Map</a>의 connectivity score에서 변형)</p>
+<ol>
+<li>Compound가 바꾼 gene들을 expression change 순으로 rank한다.</li>
+<li>Disease <strong>up</strong> gene이 이 ranking에서 어디에 몰려 있는지 KS(Kolmogorov–Smirnov) 방식으로 계산 → KS_up</li>
+<li>Disease <strong>down</strong> gene에 대해서도 같은 계산 → KS_down</li>
+<li>두 값을 합쳐 하나의 점수로 만든다. Up gene은 아래로, down gene은 위로 몰려 있을수록 점수가 음수가 된다.</li>
+</ol>
+<p><strong>변형들</strong></p>
+<ul>
+<li><strong>sRGES (summarized RGES)</strong>: 같은 compound의 여러 cell line, dose, time 조건 profile을 합쳐 요약한 점수. Bin Chen 연구실의 OCTAD pipeline에서 쓴다.</li>
+<li><strong>Z-RGES</strong>: <a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a>가 제안한 보정 점수. 아래 &quot;논문별 활용&quot; 참고.</li>
+</ul>
+<p><strong>역사</strong> (일반 지식)</p>
+<ul>
+<li>Bin Chen 연구실이 cancer drug repurposing 연구에서 사용하며 정리했다. Cancer gene expression을 reverse하는 정도가 drug efficacy와 correlate한다는 결과(Chen et al., <em>Nature Communications</em> 2017)가 이 점수의 근거로 자주 인용된다.</li>
+</ul>
+<h2 id="왜-중요한가">왜 중요한가</h2>
+<ul>
+<li>Transcriptomics-based <a class="wikilink wikilink-concept" href="/concepts/virtual-screening/">Virtual Screening</a>과 <a class="wikilink wikilink-concept" href="/concepts/drug-repurposing/">Drug Repurposing</a>에서 compound를 ranking하는 기본 점수다.</li>
+<li>한계: raw 값이 compound가 바꾸는 <strong>gene 개수</strong>에 영향을 받는다. Gene 수가 다른 compound끼리 비교하면 왜곡될 수 있다.</li>
+<li>결과가 <a class="wikilink wikilink-concept" href="/concepts/disease-signature/">Disease Signature</a>를 어떻게 만들었는지에 크게 좌우된다.</li>
+</ul>
+<h2 id="논문별-활용">논문별 활용</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a>: GPS는 compound마다 예측되는 up/down gene 수가 달라서 raw RGES가 제대로 동작하지 않았다(CTRP HepG2 AUROC 0.463, Figure 3C). 그래서 <strong>Z-RGES = Z_up − Z_down</strong>을 만들었다. 같은 수의 gene을 random sampling한 KS 분포에 대해 Z-transform한 점수다 (Figure 3A). Z-RGES는 anti-HCC activity와 correlate했고(R = −0.554, p = 0.0049, Figure 3B), AUROC 0.768로 개선됐다. 실측 profile 기반 sRGES와도 비교했다 (Figure 3E).</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/signature-reversal/">Signature Reversal</a>: RGES가 수치화하는 전략</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/connectivity-map/">Connectivity Map</a>: connectivity score의 출처</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/disease-signature/">Disease Signature</a>: 비교 대상</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/virtual-screening/">Virtual Screening</a>: RGES로 ranking하는 과정</li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l2"><a href="#왜-중요한가">왜 중요한가</a></li><li class="toc-l2"><a href="#논문별-활용">논문별 활용</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/connectivity-map/"><span class="kind-dot kind-concept"></span>Connectivity Map (CMap)</a></li><li><a href="/papers/2026-xing-gps/"><span class="kind-dot kind-paper"></span>GPS (Xing 2026)</a></li><li><a href="/papers/2026-xing-gps-pipeline/"><span class="kind-dot kind-pipeline"></span>GPS Pipeline 따라가기</a></li><li><a href="/concepts/signature-reversal/"><span class="kind-dot kind-concept"></span>Signature Reversal</a></li><li><a href="/concepts/virtual-screening/"><span class="kind-dot kind-concept"></span>Virtual Screening</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

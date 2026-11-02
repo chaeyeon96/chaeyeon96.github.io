@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>COVID-19 Longitudinal IFN Atlas (Lin 2024) · Study Wiki</title>
+<meta name="description" content="Early prognostic association과 later cross-sectional association을 구분해야 IFN response의 방향을 해석할 수 있다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a></p>
+    <div class="paper-meta">
+      
+      <span class="badge">Nature Communications</span>
+      <span>2024</span>
+      <span class="muted">disease-study</span>
+      
+    </div>
+    <h1 class="note-title">COVID-19 Longitudinal IFN Atlas (Lin 2024)</h1>
+    <p class="paper-full-title">Longitudinal single cell atlas identifies complex temporal relationship between type I interferon response and COVID-19 severity — Lin et al.</p>
+    <p class="lead">Early prognostic association과 later cross-sectional association을 구분해야 IFN response의 방향을 해석할 수 있다.</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1038/s41467-023-44524-0" rel="noopener">원문 (DOI)</a>
+      
+      
+      <span class="license">License · CC BY 4.0</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/immunology/">Immunology</a><a class="chip chip-link" href="/sections/single-cell-analysis/">Single-cell Analysis</a></div>
+    <div class="note-body"><h2 id="background">Background</h2>
+<p>같은 severity라도 발병 후 경과 시간이 다르면 PBMC state가 다를 수 있다. 이 연구는 baseline 이후 실제 임상 경과를 추적해, 현재 severity와 연관된 signature와 향후 악화에 앞서 나타나는 signature를 구분했다.</p>
+<h2 id="data">Data</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Data</th>
+<th>Measured input and scale</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Singapore discovery cohort</td>
+<td>2020년 3–6월 모집; QC 전 112명·317 samples, QC 후 108명·286 samples·346,680 PBMCs</td>
+<td>Longitudinal scRNA-seq, TCR/BCR profiling, severity/state 비교 (Figure 1)</td>
+</tr>
+<tr>
+<td>Temporal strata</td>
+<td>Days 1–4, 5–8, 9–14, &gt;14; 각 채혈 시점의 severity 기록</td>
+<td>Baseline prognosis와 time course, duration matching (Figures 2–6)</td>
+</tr>
+<tr>
+<td>German validation subset</td>
+<td>Results/Figure 3E는 5명(2 progressors, 3 non-progressors), Methods는 2+2 samples로 기술</td>
+<td>작은 independent validation; 숫자 불일치는 Limitations 참고</td>
+</tr>
+<tr>
+<td>Plasma assay</td>
+<td>Mild baseline 48명·83 samples; Figure 3G baseline 비교는 10 vs 37</td>
+<td>Transcript signature와 protein 측정의 일치 여부</td>
+</tr>
+</tbody>
+</table></div>
+<p>모두 human observational data이며 signature score와 enrichment 값은 이 측정값에서 계산한 값이다. Cells·samples·individuals를 서로 바꾸어 세지 않는다.</p>
+<h2 id="figure-1-·-cohort-and-cell-landscape">Figure 1 · Cohort and cell landscape</h2>
+<p><strong>Context</strong> · 후속 분석 전에 누가 언제 채혈되었는지 확인한다. 같은 환자의 반복 samples와 cell 수를 분리해 읽는다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-lin-covid-19-longitudinal-ifn-atlas-fig1.webp" alt="2024 Lin - COVID-19 Longitudinal IFN Atlas Fig1" loading="lazy"><span class="figure-credit">Figure: Lin et al., Nature Communications (2024) · CC BY 4.0</span></span></p>
+<p><strong>A–C · Study design</strong></p>
+<ul>
+<li><strong>목적</strong>: 채혈 시점과 이후 임상 경과를 구분한다.</li>
+<li><strong>Data &amp; method</strong>: Longitudinal PBMC profiling과 시점별 severity metadata를 사용한다.</li>
+<li><strong>그림 읽기</strong>: C의 점은 sample, 연결선은 같은 환자의 경과이다.</li>
+<li><strong>결과와 의미</strong>: QC 후 108명·286 samples가 남았고, baseline mild 중 일부만 이후 악화했다.</li>
+</ul>
+<p><strong>D–H · Cell populations</strong></p>
+<ul>
+<li><strong>목적</strong>: 주요 세포군과 내부 state를 구분한다.</li>
+<li><strong>Data &amp; method</strong>: 346,680 cells를 RCA2 annotation 후 lineage별 clustering했다.</li>
+<li><strong>그림 읽기</strong>: D는 major type, E는 severity, F–H는 lineage별 subtype 색이다.</li>
+<li><strong>결과와 의미</strong>: Critical sample monocyte의 발현 상태가 달라 큰 cell type 내부 분석이 필요하다.</li>
+</ul>
+<p><strong>I · Clonality</strong></p>
+<ul>
+<li><strong>목적</strong>: Later disease에서 TCR clonal concentration을 비교한다.</li>
+<li><strong>Data &amp; method</strong>: Day 8 이후 samples의 clonality를 Kruskal–Wallis test로 비교했다.</li>
+<li><strong>그림 읽기</strong>: 각 점은 sample이며 top-clone 비중이 높을수록 concentration이 크다.</li>
+<li><strong>결과와 의미</strong>: Severity에 따른 차이가 있으나 항원 특이성이나 protective function을 직접 입증하지 않는다; 분모 표기 불일치는 Limitations 참고.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · 한 시점의 severity, 이후 outcome, 발병 후 duration은 서로 다른 변수다.</p>
+</blockquote>
+<h2 id="figure-2-·-baseline-cell-states-and-subsequent-progression">Figure 2 · Baseline cell states and subsequent progression</h2>
+<p><strong>Context</strong> · 현재 mild인 환자 중 이후 악화하는 사람을 구분하려는 분석이다. 같은 duration에서 baseline 상태를 비교한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-lin-covid-19-longitudinal-ifn-atlas-fig2.webp" alt="2024 Lin - COVID-19 Longitudinal IFN Atlas Fig2" loading="lazy"><span class="figure-credit">Figure: Lin et al., Nature Communications (2024) · CC BY 4.0</span></span></p>
+<p><strong>A · T and NK cells</strong></p>
+<ul>
+<li><strong>목적</strong>: Baseline T/NK state와 이후 progression의 연관을 찾는다.</li>
+<li><strong>Data &amp; method</strong>: Mild1 progressors/non-progressors의 state enrichment, DE 및 GO enrichment를 비교했다.</li>
+<li><strong>그림 읽기</strong>: 노랑은 progressor-enriched, 자홍은 depleted state이고 heatmap은 pseudobulk ISG expression이다.</li>
+<li><strong>결과와 의미</strong>: Progressor-enriched state에 IFN signal이 높았다.</li>
+</ul>
+<p><strong>B · B cells</strong></p>
+<ul>
+<li><strong>목적</strong>: 같은 연관이 B lineage에도 있는지 본다.</li>
+<li><strong>Data &amp; method</strong>: B-cell baseline expression에 동일한 enrichment/DE 분석을 적용했다.</li>
+<li><strong>그림 읽기</strong>: UMAP 위치와 오른쪽 gene heatmap을 함께 읽는다.</li>
+<li><strong>결과와 의미</strong>: IFN-associated baseline 차이가 T/NK에만 국한되지 않았다.</li>
+</ul>
+<p><strong>C · Myeloid cells</strong></p>
+<ul>
+<li><strong>목적</strong>: Myeloid에서도 일관된 prognostic signal인지 본다.</li>
+<li><strong>Data &amp; method</strong>: Myeloid baseline cell states와 marker GO를 분석했다.</li>
+<li><strong>그림 읽기</strong>: Enrichment color와 IFN gene heatmap을 대응한다.</li>
+<li><strong>결과와 의미</strong>: 여러 lineage의 일치하는 연관이며 인과효과 추정은 아니다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Early IFN-high state와 미래 악화의 연관을 later severe IFN-low 상태와 혼동하지 않는다.</p>
+</blockquote>
+<h2 id="figure-3-·-prognostic-signature-and-validation">Figure 3 · Prognostic signature and validation</h2>
+<p><strong>Context</strong> · 여러 lineage에서 공유되는 baseline signal을 sample-level score로 요약한다. 외부 검증과 protein 측정을 따로 확인한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-lin-covid-19-longitudinal-ifn-atlas-fig3.webp" alt="2024 Lin - COVID-19 Longitudinal IFN Atlas Fig3" loading="lazy"><span class="figure-credit">Figure: Lin et al., Nature Communications (2024) · CC BY 4.0</span></span></p>
+<p><strong>A · Shared genes</strong></p>
+<ul>
+<li><strong>목적</strong>: 공유 prognostic gene set을 정한다.</li>
+<li><strong>Data &amp; method</strong>: Lineage별 upregulated IFN gene의 교집합을 구했다.</li>
+<li><strong>그림 읽기</strong>: Venn diagram의 겹침이 공통 set이다.</li>
+<li><strong>결과와 의미</strong>: 13-gene set이 선택되었으며 같은 discovery data에서 선택된 signature다.</li>
+</ul>
+<p><strong>B–D · Metagene score</strong></p>
+<ul>
+<li><strong>목적</strong>: 각 lineage에서 sample-level 분리가 있는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Pseudobulk z-score와 ROC 분석을 사용했다; 정확한 aggregation은 아래 Methods note 참고.</li>
+<li><strong>그림 읽기</strong>: UMAP은 cell score, boxplot은 sample score이며 둘의 분석 단위가 다르다.</li>
+<li><strong>결과와 의미</strong>: Reported ROC-AUC 0.81–0.84는 discovery 분석으로 대규모 prospective 성능과 같지 않다.</li>
+</ul>
+<p><strong>E · External cohort</strong></p>
+<ul>
+<li><strong>목적</strong>: 별도 cohort에서 방향이 재현되는지 본다.</li>
+<li><strong>Data &amp; method</strong>: German baseline subset의 scaled pseudobulk expression을 비교했다.</li>
+<li><strong>그림 읽기</strong>: 열은 baseline samples, 행은 signature genes이다.</li>
+<li><strong>결과와 의미</strong>: 작은 외부 subset에서 같은 방향이지만 sample 수 표기가 본문과 Methods에서 다르다.</li>
+</ul>
+<p><strong>F · Transcript–protein correlation</strong></p>
+<ul>
+<li><strong>목적</strong>: 독립 측정 modality와 연결되는지 본다.</li>
+<li><strong>Data &amp; method</strong>: 83 plasma samples와 expression score의 correlation 및 BH correction을 사용했다.</li>
+<li><strong>그림 읽기</strong>: 각 점은 sample이며 반복 채혈이 포함된다.</li>
+<li><strong>결과와 의미</strong>: 세 plasma markers와 연관되지만 같은 cohort의 반복 측정을 독립 외부검증으로 세지 않는다.</li>
+</ul>
+<p><strong>G · Baseline proteins</strong></p>
+<ul>
+<li><strong>목적</strong>: Baseline protein score도 progression과 연관되는지 본다.</li>
+<li><strong>Data &amp; method</strong>: 10 progressors와 37 non-progressors의 baseline protein scores를 비교했다.</li>
+<li><strong>그림 읽기</strong>: 평균 score와 개별 marker boxplots를 구분한다.</li>
+<li><strong>결과와 의미</strong>: Protein 측정에서 같은 방향이 관찰되었으며 임상 cutoff는 별도 검증이 필요하다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Discovery ROC, 작은 external cohort, 같은 cohort의 protein 확인은 서로 다른 수준의 evidence다.</p>
+</blockquote>
+<h2 id="figure-4-·-longitudinal-state-changes">Figure 4 · Longitudinal state changes</h2>
+<p><strong>Context</strong> · 높은 baseline score가 이후에도 유지되는지 확인한다. Baseline group difference와 within-person trajectory를 분리한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-lin-covid-19-longitudinal-ifn-atlas-fig4.webp" alt="2024 Lin - COVID-19 Longitudinal IFN Atlas Fig4" loading="lazy"><span class="figure-credit">Figure: Lin et al., Nature Communications (2024) · CC BY 4.0</span></span></p>
+<p><strong>A–F · State enrichment</strong></p>
+<ul>
+<li><strong>목적</strong>: 시간에 따라 늘거나 줄어드는 state를 찾는다.</li>
+<li><strong>Data &amp; method</strong>: 300-neighbor enrichment와 state-marker GO를 T/NK, B, myeloid에 적용했다.</li>
+<li><strong>그림 읽기</strong>: Orange는 시간에 따라 enriched, blue는 depleted state이고 옆 metagene map이 IFN 위치를 보여 준다.</li>
+<li><strong>결과와 의미</strong>: IFN-associated state가 시간에 따라 줄었으며 progressor/non-progressor 모두에서 감소가 관찰되었다.</li>
+</ul>
+<p><strong>G–I · Sample trajectories</strong></p>
+<ul>
+<li><strong>목적</strong>: Progressor의 early signature가 얼마나 지속되는지 본다.</li>
+<li><strong>Data &amp; method</strong>: 세 lineage의 sample-level ISG score를 duration·severity별로 비교했다.</li>
+<li><strong>그림 읽기</strong>: 채운 원은 progressor baseline, 빈 원은 다음 sample, boxplots는 non-progressors이다.</li>
+<li><strong>결과와 의미</strong>: Progressor의 초기 상승은 transient하므로 later score만으로 baseline prognosis를 재구성할 수 없다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · 두 group 모두 감소한다는 사실은 baseline에서 차이가 없었다는 뜻이 아니다.</p>
+</blockquote>
+<h2 id="figure-5-·-severity-associated-cell-proportions">Figure 5 · Severity-associated cell proportions</h2>
+<p><strong>Context</strong> · State 변화와 큰 cell-type composition을 구분한다. Duration confounding을 줄이기 위해 later samples만 사용했다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-lin-covid-19-longitudinal-ifn-atlas-fig5.webp" alt="2024 Lin - COVID-19 Longitudinal IFN Atlas Fig5" loading="lazy"><span class="figure-credit">Figure: Lin et al., Nature Communications (2024) · CC BY 4.0</span></span></p>
+<p><strong>A · Major types</strong></p>
+<ul>
+<li><strong>목적</strong>: Severity별 major-type composition을 비교한다.</li>
+<li><strong>Data &amp; method</strong>: Day 9 이후 samples의 PBMC proportions와 Kruskal–Wallis test를 사용했다.</li>
+<li><strong>그림 읽기</strong>: 점은 sample, 분모는 PBMCs이다.</li>
+<li><strong>결과와 의미</strong>: T cells/cDCs의 감소와 monocytes/platelets의 상대적 증가가 보고되었다; absolute count 변화로 해석하지 않는다.</li>
+</ul>
+<p><strong>B · T and NK subtypes</strong></p>
+<ul>
+<li><strong>목적</strong>: T/NK 내부 구성을 비교한다.</li>
+<li><strong>Data &amp; method</strong>: 각 subtype을 전체 T/NK에 대한 비율로 계산했다.</li>
+<li><strong>그림 읽기</strong>: A와 달리 분모가 T/NK임을 확인한다.</li>
+<li><strong>결과와 의미</strong>: Cytotoxic/effector-memory CD8와 CD4 Tcm의 방향이 달라 lineage 전체 변화만으로 설명되지 않는다.</li>
+</ul>
+<p><strong>C · Myeloid subtypes</strong></p>
+<ul>
+<li><strong>목적</strong>: Myeloid 내부 구성 차이를 본다.</li>
+<li><strong>Data &amp; method</strong>: Monocytes와 cDCs를 분모로 subtype proportions를 계산했다.</li>
+<li><strong>그림 읽기</strong>: CD14/CD16/intermediate subtype을 같은 분모에서 비교한다.</li>
+<li><strong>결과와 의미</strong>: Severity와 연관된 상대적 composition이며 독립 donor 수는 cell 수와 다르다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · 비율의 분모와 sample의 시간 분포를 먼저 확인한다.</p>
+</blockquote>
+<h2 id="figure-6-·-within-subtype-heterogeneity">Figure 6 · Within-subtype heterogeneity</h2>
+<p><strong>Context</strong> · 같은 subtype에서도 서로 다른 state가 반대 방향으로 바뀔 수 있다. Duration-matched state analysis로 이를 분리한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-lin-covid-19-longitudinal-ifn-atlas-fig6.webp" alt="2024 Lin - COVID-19 Longitudinal IFN Atlas Fig6" loading="lazy"><span class="figure-credit">Figure: Lin et al., Nature Communications (2024) · CC BY 4.0</span></span></p>
+<p><strong>A–C · T and NK states</strong></p>
+<ul>
+<li><strong>목적</strong>: Subtype 평균에 가려진 state 차이를 찾는다.</li>
+<li><strong>Data &amp; method</strong>: Duration matching 후 state enrichment, marker DE 및 GO를 적용했다.</li>
+<li><strong>그림 읽기</strong>: A의 orange/blue와 B/C의 volcano·GO·score map을 연결한다.</li>
+<li><strong>결과와 의미</strong>: CD4 Tcm 전체 증가와 일부 IFN-associated state 감소가 동시에 나타난다.</li>
+</ul>
+<p><strong>D–F · B-cell states</strong></p>
+<ul>
+<li><strong>목적</strong>: B-cell 내부 state도 같은 방향인지 본다.</li>
+<li><strong>Data &amp; method</strong>: B-cell neighborhoods와 enriched memory/depleted naive state markers를 비교했다.</li>
+<li><strong>그림 읽기</strong>: D는 state 위치, E/F는 해당 state의 marker 해석이다.</li>
+<li><strong>결과와 의미</strong>: Subtype 이름만으로 기능 상태를 대표할 수 없다.</li>
+</ul>
+<p><strong>G–I · Myeloid states</strong></p>
+<ul>
+<li><strong>목적</strong>: 같은 CD14 monocyte 안의 state를 구분한다.</li>
+<li><strong>Data &amp; method</strong>: Myeloid enrichment와 CD14 state markers를 분석했다.</li>
+<li><strong>그림 읽기</strong>: G와 H/I의 enriched/depleted state를 대응한다.</li>
+<li><strong>결과와 의미</strong>: Cell composition과 cell-state 변화는 별도 분석 대상이다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · 같은 subtype 내부의 반대 state 변화가 평균 score를 가릴 수 있다.</p>
+</blockquote>
+<h2 id="figure-7-·-clinical-association-and-experimental-evidence">Figure 7 · Clinical association and experimental evidence</h2>
+<p><strong>Context</strong> · 앞선 observational association을 별도 자료와 실험적 관찰에서 검토한 figure다. Clinical association과 실험 결과를 구분해 읽는다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-lin-covid-19-longitudinal-ifn-atlas-fig7.webp" alt="2024 Lin - COVID-19 Longitudinal IFN Atlas Fig7" loading="lazy"><span class="figure-credit">Figure: Lin et al., Nature Communications (2024) · CC BY 4.0</span></span></p>
+<p><strong>A–G · Independent expression evidence</strong></p>
+<ul>
+<li><strong>목적</strong>: 독립 cohort에서도 severity-associated expression이 관찰되는지 확인한다.</li>
+<li><strong>Data &amp; method</strong>: 별도 human bulk-expression cohort와 공개 datasets를 사용했다.</li>
+<li><strong>그림 읽기</strong>: 각 panel의 cohort·assay·severity 비교가 동일한지 확인한다.</li>
+<li><strong>결과와 의미</strong>: Association의 재현은 임상적 치료효과나 causal mediation의 입증과 다르다.</li>
+</ul>
+<p><strong>H–J · Experimental evidence</strong></p>
+<ul>
+<li><strong>목적</strong>: 관찰연구 외의 experimental evidence 범위를 구분한다.</li>
+<li><strong>Data &amp; method</strong>: 세포 수준 실험 결과를 제시한 부분으로, 여기서는 비실행적 해석만 요약한다.</li>
+<li><strong>그림 읽기</strong>: Experimental endpoint와 human clinical outcome은 다르다.</li>
+<li><strong>결과와 의미</strong>: 세포 실험만으로 환자의 치료효과·안전성이나 질병 경과의 인과 chain을 확정할 수 없다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Human association과 cell-model evidence를 임상 efficacy로 확대하지 않는다.</p>
+</blockquote>
+<h2 id="method-·-differential-cell-state-enrichment">Method · Differential cell-state enrichment</h2>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>E</mi><mi>i</mi></msub><mo>=</mo><msub><mrow><mi>log</mi><mo>⁡</mo></mrow><mn>2</mn></msub><mrow><mo fence="true">(</mo><mfrac><mrow><mo stretchy="false">(</mo><msub><mi>N</mi><mi>i</mi></msub><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo><mtext> </mtext><mi mathvariant="normal">/</mi><mtext> </mtext><mo stretchy="false">(</mo><msub><mi>N</mi><mtext>mild1</mtext></msub><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><mrow><msub><mi>C</mi><mi>i</mi></msub><mtext> </mtext><mi mathvariant="normal">/</mi><mtext> </mtext><msub><mi>C</mi><mtext>mild1</mtext></msub></mrow></mfrac><mo fence="true">)</mo></mrow></mrow><annotation encoding="application/x-tex">E_i = \log_2 \left( \frac{(N_i + 1)\,/\,(N_\text{mild1} + 1)}{C_i \,/\, C_\text{mild1}} \right)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="mop"><span class="mop">lo<span style="margin-right:0.0139em;">g</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">/</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">mild1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">N</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">/</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">N</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">mild1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">1</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span></span></span></span></span></p>
+<ul>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>E</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">E_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>: severity <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span>의 enrichment fold-change (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> = asymptomatic, Mild2, moderate, severe, critical)</li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">N_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">N</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>: 그 cell 주변 300개 이웃 중 severity <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> cell 수</li>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">C_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>: severity <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> cell 총수</li>
+</ul>
+<ol>
+<li>Cell마다 발현 공간에서 이웃 300개를 찾아 severity별 개수를 센다.</li>
+<li>Mild1 기준과 비교한다 (pseudo-count 1).</li>
+<li>총수로 normalize한 뒤 log2.</li>
+<li>Temporal stage에 걸쳐 100번 downsampling해 평균한다.</li>
+<li>네 비교(M2, M, S, C vs M1) 중 하나라도 log2FC &gt; 2인 cell state를 골라, fold-change 패턴으로 Mfuzz clustering한다.</li>
+</ol>
+<h3 id="statistical-interpretation">Statistical interpretation</h3>
+<p>Methods의 prognosis score는 gene별 sample pseudobulk 값을 z-transform한 뒤 13 genes의 <strong>10% trimmed mean</strong>이다. 단순 cell-level 평균으로만 설명하면 정확하지 않다. Severity comparison은 duration matching을 100회 반복하며, Mfuzz trajectory correlation &gt;0.5 / &lt;−0.5로 enriched/depleted 방향을 정했다. Marker DE는 min.pct=0.1, logfc.threshold=0.25, adjusted p≤0.1을 사용했다 (Methods). 이 계산은 donor-level mixed model 검정과 동일하지 않다.</p>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li>2020년 초기 cohort 결과이므로 다른 variant, vaccination 및 치료환경으로 일반화하려면 별도 검증이 필요하다.</li>
+<li>German validation: Results/Figure 3E는 2+3 individuals, Methods는 2+2 samples로 적었다. 확인되지 않은 다섯 번째 sample 정보를 임의로 채우지 않았다.</li>
+<li>Clonality: Figure 1I legend는 top five clones의 전체 T-cell fraction처럼 설명하지만 Results는 top 50 clone에 속한 cells를 분모로 기술한다. 재현 시 code와 source data에서 분모를 확인해야 한다.</li>
+<li>Figure 3F legend의 plasma marker 수(41)와 Results의 33 표기도 다르다. Figure 3G baseline n=10과 전체 plasma progressor n=11을 혼동하지 않는다.</li>
+<li>같은 환자의 반복 samples 및 cell-level DE는 pseudoreplication 검토가 필요하다. Neighborhood enrichment와 transcript association은 인과효과를 추정하지 않는다.</li>
+<li>Supplementary 전체 파일은 이번 정리에서 독립적으로 대조하지 못했다. 본문이 인용한 supplementary 결과와 직접 확인한 main Results/Methods를 구분한다.</li>
+</ul>
+<h2 id="data-and-code">Data &amp; Code</h2>
+<ul>
+<li><a href="https://www.nature.com/articles/s41467-023-44524-0">Original article, main legends and Methods</a></li>
+<li>Raw sequencing: EGA EGAS00001005545 / EGAD00001007995; controlled-access 조건 확인 필요.</li>
+<li><a href="https://doi.org/10.5281/zenodo.5153528">Processed data</a> · <a href="https://github.com/prabhakarlab/SCAN_COVID19">Analysis code</a></li>
+<li>기존 main figure image links를 보존했다. Figure 7의 experimental section은 비실행적 해석 범위로 요약했다.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/pbmc/">PBMC</a> · <a class="wikilink wikilink-concept" href="/concepts/clonotype-and-cdr/">Clonotype and CDR</a> · <a class="wikilink wikilink-concept" href="/concepts/time-series-expression-patterns/">Time-series Expression Patterns</a> (Mfuzz) · <a class="wikilink wikilink-concept" href="/concepts/differential-abundance-analysis/">Differential Abundance Analysis</a> · <a class="wikilink wikilink-concept" href="/concepts/cytokine-and-pathway-activity/">Cytokine and Pathway Activity</a> · <a class="wikilink wikilink-concept" href="/concepts/gene-set-scoring/">Gene Set Scoring</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#background">Background</a></li><li class="toc-l2"><a href="#data">Data</a></li><li class="toc-l2"><a href="#figure-1-·-cohort-and-cell-landscape">Figure 1 · Cohort and cell landscape</a></li><li class="toc-l2"><a href="#figure-2-·-baseline-cell-states-and-subsequent-progression">Figure 2 · Baseline cell states and subsequent progression</a></li><li class="toc-l2"><a href="#figure-3-·-prognostic-signature-and-validation">Figure 3 · Prognostic signature and validation</a></li><li class="toc-l2"><a href="#figure-4-·-longitudinal-state-changes">Figure 4 · Longitudinal state changes</a></li><li class="toc-l2"><a href="#figure-5-·-severity-associated-cell-proportions">Figure 5 · Severity-associated cell proportions</a></li><li class="toc-l2"><a href="#figure-6-·-within-subtype-heterogeneity">Figure 6 · Within-subtype heterogeneity</a></li><li class="toc-l2"><a href="#figure-7-·-clinical-association-and-experimental-evidence">Figure 7 · Clinical association and experimental evidence</a></li><li class="toc-l2"><a href="#method-·-differential-cell-state-enrichment">Method · Differential cell-state enrichment</a></li><li class="toc-l3"><a href="#statistical-interpretation">Statistical interpretation</a></li><li class="toc-l2"><a href="#limitations">Limitations</a></li><li class="toc-l2"><a href="#data-and-code">Data &amp;amp; Code</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/clonotype-and-cdr/"><span class="kind-dot kind-concept"></span>Clonotype and CDR</a></li><li><a href="/concepts/cytokine-and-pathway-activity/"><span class="kind-dot kind-concept"></span>Cytokine and Pathway Activity</a></li><li><a href="/concepts/differential-abundance-analysis/"><span class="kind-dot kind-concept"></span>Differential Abundance Analysis</a></li><li><a href="/concepts/gene-set-scoring/"><span class="kind-dot kind-concept"></span>Gene Set Scoring</a></li><li><a href="/concepts/pbmc/"><span class="kind-dot kind-concept"></span>PBMC (Peripheral Blood Mononuclear Cells)</a></li><li><a href="/concepts/time-series-expression-patterns/"><span class="kind-dot kind-concept"></span>Time-series Expression Patterns</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

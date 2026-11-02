@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Target-based vs Phenotypic Screening · Study Wiki</title>
+<meta name="description" content="Drug discovery의 두 가지 큰 전략. 특정 target을 먼저 정하고 그 target에 작용하는 compound를 찾느냐(target-based), 원하는 phenotype 변화를 일으키는 compound를 먼저 찾느냐(phenotypic).">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/ai-drug-discovery/">AI Drug Discovery</a></p>
+    <h1 class="note-title">Target-based vs Phenotypic Screening</h1>
+    <p class="lead">Drug discovery의 두 가지 큰 전략. 특정 target을 먼저 정하고 그 target에 작용하는 compound를 찾느냐(target-based), 원하는 phenotype 변화를 일으키는 compound를 먼저 찾느냐(phenotypic).</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#screening</span><span class="chip chip-tag">#drug-discovery</span><span class="chip chip-tag">#strategy</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<ul>
+<li><strong>Target-based</strong>: &quot;이 단백질이 문제니까, 이걸 막는 약을 찾자&quot;</li>
+<li><strong>Phenotypic</strong>: &quot;왜 듣는지는 나중에 보고, 일단 암세포를 죽이는 약을 찾자&quot;</li>
+</ul>
+<h2 id="자세히">자세히</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>Target-based</th>
+<th>Phenotypic</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>출발점</td>
+<td>검증된 target protein</td>
+<td>Cell, tissue, organism 수준의 phenotype</td>
+</tr>
+<tr>
+<td>Screening 기준</td>
+<td>Target binding / activity</td>
+<td>세포 생존, marker 변화, 형태 등</td>
+</tr>
+<tr>
+<td><a class="wikilink wikilink-concept" href="/concepts/mechanism-of-action/">Mechanism of Action</a></td>
+<td>처음부터 앎</td>
+<td>나중에 밝혀야 함 (target deconvolution)</td>
+</tr>
+<tr>
+<td>장점</td>
+<td>최적화 방향이 분명, 대규모 screening과 docking에 적합</td>
+<td>복잡한 biology를 그대로 반영, 예상 못 한 target 발견 가능</td>
+</tr>
+<tr>
+<td>단점</td>
+<td>Target이 틀리면 실패, 여러 요인이 얽힌 disease에 약함</td>
+<td>MoA를 모르면 최적화와 안전성 평가가 어려움</td>
+</tr>
+</tbody>
+</table></div>
+<p>(표 내용은 일반 지식)</p>
+<p><strong>Transcriptomics-based approach의 위치</strong></p>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/signature-reversal/">Signature Reversal</a>은 phenotype(gene expression)을 기준으로 하므로 phenotypic에 가깝다.</li>
+<li>하지만 gene 수준의 정보가 함께 나와 MoA 단서를 얻을 수 있다는 점에서 두 전략의 중간 성격을 가진다.</li>
+</ul>
+<h2 id="왜-중요한가">왜 중요한가</h2>
+<ul>
+<li>논문이 어떤 전략을 썼는지 알면, 그 논문의 강점과 약점을 바로 짐작할 수 있다.</li>
+<li>두 전략 모두 omics data가 쌓이기 전에 만들어진 틀이라, 대규모 omics를 어떻게 활용할지가 새로운 질문이 되고 있다.</li>
+</ul>
+<h2 id="논문별-활용">논문별 활용</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a>: Discussion에서 두 전략을 비교한다. Target-based는 하나의 &quot;magic bullet&quot;을 찾지만, HCC에서는 어떤 genomic feature도 환자 50% 이상에서 바뀌지 않고 어떤 clinical target도 환자 20% 이상에서 높게 발현되지 않는다고 지적한다. Phenotypic은 off-target 걱정은 적지만 primary target을 몰라 lead optimization이 어렵다. GPS는 transcriptomic feature로 screening하면서 SGAR로 MoA 단서를 얻어 양쪽의 약점을 줄이려 했다.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/mechanism-of-action/">Mechanism of Action</a>: 두 전략을 가르는 핵심 차이</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/virtual-screening/">Virtual Screening</a>: 두 전략 모두에서 쓰는 계산 도구</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/signature-reversal/">Signature Reversal</a>: transcriptomics 기반의 중간형 전략</li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l2"><a href="#왜-중요한가">왜 중요한가</a></li><li class="toc-l2"><a href="#논문별-활용">논문별 활용</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/papers/2026-xing-gps/"><span class="kind-dot kind-paper"></span>GPS (Xing 2026)</a></li><li><a href="/concepts/mechanism-of-action/"><span class="kind-dot kind-concept"></span>Mechanism of Action (MoA)</a></li><li><a href="/concepts/signature-reversal/"><span class="kind-dot kind-concept"></span>Signature Reversal</a></li><li><a href="/concepts/virtual-screening/"><span class="kind-dot kind-concept"></span>Virtual Screening</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

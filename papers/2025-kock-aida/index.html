@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AIDA (Kock 2025) · Study Wiki</title>
+<meta name="description" content="아시아 5개국 7개 population group의 healthy donor 619명 PBMC로 만든 single-cell reference atlas(Asian Immune Diversity Atlas). Age, sex, self-reported ethnicity가 immune cell 구성과 발현에 주는 영향과, 아시아인 특이 eQTL을 보여 준다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a></p>
+    <div class="paper-meta">
+      
+      <span class="badge">Cell</span>
+      <span>2025</span>
+      <span class="muted">atlas</span>
+      
+    </div>
+    <h1 class="note-title">AIDA (Kock 2025)</h1>
+    <p class="paper-full-title">Asian diversity in human immune cells — Kock et al.</p>
+    <p class="lead">아시아 5개국 7개 population group의 healthy donor 619명 PBMC로 만든 single-cell reference atlas(Asian Immune Diversity Atlas). Age, sex, self-reported ethnicity가 immune cell 구성과 발현에 주는 영향과, 아시아인 특이 eQTL을 보여 준다.</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1016/j.cell.2025.02.017" rel="noopener">원문 (DOI)</a>
+      
+      
+      <span class="license">License · CC BY-NC-ND 4.0</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/immunology/">Immunology</a><a class="chip chip-link" href="/sections/single-cell-analysis/">Single-cell Analysis</a></div>
+    <div class="note-body"><h2 id="figure-1-·-atlas-overview">Figure 1 · Atlas overview</h2>
+<p><span class="note-figure"><img class="note-img" src="/files/2025-kock-aida-fig1.webp" alt="2025 Kock - AIDA Fig1" loading="lazy"><span class="figure-credit">Figure: Kock et al., Cell (2025) · CC BY-NC-ND 4.0</span></span></p>
+<ul>
+<li>Healthy donor 619명(7개 population group, 5개국) + control 6명의 PBMC.</li>
+<li>5' scRNA-seq, BCR-seq, TCR-seq, genotyping.</li>
+<li><strong>A</strong> · CZ CELLxGENE Census data와 donor 구성을 비교했다. 아시아인 비중이 훨씬 높다.</li>
+<li><strong>D</strong> · Genotype 기반 PCA.</li>
+</ul>
+<h2 id="figure-2-·-impact-of-age-sex-and-self-reported-ethnicity">Figure 2 · Impact of age, sex, and self-reported ethnicity</h2>
+<p><span class="note-figure"><img class="note-img" src="/files/2025-kock-aida-fig2.webp" alt="2025 Kock - AIDA Fig2" loading="lazy"><span class="figure-credit">Figure: Kock et al., Cell (2025) · CC BY-NC-ND 4.0</span></span></p>
+<ul>
+<li><strong>A</strong> · Annotation 결과.</li>
+<li>모델: <code>log10(proportion) ~ age + sex + self_reported_ethnicity</code></li>
+<li><strong>B</strong> · pDC는 나이가 들수록 줄었다.</li>
+<li><strong>C</strong> · B cell은 female에서 더 많았다.</li>
+<li><strong>D</strong> · NK cell은 male에서 더 많았다.</li>
+<li><strong>I–K</strong> · Cell neighborhood 방법(아래 Method 1)으로 더 자세히 보면:
+<ul>
+<li><strong>I</strong> · Female의 B cell이 많은 것은 naive B cell에서만 그랬다.</li>
+<li><strong>J</strong> · CD8+ naive T cell 변화는 50세 이후에 나타났다.</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Age, sex, ethnicity가 각각 cell 구성에 영향을 준다. Cell type 수준보다 neighborhood 수준에서 보면 어느 subset이 변하는지 더 정확히 보인다.</p>
+</blockquote>
+<h2 id="figure-3-·-relationships-of-human-diversity-with-cell-subtype-proportions">Figure 3 · Relationships of human diversity with cell subtype proportions</h2>
+<p><span class="note-figure"><img class="note-img" src="/files/2025-kock-aida-fig3.webp" alt="2025 Kock - AIDA Fig3" loading="lazy"><span class="figure-credit">Figure: Kock et al., Cell (2025) · CC BY-NC-ND 4.0</span></span></p>
+<ul>
+<li>Singapore donor만 사용했다.</li>
+<li><strong>A</strong> · 다른 covariate를 모두 control한 뒤 각 covariate가 추가로 설명하는 variance (incremental variance explained). Self-reported ethnicity의 기여가 sex와 비슷할 만큼 컸다.</li>
+<li><strong>K–L</strong> · Covariate끼리의 pairwise interaction term 분석.</li>
+</ul>
+<h2 id="figure-4-·-cell-neighborhood-signatures-of-human-diversity">Figure 4 · Cell neighborhood signatures of human diversity</h2>
+<p><span class="note-figure"><img class="note-img" src="/files/2025-kock-aida-fig4.webp" alt="2025 Kock - AIDA Fig4" loading="lazy"><span class="figure-credit">Figure: Kock et al., Cell (2025) · CC BY-NC-ND 4.0</span></span></p>
+<ul>
+<li>Method 2(Milo) 사용. A–C는 전체 sample, D–E는 Singapore sample.</li>
+<li><strong>A</strong> · Male은 CD16+ NK neighborhood에 enrich됐다. Fig 2C, 2D, 3K와 일치한다.</li>
+<li><strong>B</strong> · 나이 많은 donor는 CD16 monocyte에 enrich되고, pDC와 CD8 naive T에서 depleted됐다. Fig 2B, 3F와 일치한다.</li>
+</ul>
+<h2 id="figure-5-·-molecular-variation-across-population-groups">Figure 5 · Molecular variation across population groups</h2>
+<p><span class="note-figure"><img class="note-img" src="/files/2025-kock-aida-fig5.webp" alt="2025 Kock - AIDA Fig5" loading="lazy"><span class="figure-credit">Figure: Kock et al., Cell (2025) · CC BY-NC-ND 4.0</span></span></p>
+<ul>
+<li>Pseudobulk edgeR DE, Singapore donor만 사용.</li>
+<li><strong>C, D</strong> · SG_Malay donor의 CD14+ monocyte에서 inflammatory, host-pathogen defense gene set이 올라갔다 (FDR &lt; 0.05). Fig 4D에서 interferon gene이 높은 CD14+ monocyte neighborhood가 SG_Malay에 enrich된 것과 일치한다.</li>
+</ul>
+<h2 id="figure-6-·-population-specific-and-context-dependent-eqtl-effects">Figure 6 · Population-specific and context-dependent eQTL effects</h2>
+<p><span class="note-figure"><img class="note-img" src="/files/2025-kock-aida-fig6.webp" alt="2025 Kock - AIDA Fig6" loading="lazy"><span class="figure-credit">Figure: Kock et al., Cell (2025) · CC BY-NC-ND 4.0</span></span></p>
+<ul>
+<li>20개 cell type에서 pseudobulk eQTL 분석. Self-reported ethnicity를 covariate로 넣었다.</li>
+<li><strong>A–E</strong> · 다른 eQTL dataset과 비교.</li>
+<li><strong>F–H</strong> · Context-dependent eQTL (아래 Method 3).
+<ul>
+<li><strong>F</strong> · Blue module이 IGHM gradient와 비슷하다. B cell activation 관련일 수 있다.</li>
+<li><strong>H</strong> · Genotype이 CYB5A 발현에 주는 효과가 context에 따라 달랐다.</li>
+</ul>
+</li>
+</ul>
+<h2 id="figure-7-·-eqtl-analyses-contextualize-population-specific-trait-association-loci">Figure 7 · eQTL analyses contextualize population-specific trait-association loci</h2>
+<p><span class="note-figure"><img class="note-img" src="/files/2025-kock-aida-fig7.webp" alt="2025 Kock - AIDA Fig7" loading="lazy"><span class="figure-credit">Figure: Kock et al., Cell (2025) · CC BY-NC-ND 4.0</span></span></p>
+<ul>
+<li>AIDA eQTL과 아시아 cohort의 immune-related disease GWAS를 colocalization했다.</li>
+</ul>
+<h2 id="method">Method</h2>
+<h3 id="1-cell-neighbourhood-enrichment-analysis">1. Cell neighbourhood enrichment analysis</h3>
+<ol>
+<li><strong>Single dimension</strong> · Cell마다 nearest neighbor 500개 안에서 각 group의 비율을 구한다.</li>
+<li><strong>Multiple dimensions</strong> · MiloR(v1.5)로 differential neighborhood abundance를 검정한다.</li>
+</ol>
+<h3 id="2-context-dependent-eqtl">2. Context-dependent eQTL</h3>
+<ul>
+<li>KNN 기반 smoothing으로 sparse한 gene–cell matrix를 보완한다.</li>
+<li>WGCNA로 gene–gene correlation matrix를 구하고 module을 찾는다.</li>
+<li>Memory B cell마다 module score(module gene 발현 평균)를 계산한다.</li>
+<li>Donor genotype × module score interaction term을 검정한다.</li>
+</ul>
+<h3 id="3-annotation-방법-프로젝트-참고">3. Annotation 방법 (프로젝트 참고)</h3>
+<p><span class="note-figure"><img class="note-img" src="/files/2025-kock-aida-annotation-1.webp" alt="2025 Kock - AIDA Annotation 1" loading="lazy"><span class="figure-credit">Figure: Kock et al., Cell (2025) · CC BY-NC-ND 4.0</span></span></p>
+<ul>
+<li>Population별로 QC, feature selection, integration, sub-clustering, annotation을 따로 한다: (1) B cell, (2) pDC + myeloid, (3) ILC + NK + T. (3)은 다시 (3a) CD4+ T + dnT, (3b) 나머지 ILC, NK, T로 나눠 한 번 더 통합하고 clustering한다.</li>
+<li><strong>Gene 선택</strong> · 각 cell type에서 0.1% 이상의 cell이 발현하는 gene만 쓰고, 남은 gene의 총 발현으로 다시 normalization한다.</li>
+<li><strong>Platelet QC</strong> · Platelet marker 4개(ITGA2B, PF4, PPBP, TUBB1)의 발현 합이 0이 아닌 cell 중 상위 30%를 첫 번째 sub-clustering에서 뺀다.</li>
+<li><strong>Integration</strong> · Seurat RPCA. Library마다 log-normalize, VST로 HVG 2000개, cell 수가 가장 많은 library를 reference로, PC 30개, <code>k.weight = 100</code>. Control 분석으로 Harmony도 돌렸다.</li>
+<li><strong>Annotation</strong> · Wilcoxon(Seurat FindMarkers)으로 marker를 찾고, 4단계 hierarchy(Level 1–4)로 이름을 붙인다 (Fig. S2A, B). &quot;hi&quot; 기준은 log2FC &gt; 0.5이면서 cluster의 50% 넘게 발현. T cell은 high-confidence TCR barcode 비율도 본다. 근거가 약하면 <code>CD4+_T_unknown</code>처럼 거친 수준에 둔다.</li>
+<li><strong>주의 표시</strong> · (1) platelet gene이 높은 cluster, (2) detected gene 수가 낮고 canonical marker가 약하면서 MALAT1, NEAT1이 높은 cluster, (3) 다른 lineage marker가 높은 cluster는 해석에 주의하도록 표시한다.</li>
+</ul>
+<p><span class="note-figure"><img class="note-img" src="/files/2025-kock-aida-annotation-2.webp" alt="2025 Kock - AIDA Annotation 2" loading="lazy"><span class="figure-credit">Figure: Kock et al., Cell (2025) · CC BY-NC-ND 4.0</span></span>
+<span class="note-figure"><img class="note-img" src="/files/2025-kock-aida-annotation-3.webp" alt="2025 Kock - AIDA Annotation 3" loading="lazy"><span class="figure-credit">Figure: Kock et al., Cell (2025) · CC BY-NC-ND 4.0</span></span></p>
+<h2 id="supplementary">Supplementary</h2>
+<ul>
+<li>Fig S1–S3 그림은 옛 노트에 있었지만 규칙에 따라 넣지 않았다.</li>
+<li>Fig S2 · CD8 T/γδ T는 GZMK ↔ GZMB 축, NK는 FCER1G ↔ KLRC2 축으로 나뉜다.</li>
+</ul>
+<h2 id="data-and-code">Data &amp; Code</h2>
+<ul>
+<li>CELLxGENE에 공개 (일반 지식)</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/pbmc/">PBMC</a> · <a class="wikilink wikilink-concept" href="/concepts/cell-type-annotation/">Cell Type Annotation</a> · <a class="wikilink wikilink-concept" href="/concepts/cell-quality-control/">Cell Quality Control</a> · <a class="wikilink wikilink-concept" href="/concepts/batch-correction/">Batch Correction</a> · <a class="wikilink wikilink-concept" href="/concepts/differential-abundance-analysis/">Differential Abundance Analysis</a> (Milo) · <a class="wikilink wikilink-concept" href="/concepts/pseudobulk-analysis/">Pseudobulk Analysis</a> · <a class="wikilink wikilink-concept" href="/concepts/co-expression-network-analysis/">Co-expression Network Analysis</a> (WGCNA)</li>
+<li>같은 cohort: <a class="wikilink wikilink-paper" href="/papers/2024-tian-aida-splicing-qtl/">2024 Tian - AIDA Splicing QTL</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#figure-1-·-atlas-overview">Figure 1 · Atlas overview</a></li><li class="toc-l2"><a href="#figure-2-·-impact-of-age-sex-and-self-reported-ethnicity">Figure 2 · Impact of age, sex, and self-reported ethnicity</a></li><li class="toc-l2"><a href="#figure-3-·-relationships-of-human-diversity-with-cell-subtype-proportions">Figure 3 · Relationships of human diversity with cell subtype proportions</a></li><li class="toc-l2"><a href="#figure-4-·-cell-neighborhood-signatures-of-human-diversity">Figure 4 · Cell neighborhood signatures of human diversity</a></li><li class="toc-l2"><a href="#figure-5-·-molecular-variation-across-population-groups">Figure 5 · Molecular variation across population groups</a></li><li class="toc-l2"><a href="#figure-6-·-population-specific-and-context-dependent-eqtl-effects">Figure 6 · Population-specific and context-dependent eQTL effects</a></li><li class="toc-l2"><a href="#figure-7-·-eqtl-analyses-contextualize-population-specific-trait-association-loci">Figure 7 · eQTL analyses contextualize population-specific trait-association loci</a></li><li class="toc-l2"><a href="#method">Method</a></li><li class="toc-l3"><a href="#1-cell-neighbourhood-enrichment-analysis">1. Cell neighbourhood enrichment analysis</a></li><li class="toc-l3"><a href="#2-context-dependent-eqtl">2. Context-dependent eQTL</a></li><li class="toc-l3"><a href="#3-annotation-방법-프로젝트-참고">3. Annotation 방법 (프로젝트 참고)</a></li><li class="toc-l2"><a href="#supplementary">Supplementary</a></li><li class="toc-l2"><a href="#data-and-code">Data &amp;amp; Code</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/papers/2024-tian-aida-splicing-qtl/"><span class="kind-dot kind-paper"></span>AIDA Splicing QTL (Tian 2024)</a></li><li><a href="/concepts/batch-correction/"><span class="kind-dot kind-concept"></span>Batch Correction</a></li><li><a href="/concepts/cell-quality-control/"><span class="kind-dot kind-concept"></span>Cell Quality Control</a></li><li><a href="/concepts/cell-type-annotation/"><span class="kind-dot kind-concept"></span>Cell Type Annotation</a></li><li><a href="/concepts/co-expression-network-analysis/"><span class="kind-dot kind-concept"></span>Co-expression Network Analysis</a></li><li><a href="/concepts/differential-abundance-analysis/"><span class="kind-dot kind-concept"></span>Differential Abundance Analysis</a></li><li><a href="/papers/2023-dann-healthy-reference-design/"><span class="kind-dot kind-paper"></span>Healthy Reference Design (Dann 2023)</a></li><li><a href="/papers/2025-edahiro-oasis/"><span class="kind-dot kind-paper"></span>OASIS (Edahiro 2025)</a></li><li><a href="/concepts/pbmc/"><span class="kind-dot kind-concept"></span>PBMC (Peripheral Blood Mononuclear Cells)</a></li><li><a href="/concepts/pseudobulk-analysis/"><span class="kind-dot kind-concept"></span>Pseudobulk Analysis</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

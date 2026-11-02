@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monte Carlo Tree Search (MCTS) · Study Wiki</title>
+<meta name="description" content="가능한 선택지를 tree로 펼쳐 놓고, 유망한 가지는 더 깊이, 덜 시도한 가지도 가끔 탐색하면서 좋은 해를 찾는 search algorithm.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/ai-drug-discovery/">AI Drug Discovery</a></p>
+    <h1 class="note-title">Monte Carlo Tree Search (MCTS)</h1>
+    <p class="lead">가능한 선택지를 tree로 펼쳐 놓고, 유망한 가지는 더 깊이, 덜 시도한 가지도 가끔 탐색하면서 좋은 해를 찾는 search algorithm.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#algorithm</span><span class="chip chip-tag">#search</span><span class="chip chip-tag">#optimization</span><span class="chip chip-tag">#molecular-design</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p>바둑에서 다음 수를 고를 때 모든 경우를 다 계산할 수는 없으니, 좋아 보이는 수를 중심으로 여러 번 시뮬레이션해 보고 결과가 좋았던 쪽을 더 파고드는 방법입니다. AlphaGo로 유명해졌습니다.</p>
+<p>Molecule design에서는 &quot;molecule에 어떤 수정을 할까&quot;가 바둑의 &quot;어디에 둘까&quot;에 해당합니다.</p>
+<h2 id="자세히">자세히</h2>
+<p><strong>4단계 반복</strong> (일반 지식)</p>
+<ol>
+<li><strong>Selection</strong>: root에서 시작해 점수가 좋으면서도 덜 탐색된 child를 골라 내려간다. 보통 UCB/UCT 공식으로 exploitation(좋았던 곳)과 exploration(안 가 본 곳)의 균형을 맞춘다.</li>
+<li><strong>Expansion</strong>: 도착한 node에서 새 child를 하나 추가한다.</li>
+<li><strong>Simulation (rollout)</strong>: 거기서부터 끝까지 빠르게 진행해 결과를 평가한다.</li>
+<li><strong>Backpropagation</strong>: 결과를 지나온 경로의 node들에 반영한다.</li>
+</ol>
+<p><strong>Molecular design에 쓸 때</strong> (일반 지식)</p>
+<ul>
+<li>Node = molecule, edge = 수정 동작(atom/fragment 추가, 치환, 제거 등)</li>
+<li>Reward = 원하는 property 점수 (예: 활성 예측, drug-likeness, 합성 가능성)</li>
+<li>여러 property를 함께 다루면 multi-objective가 된다.</li>
+<li>Deep generative model보다 단순하고, 시작 molecule 주변을 체계적으로 탐색하기 좋아 <a class="wikilink wikilink-concept" href="/concepts/hit-to-lead-optimization/">Hit-to-Lead Optimization</a>에 잘 맞는다.</li>
+</ul>
+<h2 id="왜-중요한가">왜 중요한가</h2>
+<ul>
+<li>탐색 공간이 너무 커서 전부 계산할 수 없는 문제에서 효율적으로 좋은 답을 찾는다.</li>
+<li>Hit을 출발점으로 analog를 설계하는 computational optimization의 대표적인 도구 중 하나다.</li>
+</ul>
+<h2 id="논문별-활용">논문별 활용</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a>: <strong>MolSearch</strong>가 MCTS 기반 2-stage multi-objective hit-to-lead optimization algorithm이다. PB56874852에서 출발해 Z-RGES를 개선하면서 medicinal chemistry property를 유지하는 analog를 설계했다. 제안된 analog의 ΔZ-RGES는 −3.2 ~ −0.82였고, 이를 바탕으로 합성한 MSU45302가 sub-μM IC50을 보였다 (Figure 4F–G).</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/hit-to-lead-optimization/">Hit-to-Lead Optimization</a>: MCTS가 쓰이는 단계</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/molecular-fingerprint/">Molecular Fingerprint</a>: 후보 molecule을 평가할 때 쓰는 표현</li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l2"><a href="#왜-중요한가">왜 중요한가</a></li><li class="toc-l2"><a href="#논문별-활용">논문별 활용</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/papers/2026-xing-gps/"><span class="kind-dot kind-paper"></span>GPS (Xing 2026)</a></li><li><a href="/papers/2026-xing-gps-pipeline/"><span class="kind-dot kind-pipeline"></span>GPS Pipeline 따라가기</a></li><li><a href="/concepts/hit-to-lead-optimization/"><span class="kind-dot kind-concept"></span>Hit-to-Lead Optimization</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

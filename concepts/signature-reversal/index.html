@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Signature Reversal · Study Wiki</title>
+<meta name="description" content="Disease에서 up된 gene은 down시키고, down된 gene은 up시키는 compound를 찾으면 그 compound가 disease를 치료할 수 있다는 drug discovery 전략.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/ai-drug-discovery/">AI Drug Discovery</a></p>
+    <h1 class="note-title">Signature Reversal</h1>
+    <p class="lead">Disease에서 up된 gene은 down시키고, down된 gene은 up시키는 compound를 찾으면 그 compound가 disease를 치료할 수 있다는 drug discovery 전략.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#transcriptomics</span><span class="chip chip-tag">#drug-discovery</span><span class="chip chip-tag">#connectivity</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p>Disease가 gene expression을 한쪽으로 기울여 놓았다면, 반대쪽으로 기울이는 compound를 찾자는 발상입니다.</p>
+<pre><code>Disease signature:  A ▲   B ▲   X ▼   Y ▼
+Compound effect:    A ▼   B ▼   X ▲   Y ▲     ← 정반대 = 좋은 candidate
+</code></pre>
+<p>Compound가 어떤 protein에 붙는지 몰라도 <strong>expression pattern이 반대인지만 보고</strong> candidate를 고를 수 있다는 게 특징입니다.</p>
+<h2 id="자세히">자세히</h2>
+<p><strong>필요한 재료</strong></p>
+<ol>
+<li><strong><a class="wikilink wikilink-concept" href="/concepts/disease-signature/">Disease Signature</a></strong>: disease에서 up/down된 gene 목록</li>
+<li><strong>Drug signature</strong>: compound 처리 후 up/down된 gene 목록. <a class="wikilink wikilink-concept" href="/concepts/lincs-l1000/">LINCS L1000</a>처럼 실험으로 측정한 database나, AI로 예측한 값을 쓴다.</li>
+</ol>
+<p><strong>Scoring</strong>
+두 signature가 얼마나 반대인지를 점수로 계산한다.</p>
+<ul>
+<li><strong>Connectivity score</strong>: <a class="wikilink wikilink-concept" href="/concepts/connectivity-map/">Connectivity Map</a>에서 쓰는 점수. Disease signature gene이 drug signature ranking의 위/아래 끝에 몰려 있는지를 KS statistic으로 본다. (일반 지식)</li>
+<li><strong><a class="wikilink wikilink-concept" href="/concepts/rges/">RGES</a></strong> (Reverse Gene Expression Score): connectivity score를 변형한 reversal score. <strong>더 negative할수록</strong> disease를 잘 reverse한다.</li>
+</ul>
+<p><strong>한계</strong></p>
+<ul>
+<li>Drug signature가 <strong>이미 측정된 compound</strong>에만 적용할 수 있었다. 그래서 주로 <a class="wikilink wikilink-concept" href="/concepts/drug-repurposing/">Drug Repurposing</a>에 쓰였다.</li>
+<li>이를 넘기 위해 chemical structure에서 drug signature를 <strong>예측</strong>해 novel compound에도 적용하는 연구가 나왔다 (예: <a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a>).</li>
+<li>Expression이 반대라는 건 <strong>correlation</strong>이다. 실제 efficacy는 실험으로 확인해야 한다.</li>
+</ul>
+<h2 id="왜-중요한가">왜 중요한가</h2>
+<ul>
+<li><strong>Target을 몰라도 된다</strong>: 여러 gene과 pathway가 얽힌 disease에도 쓸 수 있다.</li>
+<li><strong>Data가 풍부하다</strong>: disease transcriptomic data는 이미 많이 쌓여 있다.</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/target-based-vs-phenotypic-screening/">Target-based와 phenotypic screening</a>의 중간 성격: phenotype(expression)을 보면서도 gene 수준 정보가 남는다.</li>
+</ul>
+<h2 id="논문별-활용">논문별 활용</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a>: AI로 예측한 drug signature로 ZINC의 <strong>약 700만 개 compound</strong>에 적용. Compound마다 예측 gene 수가 달라 raw RGES 대신 <strong>Z-RGES</strong>를 만들었다 (Figure 3A).</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/disease-signature/">Disease Signature</a>: reverse할 대상</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/connectivity-map/">Connectivity Map</a>: 이 전략을 처음 대규모로 가능하게 한 database</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/rges/">RGES</a>: reversal 정도를 재는 점수</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/drug-repurposing/">Drug Repurposing</a>: 대표적인 application</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/target-based-vs-phenotypic-screening/">Target-based vs Phenotypic Screening</a>: 다른 screening 방식과의 비교</li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l2"><a href="#왜-중요한가">왜 중요한가</a></li><li class="toc-l2"><a href="#논문별-활용">논문별 활용</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/connectivity-map/"><span class="kind-dot kind-concept"></span>Connectivity Map (CMap)</a></li><li><a href="/concepts/disease-signature/"><span class="kind-dot kind-concept"></span>Disease Signature</a></li><li><a href="/concepts/drug-repurposing/"><span class="kind-dot kind-concept"></span>Drug Repurposing</a></li><li><a href="/papers/2026-xing-gps/"><span class="kind-dot kind-paper"></span>GPS (Xing 2026)</a></li><li><a href="/concepts/lincs-l1000/"><span class="kind-dot kind-concept"></span>LINCS L1000</a></li><li><a href="/concepts/rges/"><span class="kind-dot kind-concept"></span>RGES (Reverse Gene Expression Score)</a></li><li><a href="/concepts/single-cell-rna-seq/"><span class="kind-dot kind-concept"></span>Single-cell RNA-seq</a></li><li><a href="/concepts/target-based-vs-phenotypic-screening/"><span class="kind-dot kind-concept"></span>Target-based vs Phenotypic Screening</a></li><li><a href="/concepts/virtual-screening/"><span class="kind-dot kind-concept"></span>Virtual Screening</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

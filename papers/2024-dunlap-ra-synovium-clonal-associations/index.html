@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RA Synovium Clonal Associations (Dunlap 2024) · Study Wiki</title>
+<meta name="description" content="RA synovium의 T/B cell state를 antigen-receptor clonotype과 함께 비교한 관찰 연구다. Clonal association은 확인하지만 분화 방향이나 항원 특이성의 직접 증명은 아니다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a></p>
+    <div class="paper-meta">
+      
+      <span class="badge">Nature Communications</span>
+      <span>2024</span>
+      <span class="muted">disease-study</span>
+      
+    </div>
+    <h1 class="note-title">RA Synovium Clonal Associations (Dunlap 2024)</h1>
+    <p class="paper-full-title">Clonal associations between lymphocyte subsets and functional states in rheumatoid arthritis synovium — Dunlap et al.</p>
+    <p class="lead">RA synovium의 T/B cell state를 antigen-receptor clonotype과 함께 비교한 관찰 연구다. Clonal association은 확인하지만 분화 방향이나 항원 특이성의 직접 증명은 아니다.</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1038/s41467-024-49186-0" rel="noopener">원문 (DOI)</a>
+      
+      
+      <span class="license">License · CC BY 4.0</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/immunology/">Immunology</a><a class="chip chip-link" href="/sections/single-cell-analysis/">Single-cell Analysis</a></div>
+    <div class="note-body"><h2 id="background">Background</h2>
+<p>RA synovium에서는 T cell과 B cell이 활성화되고 일부 clone이 확장된다. 그러나 서로 다른 transcriptomic state가 같은 clone에 속하는지, blood의 state와 어떻게 연결되는지는 expression만으로 알기 어렵다. 이 연구는 동일 cell의 RNA와 TCR/BCR을 연결하여 이 문제를 살핀다.</p>
+<h2 id="data">Data</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Source and scale</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Measured tissue/blood</td>
+<td>AMP RA/SLE subset, RA synovium 12명, matched blood 10명; QC 후 83,159 cells (Fig. 1)</td>
+<td>Tissue별 state와 clone 비교</td>
+</tr>
+<tr>
+<td>Cohort</td>
+<td>평균 연령 63.6세, 여성 11명, moderate/high CDAI; lymphocyte-rich tissue를 우선 선택 (Results, Supplementary Data 1)</td>
+<td>일반 RA 전체를 대표하는 무작위 cohort가 아님</td>
+</tr>
+<tr>
+<td>Measured multi-modal data</td>
+<td>Sorted T/B cells의 5′ scRNA-seq, TCR/BCR, surface-protein feature barcode</td>
+<td>Expression·receptor·phenotype 연결; whole-tissue abundance와 구분</td>
+</tr>
+<tr>
+<td>Reference/prediction</td>
+<td>기존 AMP reference, VDJdb/McPAS viral TCR, imputed HLA, GLIPH2, CellChat</td>
+<td>Annotation 및 antigen/interaction <strong>추론</strong>; 독립 기능 검증 아님</td>
+</tr>
+</tbody>
+</table></div>
+<p>Clinical disease-study이므로 별도 tool Pipeline은 만들지 않았다. 각 panel의 분석은 <a href="#methods-overview">Methods overview</a>로 연결한다.</p>
+<h2 id="figure-1-·-matched-tissue-and-blood-profiling">Figure 1 · Matched tissue and blood profiling</h2>
+<p><strong>Context</strong> · 먼저 어떤 환자와 cell을 비교했는지 확인한다. Sorting과 receptor recovery가 이후 abundance 및 clone 해석의 분모를 결정한다.</p>
+<p><span class="figure-hidden">이 그림은 저작권 때문에 싣지 않았습니다 · <a href="https://doi.org/10.1038/s41467-024-49186-0" rel="noopener">원문에서 보기 →</a></span></p>
+<blockquote>
+<p><strong>Image license</strong> · Panel A는 BioRender CC BY-NC-ND 4.0 예외다. 나머지 논문 CC BY 4.0과 구분하며 기존 이미지만 보존했다.</p>
+</blockquote>
+<h3 id="a-·-study-design">A · Study design</h3>
+<ul>
+<li><strong>Purpose</strong>: 동일 환자의 조직과 혈액을 비교할 수 있는가?</li>
+<li><strong>Data &amp; method</strong>: Synovium 12명, blood 10명의 실측 RNA/receptor/protein profiling; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: SYN과 PBL의 sample 흐름을 구분한다.</li>
+<li><strong>Result &amp; meaning</strong>: T/B-enriched sampling이므로 조직 전체의 세포 구성비로 해석하지 않는다.</li>
+</ul>
+<h3 id="b-·-cell-atlas">B · Cell atlas</h3>
+<ul>
+<li><strong>Purpose</strong>: 주요 cell identity를 확인한다.</li>
+<li><strong>Data &amp; method</strong>: 83,159 QC-passed cells의 unsupervised clustering/UMAP; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: 색은 annotation이며 UMAP 축은 물리적 거리가 아니다.</li>
+<li><strong>Result &amp; meaning</strong>: T/B 및 잔여 cell population을 구분해 후속 분석한다.</li>
+</ul>
+<h3 id="c-·-sample-yield">C · Sample yield</h3>
+<ul>
+<li><strong>Purpose</strong>: 환자별 recovery가 균등한지 본다.</li>
+<li><strong>Data &amp; method</strong>: Sample별 QC 후 cell count; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: 막대 높이는 cell 수, 색은 tissue다.</li>
+<li><strong>Result &amp; meaning</strong>: Recovery 차이는 clone 발견 확률에 영향을 준다.</li>
+</ul>
+<h3 id="d-·-annotation-markers">D · Annotation markers</h3>
+<ul>
+<li><strong>Purpose</strong>: Cluster identity의 근거를 확인한다.</li>
+<li><strong>Data &amp; method</strong>: 선택 marker expression violin plot; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: Cluster별 expression 분포를 비교한다.</li>
+<li><strong>Result &amp; meaning</strong>: 복수 marker가 major lineage annotation을 뒷받침한다.</li>
+</ul>
+<h3 id="e-·-sample-composition">E · Sample composition</h3>
+<ul>
+<li><strong>Purpose</strong>: 특정 cluster가 특정 환자에만 의존하는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Sample별 cluster 비율; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: 누적 막대의 색과 구성비를 비교한다.</li>
+<li><strong>Result &amp; meaning</strong>: Donor heterogeneity를 고려해야 한다.</li>
+</ul>
+<h3 id="f-·-tissue-distribution">F · Tissue distribution</h3>
+<ul>
+<li><strong>Purpose</strong>: 두 compartment의 cell landscape를 비교한다.</li>
+<li><strong>Data &amp; method</strong>: 같은 UMAP을 tissue별 분리; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: 동일 좌표에서 SYN/PBL 점 분포를 본다.</li>
+<li><strong>Result &amp; meaning</strong>: 공유 state와 tissue별 구성 차이가 함께 존재한다.</li>
+</ul>
+<h3 id="g-·-receptor-recovery">G · Receptor recovery</h3>
+<ul>
+<li><strong>Purpose</strong>: Clone 분석 가능한 분모를 확인한다.</li>
+<li><strong>Data &amp; method</strong>: Fibroblast/monocyte 제외 VDJ recovery; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: Sample별 receptor가 확보된 비율을 읽는다.</li>
+<li><strong>Result &amp; meaning</strong>: RNA cell 모두가 receptor 분석에 포함되는 것은 아니다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Expression과 clone의 연결은 가능하지만 sampling/receptor coverage를 먼저 확인해야 한다.</p>
+</blockquote>
+<h2 id="figure-2-·-cd4-t-states-and-clonal-expansion">Figure 2 · CD4 T states and clonal expansion</h2>
+<p><strong>Context</strong> · 전체 atlas에서 CD4 T cell을 따로 나누면 helper 및 cytotoxic state를 분리할 수 있다. 이어 같은 clone이 state 사이에 얼마나 공유되는지 묻는다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-dunlap-ra-synovium-clonal-associations-fig2.webp" alt="2024 Dunlap - RA Synovium Clonal Associations Fig2" loading="lazy"><span class="figure-credit">Figure: Dunlap et al., Nature Communications (2024) · CC BY 4.0</span></span></p>
+<blockquote>
+<p><strong>Image credit</strong> · Dunlap et al., Nature Communications (2024), CC BY 4.0.</p>
+</blockquote>
+<h3 id="a–b-·-cd4-atlas-and-counts">A–B · CD4 atlas and counts</h3>
+<ul>
+<li><strong>Purpose</strong>: CD4 state의 종류와 규모를 확인한다.</li>
+<li><strong>Data &amp; method</strong>: 35,301 CD4 cells reclustering 및 cluster count; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: UMAP 색과 count 막대를 함께 읽는다.</li>
+<li><strong>Result &amp; meaning</strong>: Tph와 Tfh/Tph를 포함한 다양한 CD4 state가 존재한다.</li>
+</ul>
+<h3 id="c-·-signaling-signatures">C · Signaling signatures</h3>
+<ul>
+<li><strong>Purpose</strong>: 활성화된 CD4 state를 찾는다.</li>
+<li><strong>Data &amp; method</strong>: TCR-signaling/activation gene module score; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: 두 UMAP의 높은 score 영역을 비교한다.</li>
+<li><strong>Result &amp; meaning</strong>: Tph는 높은 activation/signaling signature를 보인다; protein 기능 실측은 아니다.</li>
+</ul>
+<h3 id="d-·-tissue-abundance">D · Tissue abundance</h3>
+<ul>
+<li><strong>Purpose</strong>: 어떤 state가 synovium에 많아지는가?</li>
+<li><strong>Data &amp; method</strong>: Donor-paired cluster proportion, two-sided paired t-test; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: SYN/PBL 비율과 p-value를 함께 본다.</li>
+<li><strong>Result &amp; meaning</strong>: Tph/Tfh-Tph, CD25-high Treg, GZMK+ memory 등이 synovium에 풍부하다. <strong>GZMA+CCL5+ memory는 p=0.329로 유의하지 않다.</strong></li>
+</ul>
+<h3 id="e-·-clone-size">E · Clone size</h3>
+<ul>
+<li><strong>Purpose</strong>: CD4 state별 expansion 정도를 묻는다.</li>
+<li><strong>Data &amp; method</strong>: TCR 기반 clone-size distribution; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: 막대의 clone-size 범주를 비교한다.</li>
+<li><strong>Result &amp; meaning</strong>: GNLY+ cytotoxic state와 일부 Tph/memory state에서 expansion이 보인다.</li>
+</ul>
+<h3 id="f–g-·-clonal-overlap">F–G · Clonal overlap</h3>
+<ul>
+<li><strong>Purpose</strong>: 서로 다른 state가 clone을 공유하는가?</li>
+<li><strong>Data &amp; method</strong>: SYN(F)/PBL(G)의 Morisita overlap index; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: Heatmap의 state pair별 강도를 읽는다.</li>
+<li><strong>Result &amp; meaning</strong>: Tph와 Tfh/Tph의 공유는 clonal relatedness를 지지하며 방향성 lineage tracing은 아니다.</li>
+</ul>
+<h3 id="h-·-expanded-helper-cells">H · Expanded helper cells</h3>
+<ul>
+<li><strong>Purpose</strong>: Tph expansion의 환자 간 변이를 본다.</li>
+<li><strong>Data &amp; method</strong>: Donor별 expanded Tph/Tfh-Tph 비율; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: 각 donor 막대를 비교한다.</li>
+<li><strong>Result &amp; meaning</strong>: Synovial Tph expansion은 donor별로 달라 pooled 평균만으로 설명되지 않는다.</li>
+</ul>
+<h3 id="i-·-expanded-tph-signatures">I · Expanded Tph signatures</h3>
+<ul>
+<li><strong>Purpose</strong>: Expansion과 Tph 기능 상태가 연관되는가?</li>
+<li><strong>Data &amp; method</strong>: Expanded/unexpanded Tph의 donor-level signature 비교; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: Effector/cytotoxic/Tfh score를 비교한다.</li>
+<li><strong>Result &amp; meaning</strong>: Expanded Tph에서 effector/cytotoxic signature가 높지만 helper signature 소실로 단정하지 않는다.</li>
+</ul>
+<h3 id="j-·-signature-genes">J · Signature genes</h3>
+<ul>
+<li><strong>Purpose</strong>: Module 차이를 구성하는 gene을 확인한다.</li>
+<li><strong>Data &amp; method</strong>: Tph 및 Tfh/Tph expansion별 평균 gene expression; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: Heatmap의 gene별 대비를 읽는다.</li>
+<li><strong>Result &amp; meaning</strong>: Expansion과 연결된 transcriptional program을 구체화한다.</li>
+</ul>
+<h3 id="k-·-tfh/tph-comparison">K · Tfh/Tph comparison</h3>
+<ul>
+<li><strong>Purpose</strong>: Tph 결과가 모든 helper state에 적용되는가?</li>
+<li><strong>Data &amp; method</strong>: Tfh/Tph의 expansion별 donor-paired module comparison; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: I와 같은 score 축을 비교한다.</li>
+<li><strong>Result &amp; meaning</strong>: Tph에서 본 signature 차이는 Tfh/Tph에서 같은 방식으로 유의하지 않다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Tph expansion과 activation의 연관은 강하지만 abundance·clonal overlap·기능은 서로 다른 근거다.</p>
+</blockquote>
+<h2 id="figure-3-·-cd8-states-and-viral-reactivity-inference">Figure 3 · CD8 states and viral-reactivity inference</h2>
+<p><strong>Context</strong> · CD4 결과 다음으로 CD8 expansion을 비교한다. Tissue에서 우세한 clone이 blood의 cytotoxic clone과 같은지, 알려진 viral TCR과 유사한지 구분해 본다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-dunlap-ra-synovium-clonal-associations-fig3.webp" alt="2024 Dunlap - RA Synovium Clonal Associations Fig3" loading="lazy"><span class="figure-credit">Figure: Dunlap et al., Nature Communications (2024) · CC BY 4.0</span></span></p>
+<blockquote>
+<p><strong>Image credit</strong> · Dunlap et al., Nature Communications (2024), CC BY 4.0.</p>
+</blockquote>
+<h3 id="a–b-·-cd8-atlas">A–B · CD8 atlas</h3>
+<ul>
+<li><strong>Purpose</strong>: GZMK/GZMB state를 분리한다.</li>
+<li><strong>Data &amp; method</strong>: CD8 reclustering 및 counts; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: UMAP annotation과 막대 수를 함께 읽는다.</li>
+<li><strong>Result &amp; meaning</strong>: GZMK+, GZMK/B+, GZMB+ TEMRA 등은 서로 다른 expression state다.</li>
+</ul>
+<h3 id="c-·-tissue-abundance">C · Tissue abundance</h3>
+<ul>
+<li><strong>Purpose</strong>: Tissue에서 어떤 CD8 state가 풍부한가?</li>
+<li><strong>Data &amp; method</strong>: Donor-paired proportion t-test; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: 각 state의 SYN/PBL 대비와 p-value를 본다.</li>
+<li><strong>Result &amp; meaning</strong>: GZMK/B+ memory는 synovium-enriched; GZMK+ 단독은 p=0.0523으로 유의 기준을 넘지 않는다.</li>
+</ul>
+<h3 id="d-·-cd8-clone-sizes">D · CD8 clone sizes</h3>
+<ul>
+<li><strong>Purpose</strong>: CD8 expansion의 분포를 확인한다.</li>
+<li><strong>Data &amp; method</strong>: TCR-defined clone-size 범주; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: State별 큰 clone 비중을 읽는다.</li>
+<li><strong>Result &amp; meaning</strong>: GZMK/B+ memory와 GZMB+ TEMRA 등에서 expansion이 크다.</li>
+</ul>
+<h3 id="e–f-·-largest-clones">E–F · Largest clones</h3>
+<ul>
+<li><strong>Purpose</strong>: 조직 간 큰 clone의 정체가 같은가?</li>
+<li><strong>Data &amp; method</strong>: SYN(E)/PBL(F) top-50 clone의 state composition; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: 막대 크기는 clone size, 위 문자는 tissue-shared clone이다.</li>
+<li><strong>Result &amp; meaning</strong>: Synovium은 GZMK/B+, blood는 GZMB+ TEMRA 중심이며 대다수 큰 clone이 분리된다.</li>
+</ul>
+<h3 id="g-·-proliferating-cell-mapping">G · Proliferating-cell mapping</h3>
+<ul>
+<li><strong>Purpose</strong>: 증식 중인 cell은 어떤 state와 가까운가?</li>
+<li><strong>Data &amp; method</strong>: Proliferating CD8를 다른 state에 computational mapping; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: Donut의 mapping 비율을 원래 state 비율과 비교한다.</li>
+<li><strong>Result &amp; meaning</strong>: SYN은 GZMK/B+, PBL은 GZMB+ TEMRA 쪽으로 주로 mapping된다; 분화 실험이 아니다.</li>
+</ul>
+<h3 id="h-·-exact-viral-matching">H · Exact viral matching</h3>
+<ul>
+<li><strong>Purpose</strong>: 알려진 viral TCR과 정확히 일치하는가?</li>
+<li><strong>Data &amp; method</strong>: CDR3β와 imputed HLA의 VDJdb/McPAS 일치; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: Donor/virus별 비율과 clone-size 표시를 읽는다.</li>
+<li><strong>Result &amp; meaning</strong>: 일부 sequence match가 있으나 antigen reactivity 직접 검증은 아니다.</li>
+</ul>
+<h3 id="i-·-motif-matching">I · Motif matching</h3>
+<ul>
+<li><strong>Purpose</strong>: Motif 기반 후보를 확장한다.</li>
+<li><strong>Data &amp; method</strong>: GLIPH2 motif 및 HLA-compatible viral reference; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: H와 비교하되 exact match와 motif match를 혼동하지 않는다.</li>
+<li><strong>Result &amp; meaning</strong>: 더 넓은 후보를 찾지만 specificity 불확실성도 남는다.</li>
+</ul>
+<h3 id="j–k-·-viral-candidates-and-expansion">J–K · Viral candidates and expansion</h3>
+<ul>
+<li><strong>Purpose</strong>: Viral candidate가 특정 state나 큰 clone을 설명하는가?</li>
+<li><strong>Data &amp; method</strong>: Motif-matched/unmatched cells의 state(J), size(K) 분포; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: Tissue별 두 분포를 비교한다.</li>
+<li><strong>Result &amp; meaning</strong>: 뚜렷한 차이가 없고 synovium top-50 clone에서 해당 viral motif는 검출되지 않았다; 바이러스 관여 전체를 배제하지는 않는다.</li>
+</ul>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-dunlap-ra-synovium-clonal-associations-fig3-detail.webp" alt="2024 Dunlap - RA Synovium Clonal Associations Fig3 detail" loading="lazy" style="max-width:400px"><span class="figure-credit">Figure: Dunlap et al., Nature Communications (2024) · CC BY 4.0</span></span></p>
+<blockquote>
+<p><strong>Takeaway</strong> · GZMK/B+ tissue clone과 circulating GZMB+ clone은 주로 분리되지만 유입 경로나 전환 방향은 관찰만으로 확정할 수 없다.</p>
+</blockquote>
+<h2 id="figure-4-·-innate-t-cell-activation">Figure 4 · Innate T-cell activation</h2>
+<p><strong>Context</strong> · Conventional T cell만으로 tissue 반응을 설명할 수 없다. Innate-like population의 abundance와 activation을 별도로 확인한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-dunlap-ra-synovium-clonal-associations-fig4.webp" alt="2024 Dunlap - RA Synovium Clonal Associations Fig4" loading="lazy"><span class="figure-credit">Figure: Dunlap et al., Nature Communications (2024) · CC BY 4.0</span></span></p>
+<blockquote>
+<p><strong>Image credit</strong> · Dunlap et al., Nature Communications (2024), CC BY 4.0.</p>
+</blockquote>
+<h3 id="a–b-·-innate-atlas">A–B · Innate atlas</h3>
+<ul>
+<li><strong>Purpose</strong>: Innate-like lineage를 구분한다.</li>
+<li><strong>Data &amp; method</strong>: Reclustering(A)과 marker RNA(B); <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: TRDV/TRGV 및 MAIT/NK marker를 UMAP과 대조한다.</li>
+<li><strong>Result &amp; meaning</strong>: Vδ1/Vδ2, MAIT, NK-related state가 구분된다.</li>
+</ul>
+<h3 id="c-·-tissue-frequencies">C · Tissue frequencies</h3>
+<ul>
+<li><strong>Purpose</strong>: Tissue enrichment가 공통적인가?</li>
+<li><strong>Data &amp; method</strong>: Sample별 all-T-cell 대비 비율, paired test와 multiple-testing correction; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: 연결선은 matched sample이다.</li>
+<li><strong>Result &amp; meaning</strong>: Vδ1이 synovium에 유의하게 많으며 모든 innate state가 증가한 것은 아니다.</li>
+</ul>
+<h3 id="d-·-mait-receptors">D · MAIT receptors</h3>
+<ul>
+<li><strong>Purpose</strong>: MAIT annotation을 receptor로 확인한다.</li>
+<li><strong>Data &amp; method</strong>: TRAV1-2와 TRAJ33/20/12 rearrangement; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: Highlighted cell의 UMAP 위치를 본다.</li>
+<li><strong>Result &amp; meaning</strong>: Expression 기반 MAIT identity를 receptor가 보완한다.</li>
+</ul>
+<h3 id="e-·-mait-clone-sharing">E · MAIT clone sharing</h3>
+<ul>
+<li><strong>Purpose</strong>: MAIT clone이 tissue를 공유하는가?</li>
+<li><strong>Data &amp; method</strong>: Clone별 SYN/PBL cell count; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: 양 축의 크기와 donor 색을 비교한다.</li>
+<li><strong>Result &amp; meaning</strong>: Tissue-specific 및 shared expanded clone이 모두 존재한다.</li>
+</ul>
+<h3 id="f-·-mait-activation">F · MAIT activation</h3>
+<ul>
+<li><strong>Purpose</strong>: Tissue MAIT가 더 활성화돼 있는가?</li>
+<li><strong>Data &amp; method</strong>: Donor-level activation module score; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: SYN/PBL score 분포를 비교한다.</li>
+<li><strong>Result &amp; meaning</strong>: Synovial MAIT에서 activation signature가 높다.</li>
+</ul>
+<h3 id="g–h-·-activation-modes">G–H · Activation modes</h3>
+<ul>
+<li><strong>Purpose</strong>: TCR-dependent/independent signature를 구분한다.</li>
+<li><strong>Data &amp; method</strong>: 문헌 gene set score, paired Wilcoxon/Holm correction; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: Tissue와 expansion 상태를 함께 비교한다.</li>
+<li><strong>Result &amp; meaning</strong>: 두 signature가 synovium에서 높지만 expansion 여부 차이는 뚜렷하지 않다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Tissue activation과 clone expansion은 동일한 현상이 아니다.</p>
+</blockquote>
+<h2 id="figure-5-·-b-cell-activation-and-receptor-history">Figure 5 · B-cell activation and receptor history</h2>
+<p><strong>Context</strong> · B cell의 expression state만으로 antigen experience를 확정하기 어렵다. SHM과 isotype을 함께 보아 활성화 및 class switching의 흔적을 확인한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-dunlap-ra-synovium-clonal-associations-fig5.webp" alt="2024 Dunlap - RA Synovium Clonal Associations Fig5" loading="lazy"><span class="figure-credit">Figure: Dunlap et al., Nature Communications (2024) · CC BY 4.0</span></span></p>
+<blockquote>
+<p><strong>Image credit</strong> · Dunlap et al., Nature Communications (2024), CC BY 4.0.</p>
+</blockquote>
+<h3 id="a–c-·-b-cell-atlas">A–C · B-cell atlas</h3>
+<ul>
+<li><strong>Purpose</strong>: B-cell state와 marker를 정의한다.</li>
+<li><strong>Data &amp; method</strong>: 27,869 B cells의 UMAP(A), marker dotplot(B), counts(C); <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: Dot 크기와 발현 강도를 구분한다.</li>
+<li><strong>Result &amp; meaning</strong>: Naive-like, memory, activated, ABC, plasmablast/plasma state를 나누며 doublet와 제한적인 LILRA4+ cluster는 후속 분석에서 제외한다.</li>
+</ul>
+<h3 id="d-·-b-cell-tissue-abundance">D · B-cell tissue abundance</h3>
+<ul>
+<li><strong>Purpose</strong>: Tissue에서 풍부한 state를 찾는다.</li>
+<li><strong>Data &amp; method</strong>: Cluster별 tissue distribution; MASC 비교는 supplement; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: Tissue별 구성비를 비교한다.</li>
+<li><strong>Result &amp; meaning</strong>: Activated B와 plasma cell이 synovium에 풍부하다; Figure의 서술상 Supplementary 8D/10D 참조 불일치는 아래에 기록했다.</li>
+</ul>
+<h3 id="e-·-b-cell-signatures">E · B-cell signatures</h3>
+<ul>
+<li><strong>Purpose</strong>: 각 state의 기능적 특징을 비교한다.</li>
+<li><strong>Data &amp; method</strong>: Reference gene-signature module scores; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: Scaled score heatmap을 비교한다.</li>
+<li><strong>Result &amp; meaning</strong>: Plasmablast의 증식 및 activated/ABC의 특성이 annotation을 보완한다.</li>
+</ul>
+<h3 id="f-·-shm-across-states">F · SHM across states</h3>
+<ul>
+<li><strong>Purpose</strong>: Naive 대비 mutation이 증가하는가?</li>
+<li><strong>Data &amp; method</strong>: IgH SHM, donor random-effect linear model; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: Naive IgD-high reference 대비 차이를 읽는다.</li>
+<li><strong>Result &amp; meaning</strong>: Memory/plasma 외 activated B와 ABC에도 antigen-experience 흔적이 있다.</li>
+</ul>
+<h3 id="g-·-shm-across-tissues">G · SHM across tissues</h3>
+<ul>
+<li><strong>Purpose</strong>: 동일 state도 tissue별 mutation이 다른가?</li>
+<li><strong>Data &amp; method</strong>: State별 SYN/PBL SHM mixed model; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: 차이의 방향과 유의성을 함께 본다.</li>
+<li><strong>Result &amp; meaning</strong>: 일부 naive-like, ABC, activated B에서 SYN SHM이 높다; local SHM과 선택적 유입을 구분하지 못한다.</li>
+</ul>
+<h3 id="h-·-isotype-usage">H · Isotype usage</h3>
+<ul>
+<li><strong>Purpose</strong>: Tissue별 class-switched receptor 비율을 본다.</li>
+<li><strong>Data &amp; method</strong>: QC-passed productive IgH isotypes; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: IgM/IgD와 IgG/IgA의 누적 비율을 비교한다.</li>
+<li><strong>Result &amp; meaning</strong>: 여러 non-naive state에서 switched receptor가 풍부하다.</li>
+</ul>
+<h3 id="i-·-class-switch-model">I · Class-switch model</h3>
+<ul>
+<li><strong>Purpose</strong>: State와 tissue 효과를 분리한다.</li>
+<li><strong>Data &amp; method</strong>: IgG/IgA vs IgM/IgD binary mixed logistic model; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: Naive IgD-high/PBL reference와 95% CI를 본다.</li>
+<li><strong>Result &amp; meaning</strong>: ABC와 activated B에서도 class-switch 흔적이 나타난다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · SHM 및 switched isotype은 antigen experience의 근거이며 발생 장소·시간의 직접 측정은 아니다.</p>
+</blockquote>
+<h2 id="figure-6-·-b-cell-clonal-associations">Figure 6 · B-cell clonal associations</h2>
+<p><strong>Context</strong> · Receptor history 다음으로 서로 다른 B state가 같은 clone을 공유하는지 확인한다. 이 분석은 관계를 찾지만 precursor와 descendant를 직접 추적하지 않는다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-dunlap-ra-synovium-clonal-associations-fig6.webp" alt="2024 Dunlap - RA Synovium Clonal Associations Fig6" loading="lazy"><span class="figure-credit">Figure: Dunlap et al., Nature Communications (2024) · CC BY 4.0</span></span></p>
+<blockquote>
+<p><strong>Image credit</strong> · Dunlap et al., Nature Communications (2024), CC BY 4.0.</p>
+</blockquote>
+<h3 id="a-·-expanded-b-cells">A · Expanded B cells</h3>
+<ul>
+<li><strong>Purpose</strong>: B clone expansion의 위치를 찾는다.</li>
+<li><strong>Data &amp; method</strong>: BCR 확보 cell만 IgH-CDR3 DNA 96.5% similarity clustering; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: UMAP의 clone-size 표시를 읽는다.</li>
+<li><strong>Result &amp; meaning</strong>: Receptor 미확보 cell은 분석에서 제외된다.</li>
+</ul>
+<h3 id="b-·-state-specific-expansion">B · State-specific expansion</h3>
+<ul>
+<li><strong>Purpose</strong>: 어떤 state에서 큰 clone이 많은가?</li>
+<li><strong>Data &amp; method</strong>: State/tissue별 clone-size proportion; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: 같은 state의 SYN/PBL 범주를 비교한다.</li>
+<li><strong>Result &amp; meaning</strong>: Plasmablast/plasma에서 큰 clone이 많고 blood에서 expansion이 더 두드러진다.</li>
+</ul>
+<h3 id="c–d-·-shared-b-states">C–D · Shared B states</h3>
+<ul>
+<li><strong>Purpose</strong>: State 간 clonal relatedness를 찾는다.</li>
+<li><strong>Data &amp; method</strong>: Circos(C), synovium의 multi-state shared clone(D); <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: 연결색은 저자가 제안한 origin이며 관찰된 이동 방향이 아니다.</li>
+<li><strong>Result &amp; meaning</strong>: ABC/activated B/plasma 사이 shared clone이 관찰된다; ABC→plasma 경로를 증명하지 않는다.</li>
+</ul>
+<h3 id="e–f-·-largest-b-clones">E–F · Largest B clones</h3>
+<ul>
+<li><strong>Purpose</strong>: 큰 clone의 state 구성을 비교한다.</li>
+<li><strong>Data &amp; method</strong>: SYN(E)/PBL(F) top-50 clone; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: 각 막대의 cell-state 색을 읽는다.</li>
+<li><strong>Result &amp; meaning</strong>: Tissue의 큰 clone은 plasma 계열 중심이며 blood에서는 여러 state 공유가 보인다.</li>
+</ul>
+<h3 id="g-·-tissue-sharing">G · Tissue sharing</h3>
+<ul>
+<li><strong>Purpose</strong>: 두 조직에 공통 clone이 있는가?</li>
+<li><strong>Data &amp; method</strong>: Tissue별 clone distribution; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: 검정 shared clone과 회색 나머지를 비교한다.</li>
+<li><strong>Result &amp; meaning</strong>: Shared clone은 존재하지만 이 표본에서 크게 expanded하지 않았다.</li>
+</ul>
+<h3 id="h-·-shared-clone-identities">H · Shared-clone identities</h3>
+<ul>
+<li><strong>Purpose</strong>: Shared clone은 어떤 state로 구성되는가?</li>
+<li><strong>Data &amp; method</strong>: G의 shared clone을 cell state별 분해; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: 조직별 phenotype을 연결해 본다.</li>
+<li><strong>Result &amp; meaning</strong>: Blood memory와 synovial activated/plasma 등의 관계는 보이나 이동·분화 방향을 확정할 수 없다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Clone sharing은 관련성의 증거다. Supplementary Figure 12의 80% 기준은 더 넓은 lineage 후보를 주지만 방향성 인과 증명이 되지 않는다.</p>
+</blockquote>
+<h2 id="figure-7-·-predicted-t–b-communication">Figure 7 · Predicted T–B communication</h2>
+<p><strong>Context</strong> · T/B state와 clonality를 연결한 뒤 가능한 signaling 관계를 탐색한다. Expression 기반 interaction inference는 실제 접촉이나 cytokine 작용의 측정과 구분한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-dunlap-ra-synovium-clonal-associations-fig7.webp" alt="2024 Dunlap - RA Synovium Clonal Associations Fig7" loading="lazy"><span class="figure-credit">Figure: Dunlap et al., Nature Communications (2024) · CC BY 4.0</span></span></p>
+<blockquote>
+<p><strong>Image credit</strong> · Dunlap et al., Nature Communications (2024), CC BY 4.0.</p>
+</blockquote>
+<h3 id="a-·-t-to-b-interaction-counts">A · T-to-B interaction counts</h3>
+<ul>
+<li><strong>Purpose</strong>: 어떤 CD4 state에 많은 후보 interaction이 있는가?</li>
+<li><strong>Data &amp; method</strong>: CellChat의 significant ligand–receptor pair count; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: Circle edge는 후보 수이지 실측 신호량이 아니다.</li>
+<li><strong>Result &amp; meaning</strong>: Proliferating, Tph, Tfh/Tph에서 많은 후보 interaction이 검출된다.</li>
+</ul>
+<h3 id="b-·-b-cell-receivers">B · B-cell receivers</h3>
+<ul>
+<li><strong>Purpose</strong>: B state별 candidate network를 비교한다.</li>
+<li><strong>Data &amp; method</strong>: CD4 sender/B receiver CellChat heatmap; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: 행/열의 sender와 receiver 방향을 확인한다.</li>
+<li><strong>Result &amp; meaning</strong>: Tph와 여러 activated B state의 candidate communication이 두드러진다.</li>
+</ul>
+<h3 id="c-·-tissue-pathways">C · Tissue pathways</h3>
+<ul>
+<li><strong>Purpose</strong>: 조직별 candidate pathway를 비교한다.</li>
+<li><strong>Data &amp; method</strong>: 분리한 SYN/PBL CellChat network; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: Pathway detection 비율을 비교한다.</li>
+<li><strong>Result &amp; meaning</strong>: Synovium에서 TNF/CXCL/IL-2/type-II IFN 관련 후보가 높다.</li>
+</ul>
+<h3 id="d-·-selected-ligand–receptor-pairs">D · Selected ligand–receptor pairs</h3>
+<ul>
+<li><strong>Purpose</strong>: Helper–B pair의 분자 후보를 좁힌다.</li>
+<li><strong>Data &amp; method</strong>: Tph/Tfh-Tph와 ABC/memory/activated B, 100 permutations; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: Dot의 tissue별 detection/강도를 비교한다.</li>
+<li><strong>Result &amp; meaning</strong>: CXCL13–CXCR5, BTLA–HVEM 및 Tph-associated IFNG/LTA 후보가 보인다; 기능적 인과는 후속 검증 대상이다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · CellChat은 hypotheses를 생성하며 치료 target 효능이나 실제 intercellular signaling을 입증하지 않는다.</p>
+</blockquote>
+<h2 id="figure-8-·-integrated-model">Figure 8 · Integrated model</h2>
+<p><strong>Context</strong> · 앞선 figure의 직접 관찰과 interaction 추론을 한 그림에 통합한다. 요약 schematic에 표시된 연결의 근거 수준을 구분하는 것이 중요하다.</p>
+<p><span class="figure-hidden">이 그림은 저작권 때문에 싣지 않았습니다 · <a href="https://doi.org/10.1038/s41467-024-49186-0" rel="noopener">원문에서 보기 →</a></span></p>
+<blockquote>
+<p><strong>Image license</strong> · Figure 전체는 BioRender CC BY-NC-ND 4.0 예외다. 나머지 논문 CC BY 4.0과 구분하며 기존 이미지만 보존했다.</p>
+</blockquote>
+<h3 id="overview-·-clonal-and-signaling-model">Overview · Clonal and signaling model</h3>
+<ul>
+<li><strong>Purpose</strong>: T/B state 관계를 종합한다.</li>
+<li><strong>Data &amp; method</strong>: Figures 1–7의 observation 및 computational inference 요약; <a href="#methods-overview">Methods overview</a>.</li>
+<li><strong>Reading</strong>: Clone 관계와 ligand–receptor 화살표를 구분한다.</li>
+<li><strong>Result &amp; meaning</strong>: Tph 및 ABC/activated/plasma의 연관을 제시하며 migration direction, antigen specificity, 치료 반응은 확정하지 않는다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · State·clone·predicted communication을 통합한 mechanistic hypothesis이지 lineage-tracing 또는 임상시험 결과가 아니다.</p>
+</blockquote>
+<h2 id="methods-overview">Methods overview</h2>
+<ul>
+<li><strong>Expression and annotation</strong>: QC, Seurat clustering, Harmony batch adjustment, marker와 Symphony reference mapping을 결합했다. UMAP 위치 자체는 분화 방향을 나타내지 않는다.</li>
+<li><strong>TCR</strong>: CellRanger/scRepertoire로 RNA barcode와 receptor를 연결했으며 불완전 chain/다중 chain 처리 때문에 전체 RNA cell과 분석 분모가 다르다.</li>
+<li><strong>BCR</strong>: Change-O/IMGT reference, IgH CDR3 DNA similarity 96.5%의 discrete clone 및 80% sensitivity analysis를 사용했다. Supplementary lineage tree는 sequence-derived 거리의 hierarchical clustering이지 시간에 따른 관측이 아니다.</li>
+<li><strong>Scores and statistics</strong>: Seurat AddModuleScore는 signature expression에서 matched control-gene aggregate를 뺀 값이다. Fig. 5의 SHM/CSR는 donor random effects를 포함하고, 각 panel의 paired test와 multiple-testing 적용은 legend를 따른다.</li>
+<li><strong>CellChat and virus inference</strong>: CellChat은 expression 기반 ligand–receptor inference이며 100 permutations를 사용했다. Viral matching은 TCRβ/HLA 및 GLIPH2 motif에 근거하므로 biochemical specificity assay와 다르다.</li>
+</ul>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li>Sample이 작고 lymphocyte-rich tissue를 우선 선택했다. 환자의 치료·질병기간이 다양해 결과를 untreated early RA 전체로 확장할 수 없다.</li>
+<li>FACS enrichment와 tissue dissociation, receptor recovery가 abundance/clone sampling에 영향을 준다. Cell 수는 독립 환자 수가 아니다.</li>
+<li>Cross-sectional clone sharing은 공통 clonal ancestry와 양립하지만 precursor–descendant 방향, blood→tissue 이동, in-situ SHM을 단독 증명하지 않는다.</li>
+<li>GZMK/B와 GZMB clone의 낮은 overlap은 이 표본의 관찰이며 모든 시점에서 전환이 불가능하다는 뜻이 아니다.</li>
+<li>Signature, inferred viral specificity, CellChat은 서로 다른 계산 결과다. 치료 target으로의 임상적 효능·안전성은 검증하지 않았다.</li>
+</ul>
+<h2 id="source-checks-and-supplementary-coverage">Source checks and supplementary coverage</h2>
+<ul>
+<li><a href="https://www.nature.com/articles/s41467-024-49186-0">Primary article, Figures 1–8 and Methods</a>를 본문·legend와 대조했다. 기존 figure 및 detail image는 보존했다.</li>
+<li>Supplementary Information의 Figures 1–13 legend를 확인하고 cohort/sorting, annotation, MAIT, B-cell signature, 80% clone-lineage sensitivity, signaling 해석에 반영했다. Supplementary Data spreadsheet 전체의 개별 행 및 모든 source-data 수치를 재분석하지는 않았다.</li>
+<li><strong>Source inconsistency</strong>: Fig. 5D legend는 MASC 결과를 Supplementary Fig. 8D로, Results는 Supplementary Fig. 10D로 참조한다. Supplementary PDF를 대조하면 MASC abundance는 <strong>10D</strong>, 8D는 annotation marker다. 원문의 상충 참조는 남겨 둔다.</li>
+<li><strong>Denominator caution</strong>: Methods의 초기 receptor-matched B-cell 수(38,482)와 최종 B reclustering 수(27,869)는 분석 stage가 다르므로 교환해 쓰지 않는다.</li>
+<li><strong>SHM wording caution</strong>: BCR profiling 문단과 lineage-tree 문단은 mutation 구간을 다르게 설명한다(CDR3 관련 표현과 CDR3 제외 V/J rate). 정확한 재현에는 code/source data 확인이 추가로 필요하다.</li>
+</ul>
+<h2 id="data-and-code">Data &amp; Code</h2>
+<ul>
+<li><a href="https://doi.org/10.7303/syn47217489.1">ARK dataset</a>: privacy에 따른 <strong>controlled access</strong>, signed Data Use Certificate 필요; 자유 다운로드 data로 표기하지 않는다.</li>
+<li><a href="https://github.com/dunlapg/amp2repertoire/tree/main">Analysis code</a>; supplementary/source-data files는 primary article에서 제공한다.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/rheumatoid-arthritis/">Rheumatoid Arthritis</a> · <a class="wikilink wikilink-concept" href="/concepts/t-cell-and-tcr/">T Cell and TCR</a> · <a class="wikilink wikilink-concept" href="/concepts/b-cell-and-bcr/">B Cell and BCR</a> · <a class="wikilink wikilink-concept" href="/concepts/clonotype-and-cdr/">Clonotype and CDR</a> · <a class="wikilink wikilink-concept" href="/concepts/somatic-hypermutation/">Somatic Hypermutation</a> · <a class="wikilink wikilink-concept" href="/concepts/class-switch-recombination/">Class Switch Recombination</a> · <a class="wikilink wikilink-concept" href="/concepts/hla-restriction/">HLA Restriction</a> · <a class="wikilink wikilink-concept" href="/concepts/cellchat/">CellChat</a> · <a class="wikilink wikilink-concept" href="/concepts/mixed-effects-model/">Mixed Effects Model</a> · <a class="wikilink wikilink-concept" href="/concepts/gene-set-scoring/">Gene Set Scoring</a></li>
+<li>같은 B cell subset: <a class="wikilink wikilink-paper" href="/papers/2025-kim-age-associated-b-cells-in-ra/">2025 Kim - Age-associated B Cells in RA</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#background">Background</a></li><li class="toc-l2"><a href="#data">Data</a></li><li class="toc-l2"><a href="#figure-1-·-matched-tissue-and-blood-profiling">Figure 1 · Matched tissue and blood profiling</a></li><li class="toc-l3"><a href="#a-·-study-design">A · Study design</a></li><li class="toc-l3"><a href="#b-·-cell-atlas">B · Cell atlas</a></li><li class="toc-l3"><a href="#c-·-sample-yield">C · Sample yield</a></li><li class="toc-l3"><a href="#d-·-annotation-markers">D · Annotation markers</a></li><li class="toc-l3"><a href="#e-·-sample-composition">E · Sample composition</a></li><li class="toc-l3"><a href="#f-·-tissue-distribution">F · Tissue distribution</a></li><li class="toc-l3"><a href="#g-·-receptor-recovery">G · Receptor recovery</a></li><li class="toc-l2"><a href="#figure-2-·-cd4-t-states-and-clonal-expansion">Figure 2 · CD4 T states and clonal expansion</a></li><li class="toc-l3"><a href="#a–b-·-cd4-atlas-and-counts">A–B · CD4 atlas and counts</a></li><li class="toc-l3"><a href="#c-·-signaling-signatures">C · Signaling signatures</a></li><li class="toc-l3"><a href="#d-·-tissue-abundance">D · Tissue abundance</a></li><li class="toc-l3"><a href="#e-·-clone-size">E · Clone size</a></li><li class="toc-l3"><a href="#f–g-·-clonal-overlap">F–G · Clonal overlap</a></li><li class="toc-l3"><a href="#h-·-expanded-helper-cells">H · Expanded helper cells</a></li><li class="toc-l3"><a href="#i-·-expanded-tph-signatures">I · Expanded Tph signatures</a></li><li class="toc-l3"><a href="#j-·-signature-genes">J · Signature genes</a></li><li class="toc-l3"><a href="#k-·-tfh/tph-comparison">K · Tfh/Tph comparison</a></li><li class="toc-l2"><a href="#figure-3-·-cd8-states-and-viral-reactivity-inference">Figure 3 · CD8 states and viral-reactivity inference</a></li><li class="toc-l3"><a href="#a–b-·-cd8-atlas">A–B · CD8 atlas</a></li><li class="toc-l3"><a href="#c-·-tissue-abundance">C · Tissue abundance</a></li><li class="toc-l3"><a href="#d-·-cd8-clone-sizes">D · CD8 clone sizes</a></li><li class="toc-l3"><a href="#e–f-·-largest-clones">E–F · Largest clones</a></li><li class="toc-l3"><a href="#g-·-proliferating-cell-mapping">G · Proliferating-cell mapping</a></li><li class="toc-l3"><a href="#h-·-exact-viral-matching">H · Exact viral matching</a></li><li class="toc-l3"><a href="#i-·-motif-matching">I · Motif matching</a></li><li class="toc-l3"><a href="#j–k-·-viral-candidates-and-expansion">J–K · Viral candidates and expansion</a></li><li class="toc-l2"><a href="#figure-4-·-innate-t-cell-activation">Figure 4 · Innate T-cell activation</a></li><li class="toc-l3"><a href="#a–b-·-innate-atlas">A–B · Innate atlas</a></li><li class="toc-l3"><a href="#c-·-tissue-frequencies">C · Tissue frequencies</a></li><li class="toc-l3"><a href="#d-·-mait-receptors">D · MAIT receptors</a></li><li class="toc-l3"><a href="#e-·-mait-clone-sharing">E · MAIT clone sharing</a></li><li class="toc-l3"><a href="#f-·-mait-activation">F · MAIT activation</a></li><li class="toc-l3"><a href="#g–h-·-activation-modes">G–H · Activation modes</a></li><li class="toc-l2"><a href="#figure-5-·-b-cell-activation-and-receptor-history">Figure 5 · B-cell activation and receptor history</a></li><li class="toc-l3"><a href="#a–c-·-b-cell-atlas">A–C · B-cell atlas</a></li><li class="toc-l3"><a href="#d-·-b-cell-tissue-abundance">D · B-cell tissue abundance</a></li><li class="toc-l3"><a href="#e-·-b-cell-signatures">E · B-cell signatures</a></li><li class="toc-l3"><a href="#f-·-shm-across-states">F · SHM across states</a></li><li class="toc-l3"><a href="#g-·-shm-across-tissues">G · SHM across tissues</a></li><li class="toc-l3"><a href="#h-·-isotype-usage">H · Isotype usage</a></li><li class="toc-l3"><a href="#i-·-class-switch-model">I · Class-switch model</a></li><li class="toc-l2"><a href="#figure-6-·-b-cell-clonal-associations">Figure 6 · B-cell clonal associations</a></li><li class="toc-l3"><a href="#a-·-expanded-b-cells">A · Expanded B cells</a></li><li class="toc-l3"><a href="#b-·-state-specific-expansion">B · State-specific expansion</a></li><li class="toc-l3"><a href="#c–d-·-shared-b-states">C–D · Shared B states</a></li><li class="toc-l3"><a href="#e–f-·-largest-b-clones">E–F · Largest B clones</a></li><li class="toc-l3"><a href="#g-·-tissue-sharing">G · Tissue sharing</a></li><li class="toc-l3"><a href="#h-·-shared-clone-identities">H · Shared-clone identities</a></li><li class="toc-l2"><a href="#figure-7-·-predicted-t–b-communication">Figure 7 · Predicted T–B communication</a></li><li class="toc-l3"><a href="#a-·-t-to-b-interaction-counts">A · T-to-B interaction counts</a></li><li class="toc-l3"><a href="#b-·-b-cell-receivers">B · B-cell receivers</a></li><li class="toc-l3"><a href="#c-·-tissue-pathways">C · Tissue pathways</a></li><li class="toc-l3"><a href="#d-·-selected-ligand–receptor-pairs">D · Selected ligand–receptor pairs</a></li><li class="toc-l2"><a href="#figure-8-·-integrated-model">Figure 8 · Integrated model</a></li><li class="toc-l3"><a href="#overview-·-clonal-and-signaling-model">Overview · Clonal and signaling model</a></li><li class="toc-l2"><a href="#methods-overview">Methods overview</a></li><li class="toc-l2"><a href="#limitations">Limitations</a></li><li class="toc-l2"><a href="#source-checks-and-supplementary-coverage">Source checks and supplementary coverage</a></li><li class="toc-l2"><a href="#data-and-code">Data &amp;amp; Code</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/b-cell-and-bcr/"><span class="kind-dot kind-concept"></span>B Cell and BCR</a></li><li><a href="/concepts/cellchat/"><span class="kind-dot kind-concept"></span>CellChat</a></li><li><a href="/concepts/class-switch-recombination/"><span class="kind-dot kind-concept"></span>Class Switch Recombination (CSR)</a></li><li><a href="/concepts/clonotype-and-cdr/"><span class="kind-dot kind-concept"></span>Clonotype and CDR</a></li><li><a href="/concepts/gene-set-scoring/"><span class="kind-dot kind-concept"></span>Gene Set Scoring</a></li><li><a href="/concepts/hla-restriction/"><span class="kind-dot kind-concept"></span>HLA Restriction</a></li><li><a href="/papers/2025-bolton-jia-synovial-atlas/"><span class="kind-dot kind-paper"></span>JIA Synovial Atlas (Bolton 2025)</a></li><li><a href="/concepts/mixed-effects-model/"><span class="kind-dot kind-concept"></span>Mixed Effects Model</a></li><li><a href="/concepts/rheumatoid-arthritis/"><span class="kind-dot kind-concept"></span>Rheumatoid Arthritis (RA)</a></li><li><a href="/concepts/somatic-hypermutation/"><span class="kind-dot kind-concept"></span>Somatic Hypermutation (SHM)</a></li><li><a href="/concepts/t-cell-and-tcr/"><span class="kind-dot kind-concept"></span>T Cell and TCR</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Healthy Reference Design · Pipeline · Study Wiki</title>
+<meta name="description" content="2023 Dann - Healthy Reference Design의 방법을 구현 단계로 나눈 노트다. 숫자는 원문 Methods에서 확인한 설정과 설명용 toy example을 구분한다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a> › <a href="/papers/2023-dann-healthy-reference-design/">Healthy Reference Design (Dann 2023)</a></p>
+    <div class="paper-meta">
+      <span class="badge badge-sage">Pipeline</span>
+      <span class="badge">Nature Genetics</span>
+      <span>2023</span>
+      <span class="muted">method</span>
+      
+    </div>
+    <h1 class="note-title">Healthy Reference Design · Pipeline</h1>
+    <p class="paper-full-title">Precise identification of cell states altered in disease using healthy single-cell references — Dann et al.</p>
+    <p class="lead">2023 Dann - Healthy Reference Design의 방법을 구현 단계로 나눈 노트다. 숫자는 원문 Methods에서 확인한 설정과 설명용 toy example을 구분한다.</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1038/s41588-023-01523-7" rel="noopener">원문 (DOI)</a>
+      
+      <a class="btn btn-small btn-soft" href="/papers/2023-dann-healthy-reference-design/">논문 정리로</a>
+      <span class="license">License · CC BY 4.0</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/single-cell-analysis/">Single-cell Analysis</a></div>
+    <div class="note-body"><div class="callout callout-warning">
+<div class="callout-title"><span class="callout-icon" aria-hidden="true">!</span>Reading boundary</div>
+<div class="callout-body">
+<p>Main Methods와 figure legend를 확인했으나 별도 Supplementary 전체를 끝까지 검증한 완전 재현 문서는 아니다. 확인하지 못한 설정은 명시하며 실행 가능성을 실제 data로 검증하지 않았다.</p>
+</div></div>
+<h2 id="0-·-overview">0 · Overview</h2>
+<pre class="mermaid">flowchart LR
+ A[&quot;Atlas + matched control + disease&quot;] --&gt; B[&quot;scVI reference / scArches query&quot;]
+ B --&gt; C[&quot;Design-specific Milo graph&quot;]
+ C --&gt; D[&quot;Donor-level neighborhood counts&quot;]
+ D --&gt; E[&quot;NB GLM + spatial FDR&quot;]
+ E --&gt; F[&quot;OOR benchmark / biological validation&quot;]
+</pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Question</th>
+<th>Paper terminology</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>누가 representation과 testing의 reference인가?</td>
+<td>AR / CR / ACR</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Query를 어느 latent space에 놓는가?</td>
+<td>scVI / scArches</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Disease에서 증가한 neighborhood는 무엇인가?</td>
+<td>Milo differential abundance</td>
+</tr>
+<tr>
+<td>4</td>
+<td>OOR를 맞혔는가, biological signal인가?</td>
+<td>Sensitivity / AUPRC / real-disease evaluation</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="step-1-·-inputs">Step 1 · Inputs</h2>
+<p><strong>하는 일</strong> · Embedding을 위한 atlas와 검정을 위한 matched control의 역할을 나눈다.</p>
+<p><strong>Input → Output</strong> · Healthy atlas, cohort-matched control, disease counts → design별 training/query/test sample 목록.</p>
+<p><strong>쉽게 말하면</strong> · 큰 지도는 길을 찾는 데 쓰고, 차이의 크기는 비교 가능한 이웃끼리 잰다.</p>
+<p><strong>Details</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Design</th>
+<th>Embedding</th>
+<th>DA comparison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AR</td>
+<td>Atlas train, disease query</td>
+<td>Atlas vs disease</td>
+</tr>
+<tr>
+<td>CR mapping</td>
+<td>Control train, disease query</td>
+<td>Control vs disease</td>
+</tr>
+<tr>
+<td>CR joint</td>
+<td>Control+disease joint scVI</td>
+<td>Control vs disease</td>
+</tr>
+<tr>
+<td>ACR</td>
+<td>Atlas train, control+disease query</td>
+<td>Control vs disease; atlas는 DA graph에서 제외</td>
+</tr>
+</tbody>
+</table></div>
+<p>PBMC atlas는 13 studies의 1,248 individuals/1,268 samples에서 시작한다. Sample당 500 cells로 downsample하고 500 미만 sample을 제외했다. Cell당 ≥1,000 mRNA, ≥1 cell에서 검출한 genes를 사용하여 QC 후 599,379 cells, doublet cluster 제거 후 597,321 cells/16 cell types를 얻었다. Benchmark query study의 healthy 29 donors를 pseudo-disease 16/control 13으로 나누고 남은 12 studies/1,219 donors를 atlas로 쓴다. OOR simulation은 특정 population을 atlas와 control에서 제거하고 pseudo-disease에 남긴다. 15 simulations 중 OOR cells &lt;250인 7개는 주요 분석에서 제외했다.</p>
+<p><strong>Toy example</strong> · 설명용으로 atlas 100명, control 10명, disease 10명이 있으면 ACR의 embedding reference는 100명, DA의 biological replicates는 20명이다. Atlas 100명을 control 10명에 합치면 다른 design이 된다.</p>
+<p><strong>Figures</strong> · <a class="wikilink wikilink-paper" href="/papers/2023-dann-healthy-reference-design/#figure-1-·-reference-designs">Figure 1</a>; Figure 2의 simulation.</p>
+<h2 id="step-2-·-representation">Step 2 · Representation</h2>
+<p><strong>하는 일</strong> · Technical variation을 모델링하며 reference latent space에 query를 배치한다.</p>
+<p><strong>Input → Output</strong> · Raw counts + batch covariate → low-dimensional cell representation.</p>
+<p><strong>쉽게 말하면</strong> · 서로 다른 카메라로 찍은 세포를 같은 좌표계에 정렬한다. 같은 좌표가 곧 disease effect라는 뜻은 아니다.</p>
+<p><strong>Details</strong></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Scope</th>
+<th>Reported setting</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Atlas harmonization</td>
+<td>5,000 HVGs; scVI <code>n_latent=30</code>, <code>gene_likelihood=nb</code>, <code>n_layers=2</code>, dropout 0.2</td>
+</tr>
+<tr>
+<td>Covariate architecture</td>
+<td><code>use_layer_norm=both</code>, <code>use_batch_norm=none</code>, <code>encode_covariates=True</code></td>
+</tr>
+<tr>
+<td>Atlas training</td>
+<td>library ID batch; max 200 epochs, train size 0.9, early-stopping patience 45, batch size 1,024, <code>limit_train_batches=20</code></td>
+</tr>
+<tr>
+<td>Atlas annotation</td>
+<td>k=50 graph, Leiden resolution 1.5, majority annotation</td>
+</tr>
+<tr>
+<td>Benchmark embedding</td>
+<td>scvi-tools 0.17.4; reference-derived 5,000 HVGs, sample ID batch; 400 epochs or convergence</td>
+</tr>
+<tr>
+<td>Query adaptation</td>
+<td>scArches 200 epochs, <code>weight_decay=0</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Harmonization과 benchmark의 training 설정을 혼합하지 않는다. Benchmark의 모든 default parameter가 위 표에서 확정된 것은 아니다. Mixed OOR에서는 classical monocytes와 다른 population을 섞고 query population을 PC1로 나눈 뒤 atlas에 kNN(k=10) label을 적용한다.</p>
+<p><strong>Toy example</strong> · 설명용 reference HVGs가 {A,B,C}라면 query에서 D가 강하게 발현되어도 이 representation 입력에는 D가 없다. OOR detection은 feature selection에 제약받는다.</p>
+<p><strong>Figures</strong> · Main Figure 2–3; 자세한 design 비교는 논문 본문.</p>
+<h2 id="step-3-·-testing">Step 3 · Testing</h2>
+<p><strong>하는 일</strong> · Neighborhood별 disease enrichment를 donor-level로 검정한다.</p>
+<p><strong>Input → Output</strong> · Latent cells + donor/condition → neighborhood logFC, spatial FDR.</p>
+<p><strong>쉽게 말하면</strong> · 세포 한 개씩 투표시키지 않고, 사람마다 각 지역에 몇 개의 세포가 있는지 센다.</p>
+<p><strong>Details</strong></p>
+<p>Milo(<code>milopy</code> 0.1.0) graph는 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mi>min</mi><mo>⁡</mo><mo stretchy="false">(</mo><mn>5</mn><msub><mi>N</mi><mrow><mi>s</mi><mi>a</mi><mi>m</mi><mi>p</mi><mi>l</mi><mi>e</mi><mi>s</mi></mrow></msub><mo separator="true">,</mo><mn>200</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">k=\min(5N_{samples},200)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.0315em;">k</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mop">min</span><span class="mopen">(</span><span class="mord">5</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">N</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="mord mathnormal mtight">am</span><span class="mord mathnormal mtight" style="margin-right:0.0197em;">pl</span><span class="mord mathnormal mtight">es</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">200</span><span class="mclose">)</span></span></span></span>, neighborhood sampling <code>prop=0.1</code>이다. Neighborhood <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi></mrow><annotation encoding="application/x-tex">j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.854em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.0572em;">j</span></span></span></span>, sample <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi></mrow><annotation encoding="application/x-tex">s</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">s</span></span></span></span>의 count <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mrow><mi>j</mi><mi>s</mi></mrow></msub></mrow><annotation encoding="application/x-tex">Y_{js}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.2222em;">Y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.2222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span><span class="mord mathnormal mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span>를 NB GLM으로 비교한다. 일반적 표현은 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>log</mi><mo>⁡</mo><msub><mi>μ</mi><mrow><mi>j</mi><mi>s</mi></mrow></msub><mo>=</mo><msub><mrow><mi mathvariant="normal">o</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">t</mi></mrow><mi>s</mi></msub><mo>+</mo><msub><mi>β</mi><mrow><mn>0</mn><mi>j</mi></mrow></msub><mo>+</mo><msub><mi>β</mi><mrow><mi>D</mi><mi>j</mi></mrow></msub><msub><mi>D</mi><mi>s</mi></msub><mo>+</mo><msub><mi>β</mi><mrow><mi>S</mi><mi>j</mi></mrow></msub><mi>S</mi><mi>i</mi><mi>t</mi><msub><mi>e</mi><mi>s</mi></msub></mrow><annotation encoding="application/x-tex">\log\mu_{js}=\mathrm{offset}_s+\beta_{0j}+\beta_{Dj}D_s+\beta_{Sj}Site_s</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9805em;vertical-align:-0.2861em;"></span><span class="mop">lo<span style="margin-right:0.0139em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">μ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span><span class="mord mathnormal mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord"><span class="mord mathrm">offset</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">s</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.9805em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0528em;">β</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0528em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">0</span><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.9805em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0528em;">β</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0528em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">D</span><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">D</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">s</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.9805em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0528em;">β</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0528em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0576em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mord mathnormal" style="margin-right:0.0576em;">S</span><span class="mord mathnormal">i</span><span class="mord mathnormal">t</span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">s</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>이며, 정확한 normalization 구현은 해당 milopy version/code를 따른다. CR/ACR에는 disease와 collection site covariate를 사용한다. Graph overlap을 고려한 weighted BH의 spatial FDR &lt;0.1, logFC&gt;0을 disease enrichment로 판정한다.</p>
+<p><strong>Toy example</strong> · Python 검산: 6 samples이면 k=30, 60 samples이면 k=200이다. Control의 10/100 cells와 disease의 20/100 cells는 설명용 비율 차이 2배(log2 ratio=1)이지만 이것만으로 Milo P value를 얻을 수 없다. Donor replication과 dispersion이 필요하다.</p>
+<p><strong>Figures</strong> · Main Figure 3; <a class="wikilink wikilink-concept" href="/concepts/differential-abundance-analysis/">Differential Abundance Analysis</a>.</p>
+<h2 id="step-4-·-validation">Step 4 · Validation</h2>
+<p><strong>하는 일</strong> · 알려진 simulation truth와 실제 disease biology를 다른 기준으로 평가한다.</p>
+<p><strong>Input → Output</strong> · Ranked neighborhoods / annotations / gene scores → performance와 biological consistency.</p>
+<p><strong>쉽게 말하면</strong> · 정답이 있는 모의시험과 정답을 완전히 모르는 실제 진료 상황을 나눠 평가한다.</p>
+<p><strong>Details</strong></p>
+<ul>
+<li>Simulation true OOR neighborhood는 OOR fraction이 해당 simulation 최대 fraction의 20%를 넘는 경우다. AUPRC ranking에는 logFC를 사용한다. Stratified bootstrap 1,000회로 95% CI를 계산한다.</li>
+<li>COVID-19: graph k=100; <code>scanpy.score_genes</code> IFN score를 사용한다. PR truth proxy는 score&gt;0.05이다. Monocyte high/low IFN 경계는 0.2이고, DA 조건과 함께 해석한다. ≥3 neighborhoods에 속하면 phenotype label을 부여하고 나머지는 mixed다. Sample×phenotype pseudobulk DE는 FDR 1%다.</li>
+<li>IPF: GSE136831을 HLCA에 mapping한다. CR은 HLCA의 2,000 HVGs와 dataset batch를 쓴 scANVI이다. Milo <code>prop=0.01</code>; profibrotic macrophage score&gt;0.32(90th quantile), cell-type IPF signature는 상위 50%를 proxy로 사용한다. Pseudobulk DE는 7,500 HVGs, FDR 1%다.</li>
+</ul>
+<p><strong>Toy example</strong> · 최대 OOR fraction 0.8이면 truth threshold는 0.16이다(Python 검산). 0.17은 positive, 0.15는 negative지만 threshold 선택을 바꾸면 평가도 달라진다.</p>
+<p><strong>Figures</strong> · Main Figure 3–4 benchmark, Figure 5 COVID-19, Figure 6 IPF.</p>
+<h2 id="explanation-figure">Explanation figure</h2>
+<img class="note-img" src="/files/2023-dann-healthy-reference-design-pipeline-example.png" alt="2023 Dann - Healthy Reference Design Pipeline Example" loading="lazy" style="max-width:720px">
+<p>설명 그림 (직접 작성); 숫자는 설명용이다. 논문 실측 결과가 아니다.</p>
+<h2 id="reproduction-checklist">Reproduction checklist</h2>
+<ul>
+<li>Donor split과 cell split을 혼동하지 않는다. Atlas와 tested control에 동일 donor가 중복되는지 점검한다.</li>
+<li>Matched control은 confounding을 줄이지만 없는 covariate까지 보정하지 않는다.</li>
+<li>Simulation 제거 population과 실제 disease OOR의 난도는 같지 않다.</li>
+<li><a href="https://github.com/MarioniLab/oor_design_reproducibility">Design reproducibility code</a>, <a href="https://github.com/MarioniLab/oor_benchmark">benchmark code</a>, <a href="https://github.com/emdann/milopy">milopy</a>.</li>
+<li><a href="https://doi.org/10.6084/m9.figshare.21456645">Processed data/models</a>, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10632138/">original Methods</a>.</li>
+</ul>
+<h2 id="unresolved-settings">Unresolved settings</h2>
+<p>Supplementary PDF 전체 및 code 실행을 검증하지 않았다. Harmonization의 <code>n_latent=30</code>을 모든 downstream model에 자동 적용하지 않는다. Real-disease signature를 independent ground truth로 간주하지 않는다.</p>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#0-·-overview">0 · Overview</a></li><li class="toc-l2"><a href="#step-1-·-inputs">Step 1 · Inputs</a></li><li class="toc-l2"><a href="#step-2-·-representation">Step 2 · Representation</a></li><li class="toc-l2"><a href="#step-3-·-testing">Step 3 · Testing</a></li><li class="toc-l2"><a href="#step-4-·-validation">Step 4 · Validation</a></li><li class="toc-l2"><a href="#explanation-figure">Explanation figure</a></li><li class="toc-l2"><a href="#reproduction-checklist">Reproduction checklist</a></li><li class="toc-l2"><a href="#unresolved-settings">Unresolved settings</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/papers/2023-dann-healthy-reference-design/"><span class="kind-dot kind-paper"></span>Healthy Reference Design (Dann 2023)</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

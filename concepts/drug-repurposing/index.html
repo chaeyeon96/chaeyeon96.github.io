@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drug Repurposing · Study Wiki</title>
+<meta name="description" content="이미 approved되었거나 개발된 drug을 원래와 다른 indication에 다시 쓰는 것. Drug repositioning이라고도 한다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/ai-drug-discovery/">AI Drug Discovery</a></p>
+    <h1 class="note-title">Drug Repurposing</h1>
+    <p class="lead">이미 approved되었거나 개발된 drug을 원래와 다른 indication에 다시 쓰는 것. Drug repositioning이라고도 한다.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#drug-discovery</span><span class="chip chip-tag">#repositioning</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p>새 compound를 처음부터 만드는 대신, 이미 있는 drug 중에서 다른 disease에도 듣는 것을 찾는 방법입니다.</p>
+<h2 id="자세히">자세히</h2>
+<p><strong>장점</strong> (일반 지식)</p>
+<ul>
+<li><strong>Safety data가 이미 있다</strong>: 사람에게 써 본 drug이라 toxicity, dose, PK를 알고 있다.</li>
+<li><strong>빠르고 싸다</strong>: early development 단계를 건너뛸 수 있다. De novo drug 개발은 보통 10년 이상 걸린다.</li>
+</ul>
+<p><strong>유명한 예</strong> (일반 지식)</p>
+<ul>
+<li><strong>Sildenafil</strong>: angina 치료제로 개발 → erectile dysfunction</li>
+<li><strong>Thalidomide</strong>: morning sickness 약으로 쓰였다가 teratogenicity로 퇴출 → multiple myeloma</li>
+</ul>
+<p><strong>Candidate 찾는 방법</strong></p>
+<ul>
+<li>Serendipity, clinical observation</li>
+<li>Computational: <a class="wikilink wikilink-concept" href="/concepts/signature-reversal/">Signature Reversal</a>, network analysis, EHR mining 등</li>
+</ul>
+<p><strong>한계</strong> (일반 지식)</p>
+<ul>
+<li>원래 indication의 dose가 새 disease에 맞지 않을 수 있다.</li>
+<li>기존 side effect가 새 환자군에서 문제가 될 수 있다.</li>
+<li>Patent가 만료된 drug은 기업이 개발에 투자할 동기가 약하다.</li>
+</ul>
+<h2 id="왜-중요한가">왜 중요한가</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/signature-reversal/">Signature Reversal</a>이 지금까지 가장 많이 쓰인 분야다. <a class="wikilink wikilink-concept" href="/concepts/connectivity-map/">Connectivity Map</a>의 compound가 대부분 기존 drug이기 때문이다.</li>
+<li><strong>De novo discovery</strong>(novel compound 발굴)와 대비되는 개념이라, 둘을 구분해 두면 논문을 읽기 쉽다.</li>
+</ul>
+<h2 id="논문별-활용">논문별 활용</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a>: IPF에서 기존 drug <strong>pyrithyldione</strong>을 repurposing candidate로 찾았다 (Figure 6C–E). 다만 life-threatening side effect 가능성 때문에 그대로 쓰기는 어렵다고 보고, 이를 단서로 <strong>novel compound</strong>(drug 18) 발굴로 이어 갔다. Repurposing과 de novo discovery를 함께 보여 준 사례.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/signature-reversal/">Signature Reversal</a>: repurposing candidate를 찾는 대표적인 computational 방법</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/connectivity-map/">Connectivity Map</a>: candidate를 query하는 database</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/virtual-screening/">Virtual Screening</a>: novel compound까지 포함해 candidate를 찾는 더 넓은 방법</li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-jo-psoriasis-gwas-scdrs/">2026 Jo - Psoriasis GWAS scDRS</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2021-ruiz-multiscale-interactome/">2021 Ruiz - Multiscale Interactome</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l2"><a href="#왜-중요한가">왜 중요한가</a></li><li class="toc-l2"><a href="#논문별-활용">논문별 활용</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/papers/2026-xing-gps/"><span class="kind-dot kind-paper"></span>GPS (Xing 2026)</a></li><li><a href="/papers/2021-ruiz-multiscale-interactome/"><span class="kind-dot kind-paper"></span>Multiscale Interactome (Ruiz 2021)</a></li><li><a href="/papers/2026-jo-psoriasis-gwas-scdrs/"><span class="kind-dot kind-paper"></span>Psoriasis GWAS scDRS (Jo 2026)</a></li><li><a href="/concepts/rges/"><span class="kind-dot kind-concept"></span>RGES (Reverse Gene Expression Score)</a></li><li><a href="/concepts/signature-reversal/"><span class="kind-dot kind-concept"></span>Signature Reversal</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

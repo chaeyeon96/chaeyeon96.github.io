@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1110" viewBox="0 0 1000 1110" role="img" aria-labelledby="title desc">
+  <title id="title">MolSearch: two-stage hit-to-lead optimization</title>
+  <desc id="desc">Starting from hit PB56874852, stage 1 HIT-MCTS prioritizes the biological property of disease reversal, measured by a lower Z-RGES. Stage 2 LEAD-MCTS improves non-biological properties including drug-likeness, synthetic accessibility, and solubility. The candidate list is reviewed and refined by a chemist for final design and synthesis, including MSU45301 and MSU45302.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 1 1 L 8 5 L 1 9" fill="none" stroke="#8d9bb0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <style>
+      text { font-family: 'Segoe UI', 'Malgun Gothic', Arial, sans-serif; }
+      .eyebrow { font-size: 16px; font-weight: 600; letter-spacing: 1.7px; fill: #738096; }
+      .tag { font-size: 15px; font-weight: 700; letter-spacing: 1.4px; }
+      .card-title { font-size: 32px; font-weight: 700; fill: #25334b; }
+      .body { font-size: 22px; fill: #56657d; }
+      .connector { fill: none; stroke: #a1adbe; stroke-width: 2; marker-end: url(#arrow); }
+      .connector-label { font-size: 18px; font-weight: 600; fill: #738096; }
+      .property { font-size: 21px; font-weight: 600; text-anchor: middle; fill: #866631; }
+    </style>
+  </defs>
+
+  <rect width="1000" height="1110" rx="24" fill="#f5f7fb"/>
+  <text x="48" y="48" class="eyebrow">GPS / ANALOG DESIGN</text>
+  <text x="952" y="48" text-anchor="end" class="eyebrow" style="font-size:14px;letter-spacing:1px">XING ET AL. · CELL 2026</text>
+  <text x="48" y="104" font-size="44" font-weight="700" fill="#20304a">MolSearch: hit → lead</text>
+  <text x="48" y="145" class="body">Two-stage MCTS followed by chemist design and synthesis.</text>
+
+  <!-- Starting compound -->
+  <rect x="220" y="178" width="560" height="104" rx="18" fill="#eef3fc" stroke="#b3c5e5" stroke-width="1.5" stroke-dasharray="7 5"/>
+  <text x="252" y="211" class="tag" fill="#5876ab">STARTING HIT</text>
+  <text x="252" y="252" font-size="31" font-weight="700" fill="#4267aa">PB56874852</text>
+  <text x="748" y="240" text-anchor="end" font-size="18" fill="#65738a">Input compound</text>
+  <path d="M 500 282 V 332" class="connector"/>
+
+  <!-- Stage 1: biological optimization -->
+  <rect x="80" y="340" width="840" height="172" rx="20" fill="#edf7f4" stroke="#d5e9e2" stroke-width="1.5"/>
+  <text x="112" y="375" class="tag" fill="#44866e">STAGE 1 · BIOLOGICAL PROPERTY</text>
+  <text x="112" y="421" class="card-title">HIT-MCTS</text>
+  <text x="112" y="459" class="body">Prioritize disease reversal</text>
+  <path d="M 596 395 V 478" fill="none" stroke="#cce1d8" stroke-width="1.5"/>
+  <text x="742" y="430" text-anchor="middle" font-size="36" font-weight="700" fill="#347960">Z-RGES ↓</text>
+  <text x="742" y="464" text-anchor="middle" font-size="20" fill="#52796a">More negative = better</text>
+
+  <path d="M 500 512 V 566" class="connector"/>
+  <text x="520" y="548" class="connector-label">Candidate analogs</text>
+
+  <!-- Stage 2: properties for lead development -->
+  <rect x="80" y="574" width="840" height="208" rx="20" fill="#fcf5e9" stroke="#efdfc4" stroke-width="1.5"/>
+  <text x="112" y="609" class="tag" fill="#99743e">STAGE 2 · NON-BIOLOGICAL PROPERTIES</text>
+  <text x="112" y="651" class="card-title">LEAD-MCTS</text>
+  <text x="112" y="685" class="body">Improve properties for lead development</text>
+
+  <rect x="112" y="710" width="212" height="44" rx="12" fill="#ffffff" stroke="#e9d9be"/>
+  <text x="218" y="739" class="property">Drug-likeness</text>
+  <rect x="340" y="710" width="288" height="44" rx="12" fill="#ffffff" stroke="#e9d9be"/>
+  <text x="484" y="739" class="property">Synthetic accessibility</text>
+  <rect x="644" y="710" width="244" height="44" rx="12" fill="#ffffff" stroke="#e9d9be"/>
+  <text x="766" y="739" class="property">Solubility</text>
+
+  <path d="M 500 782 V 836" class="connector"/>
+  <text x="520" y="818" class="connector-label">Multi-objective candidate list</text>
+
+  <!-- Human design and synthesis -->
+  <rect x="80" y="844" width="840" height="190" rx="20" fill="#f3effa" stroke="#e2d9f1" stroke-width="1.5"/>
+  <text x="112" y="879" class="tag" fill="#8260a8">CHEMIST REVIEW + SYNTHESIS</text>
+  <text x="112" y="921" class="card-title">Final design → synthesis</text>
+  <text x="112" y="955" class="body">Chemist selects and refines candidate structures</text>
+
+  <rect x="112" y="978" width="192" height="36" rx="10" fill="#e5daf5"/>
+  <text x="208" y="1004" text-anchor="middle" font-size="22" font-weight="650" fill="#74529b">MSU45301</text>
+  <rect x="320" y="978" width="192" height="36" rx="10" fill="#e5daf5"/>
+  <text x="416" y="1004" text-anchor="middle" font-size="22" font-weight="650" fill="#74529b">MSU45302</text>
+  <text x="530" y="1004" font-size="24" fill="#8260a8">…</text>
+
+  <text x="48" y="1077" font-size="17" fill="#7e899b">MCTS = Monte Carlo Tree Search</text>
+  <text x="952" y="1077" text-anchor="end" font-size="17" fill="#7e899b">Illustrative workflow · GPS Pipeline · Section 7</text>
+</svg>

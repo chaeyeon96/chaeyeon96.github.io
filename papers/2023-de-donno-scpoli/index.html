@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>scPoli (2023 De Donno) · Study Wiki</title>
+<meta name="description" content="Cell embedding과 sample embedding을 동시에 학습하고 cell-type prototypes로 reference mapping·label transfer를 연결하는 population-level integration model.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a></p>
+    <div class="paper-meta">
+      
+      <span class="badge">Nature Methods</span>
+      <span>2023</span>
+      <span class="muted">method</span>
+      
+    </div>
+    <h1 class="note-title">scPoli (2023 De Donno)</h1>
+    <p class="paper-full-title">Population-level integration of single-cell datasets enables multi-scale analysis across samples — De Donno et al.</p>
+    <p class="lead">Cell embedding과 sample embedding을 동시에 학습하고 cell-type prototypes로 reference mapping·label transfer를 연결하는 population-level integration model.</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1038/s41592-023-02035-2" rel="noopener">원문 (DOI)</a>
+      <a class="btn btn-small btn-soft" href="/papers/2023-de-donno-scpoli-pipeline/">Pipeline 따라가기</a>
+      
+      <span class="license">License · CC BY 4.0</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/single-cell-analysis/">Single-cell Analysis</a></div>
+    <div class="note-body"><div class="callout callout-tip">
+<div class="callout-title"><span class="callout-icon" aria-hidden="true">✦</span>Pipeline</div>
+<div class="callout-body">
+<p>모델식·설정값·손계산 예시는 <a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/">2023 De Donno - scPoli (Pipeline)</a>에 있다.</p>
+</div></div>
+<h2 id="background">Background</h2>
+<p>기존 CVAE의 one-hot condition은 sample 수가 늘면 input dimension이 커지고 sample 간 관계를 직접 해석하기 어렵다. scPoli는 condition마다 작은 learnable vector를 두고 cell-type prototype loss를 더해 biological structure를 유지한다. Cell-level integration과 sample-level variation exploration은 서로 다른 결과물이다.</p>
+<h2 id="data">Data</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Data</th>
+<th>Measured input / scope</th>
+<th>Role</th>
+<th>Figure</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pancreas</td>
+<td>16,382 cells, Methods의 8 batches, 14 labels, 4,000 HVGs</td>
+<td>Reference 13,093 / query 3,289; beta-cell unknown scenario</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Six benchmark datasets</td>
+<td>Immune 32,484; pancreas 16,382; brain 332,129; endocrine 25,919; tumor 317,111; lung 32,472 cells</td>
+<td>Held-out study mapping, integration·classification 비교</td>
+<td>2</td>
+</tr>
+<tr>
+<td>HLCA core</td>
+<td>584,884 cells, 166 samples, 107 subjects, 2,000 genes; 58 prototypes</td>
+<td>Reference construction; healthy/cancer queries</td>
+<td>3, S3–6</td>
+</tr>
+<tr>
+<td>Su COVID-19 PBMC</td>
+<td>559,517 cells, 270 samples, 129 COVID-19 / 16 healthy donors; 2,000 HVGs</td>
+<td>30 samples의 labels를 숨기고 cell·sample classification</td>
+<td>4</td>
+</tr>
+<tr>
+<td>Schulte-Schrepping PBMC</td>
+<td>222,003 cells, 99 samples, 65 patients, 2 cohorts; 4,000 HVGs</td>
+<td>Technical versus disease variation; batch covariate 선택</td>
+<td>5</td>
+</tr>
+<tr>
+<td>PBMC atlas</td>
+<td>7,800,850 cells, 2,375 samples, 1,977 donors, 25 datasets; 10,000 HVGs, 14 coarse types</td>
+<td>Large-scale integration / sample exploration</td>
+<td>6</td>
+</tr>
+<tr>
+<td>Cross-species cortex</td>
+<td>Human/marmoset/mouse 305,638 nuclei; 15,860 one-to-one orthologs → 2,000 HVGs</td>
+<td>Mouse+marmoset reference → human query</td>
+<td>S9</td>
+</tr>
+<tr>
+<td>NeurIPS 2021 ATAC</td>
+<td>69,249 cells, 16,134 peaks after ≥5% cell detection filter</td>
+<td>Poisson-likelihood extension vs PeakVI</td>
+<td>S10</td>
+</tr>
+</tbody>
+</table></div>
+<p>모두 기존 공개 실측 datasets의 재분석이다. Embeddings·predicted labels는 모델 출력이며 새로운 expression 측정이 아니다. Main Results의 pancreas ‘nine studies’와 Methods의 ‘eight batches’는 같은 단위인지 확인되지 않아 그대로 구분한다.</p>
+<h2 id="figure-1-·-cell-and-condition-representations">Figure 1 · Cell and condition representations</h2>
+<p><strong>Context</strong> · Sample마다 차이가 있지만 같은 cell type은 연결하고 싶다. 먼저 두 종류의 embedding과 prototype을 분리한 뒤 pancreas reference/query 예제로 연결한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-de-donno-scpoli-fig1.png" alt="2023 De Donno - scPoli Fig1" loading="lazy"><span class="figure-credit">Figure: De Donno et al., Nature Methods (2023) · CC BY 4.0</span></span></p>
+<h3 id="a-·-reference-training">A · Reference training</h3>
+<ul>
+<li><strong>목적</strong>: Cell과 sample을 어떻게 함께 표현하는가?</li>
+<li><strong>Data &amp; method</strong>: Expression·sample labels·cell labels로 CVAE와 prototypes를 학습한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-2-·-conditional-generative-model">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: Cell latent z, condition embedding s, prototype p의 위치를 구분한다.</li>
+<li><strong>결과와 의미</strong>: Condition을 fixed one-hot 대신 learnable vector로 표현한다.</li>
+</ul>
+<h3 id="b-·-reference-mapping">B · Reference mapping</h3>
+<ul>
+<li><strong>목적</strong>: Reference를 다시 학습하지 않고 query를 넣을 수 있는가?</li>
+<li><strong>Data &amp; method</strong>: Encoder/decoder를 고정하고 query condition embeddings만 추가한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-4-·-query-mapping">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: Gray network weights는 frozen parameters이다.</li>
+<li><strong>결과와 의미</strong>: Stored prototypes를 이용하므로 원 reference cells 없이도 label transfer가 가능하다.</li>
+</ul>
+<h3 id="c-·-raw-cell-identities">C · Raw cell identities</h3>
+<ul>
+<li><strong>목적</strong>: Integration 전 biological groups는 어떤가?</li>
+<li><strong>Data &amp; method</strong>: 13,093 reference pancreas cells의 raw representation을 UMAP으로 표시한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-1-·-inputs-and-split">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: 색은 cell type이며 D와 같은 좌표이다.</li>
+<li><strong>결과와 의미</strong>: Cell-type 분리와 technical separation을 다음 panel과 함께 판단한다.</li>
+</ul>
+<h3 id="d-·-raw-studies">D · Raw studies</h3>
+<ul>
+<li><strong>목적</strong>: Study-specific separation이 있는가?</li>
+<li><strong>Data &amp; method</strong>: 같은 reference UMAP을 study별로 색칠한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-1-·-inputs-and-split">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: C와 좌표를 바꾸지 않고 색만 비교한다.</li>
+<li><strong>결과와 의미</strong>: Study 구조와 cell identity 구조가 겹쳐 integration 필요성을 보여 준다.</li>
+</ul>
+<h3 id="e-·-integrated-identities">E · Integrated identities</h3>
+<ul>
+<li><strong>목적</strong>: Biological identity를 보존하는가?</li>
+<li><strong>Data &amp; method</strong>: 학습된 reference cell embeddings를 UMAP에 투영한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-3-·-prototypes-and-training">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: 색은 cell type이며 raw C와 비교한다.</li>
+<li><strong>결과와 의미</strong>: Prototype supervision과 함께 known cell-type structure가 보존된다.</li>
+</ul>
+<h3 id="f-·-integrated-studies">F · Integrated studies</h3>
+<ul>
+<li><strong>목적</strong>: 같은 identity 내 study mixing이 이루어지는가?</li>
+<li><strong>Data &amp; method</strong>: 같은 integrated embedding을 study별로 표시한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: E의 type structure와 함께 study mixing을 읽는다.</li>
+<li><strong>결과와 의미</strong>: 혼합 자체가 목표의 전부는 아니므로 label 보존과 함께 평가한다.</li>
+</ul>
+<h3 id="g-·-mapped-query">G · Mapped query</h3>
+<ul>
+<li><strong>목적</strong>: 새 query cells가 reference 어디에 놓이는가?</li>
+<li><strong>Data &amp; method</strong>: celseq·celseq2의 3,289 cells를 map한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-4-·-query-mapping">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: Reference는 gray, 큰 원은 prototypes이며 unknown prototypes도 구별한다.</li>
+<li><strong>결과와 의미</strong>: Query가 기존 공간에 연결되고 label-transfer accuracy는 80%였다.</li>
+</ul>
+<h3 id="h-·-query-study-mixing">H · Query study mixing</h3>
+<ul>
+<li><strong>목적</strong>: Mapping 후 query batch가 남는가?</li>
+<li><strong>Data &amp; method</strong>: Mapped query/reference를 study origin으로 표시한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: G와 같은 mapping을 study 색으로 확인한다.</li>
+<li><strong>결과와 의미</strong>: 평균 integration score는 0.86으로 보고되었다.</li>
+</ul>
+<h3 id="i-·-prediction-outcome">I · Prediction outcome</h3>
+<ul>
+<li><strong>목적</strong>: Reference에 없는 type을 무조건 known type으로 넣는가?</li>
+<li><strong>Data &amp; method</strong>: Reference에서 beta cells를 제거한 unknown scenario의 classification을 표시한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-4-·-query-mapping">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: Correct/incorrect/unknown outcome을 별개로 본다.</li>
+<li><strong>결과와 의미</strong>: Unknown-cell detection은 nearest-prototype distance threshold에 의존한다.</li>
+</ul>
+<h3 id="j-·-condition-embeddings">J · Condition embeddings</h3>
+<ul>
+<li><strong>목적</strong>: Sample 자체의 관계를 볼 수 있는가?</li>
+<li><strong>Data &amp; method</strong>: Learned condition vectors를 PCA로 투영한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: 점은 cell이 아니라 condition이며 UMAP과 의미가 다르다.</li>
+<li><strong>결과와 의미</strong>: Condition 유사성을 별도의 공간에서 탐색할 수 있다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Integrated cells와 sample embeddings는 같은 좌표나 같은 biological 해석을 갖지 않는다.</p>
+</blockquote>
+<h2 id="figure-2-·-benchmarking-two-tasks">Figure 2 · Benchmarking two tasks</h2>
+<p><strong>Context</strong> · Mapping이 보기 좋다는 것만으로 좋은 모델은 아니다. Integration과 label transfer를 별개 지표로 평가하고 model ablation으로 개선 이유를 확인한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-de-donno-scpoli-fig2.png" alt="2023 De Donno - scPoli Fig2" loading="lazy"><span class="figure-credit">Figure: De Donno et al., Nature Methods (2023) · CC BY 4.0</span></span></p>
+<h3 id="a-·-integration">A · Integration</h3>
+<ul>
+<li><strong>목적</strong>: 다양한 dataset에서 integration quality는 어떤가?</li>
+<li><strong>Data &amp; method</strong>: Six datasets에 scPoli·scVI·scANVI·Seurat·Symphony를 비교한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: 오른쪽 평균 bar와 dataset별 scores를 함께 본다.</li>
+<li><strong>결과와 의미</strong>: Next-best scANVI 대비 mean integration score가 5.06% 높다고 보고되었다.</li>
+</ul>
+<h3 id="b-·-ablation">B · Ablation</h3>
+<ul>
+<li><strong>목적</strong>: 개선은 embedding 때문인가 prototype 때문인가?</li>
+<li><strong>Data &amp; method</strong>: OHE variant와 no-prototype variant를 포함해 batch mixing·biology 보존을 비교한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-3-·-prototypes-and-training">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: 두 score 축을 분리해 단순 mixing 증가와 구별한다.</li>
+<li><strong>결과와 의미</strong>: Biological conservation 개선의 주요 요인은 prototype loss였다.</li>
+</ul>
+<h3 id="c-·-weighted-f1">C · Weighted F1</h3>
+<ul>
+<li><strong>목적</strong>: 많은 cells에 대한 분류 성능은 어떤가?</li>
+<li><strong>Data &amp; method</strong>: Held-out query labels와 predictions로 support-weighted F1을 계산한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: Class abundance의 영향이 포함된 metric임을 기억한다.</li>
+<li><strong>결과와 의미</strong>: SVM을 제외한 비교 방법보다 높아 classification-only baseline의 강점을 함께 보여 준다.</li>
+</ul>
+<h3 id="d-·-joint-task-trade-off">D · Joint-task trade-off</h3>
+<ul>
+<li><strong>목적</strong>: Integration과 classification을 동시에 잘하는가?</li>
+<li><strong>Data &amp; method</strong>: 두 task를 수행하는 scPoli·scANVI·Seurat 결과를 비교한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: Integration score와 weighted F1의 두 축을 본다.</li>
+<li><strong>결과와 의미</strong>: Joint-task comparison에서는 scPoli가 유리했다.</li>
+</ul>
+<h3 id="e-·-macro-f1">E · Macro F1</h3>
+<ul>
+<li><strong>목적</strong>: Rare types도 잘 분류하는가?</li>
+<li><strong>Data &amp; method</strong>: Class별 F1을 같은 비중으로 평균한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: C와 다르게 abundant class가 점수를 지배하지 않는다.</li>
+<li><strong>결과와 의미</strong>: scPoli는 Seurat와 비슷하고 scANVI보다 높았으며 SVM이 가장 좋았다.</li>
+</ul>
+<h3 id="f-·-rare-type-trade-off">F · Rare-type trade-off</h3>
+<ul>
+<li><strong>목적</strong>: Rare-type 성능과 integration을 함께 만족하는가?</li>
+<li><strong>Data &amp; method</strong>: Macro F1과 integration score를 함께 배치한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: D와 y-axis metric의 차이를 구별한다.</li>
+<li><strong>결과와 의미</strong>: 좋은 integrated representation과 최고 classification-only score는 같은 요구가 아니다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · 모든 task에서 모든 baseline을 이겼다는 주장은 원문 결과와 다르다.</p>
+</blockquote>
+<h2 id="figure-3-·-hlca-reference-and-healthy-query">Figure 3 · HLCA reference and healthy query</h2>
+<p><strong>Context</strong> · Small benchmark를 넘어 sample metadata가 풍부한 lung atlas에 적용한다. Cell mixing과 sample differences가 두 공간에서 어떻게 공존하는지 확인한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-de-donno-scpoli-fig3.png" alt="2023 De Donno - scPoli Fig3" loading="lazy"><span class="figure-credit">Figure: De Donno et al., Nature Methods (2023) · CC BY 4.0</span></span></p>
+<h3 id="a-·-integrated-studies">A · Integrated studies</h3>
+<ul>
+<li><strong>목적</strong>: HLCA의 studies가 연결되는가?</li>
+<li><strong>Data &amp; method</strong>: HLCA core를 sample-level condition으로 통합한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-3-·-prototypes-and-training">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: Cell UMAP의 색은 study이다.</li>
+<li><strong>결과와 의미</strong>: 다양한 study의 cells가 통합된 공간에 연결된다.</li>
+</ul>
+<h3 id="b-·-preserved-identities">B · Preserved identities</h3>
+<ul>
+<li><strong>목적</strong>: 58 cell-type prototypes가 biology를 보존하는가?</li>
+<li><strong>Data &amp; method</strong>: 같은 HLCA UMAP을 fine cell labels로 표시한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-3-·-prototypes-and-training">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: A와 같은 좌표에서 cell-type separation을 읽는다.</li>
+<li><strong>결과와 의미</strong>: Study mixing과 함께 알려진 cell identities가 남는다.</li>
+</ul>
+<h3 id="c-·-integration-comparison">C · Integration comparison</h3>
+<ul>
+<li><strong>목적</strong>: scANVI와 비교해 무엇이 개선되는가?</li>
+<li><strong>Data &amp; method</strong>: 두 모델 모두 sample-level integration으로 맞추어 평가한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: Biology conservation과 batch correction을 분리한다.</li>
+<li><strong>결과와 의미</strong>: Biological conservation은 높고 batch correction은 유사했다.</li>
+</ul>
+<h3 id="d-·-study-level-sample-structure">D · Study-level sample structure</h3>
+<ul>
+<li><strong>목적</strong>: Sample embeddings는 study 차이를 포착하는가?</li>
+<li><strong>Data &amp; method</strong>: Sample vectors의 첫 두 PCs를 계산한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: 점은 sample이며 색은 study이다.</li>
+<li><strong>결과와 의미</strong>: 같은 study의 samples가 모여 technical context가 남는다.</li>
+</ul>
+<h3 id="e-·-sample-provenance">E · Sample provenance</h3>
+<ul>
+<li><strong>목적</strong>: Sample type과 embedding structure가 관련되는가?</li>
+<li><strong>Data &amp; method</strong>: 같은 sample PCA를 sample type으로 표시한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: D와 동일 좌표에서 metadata label만 바뀐다.</li>
+<li><strong>결과와 의미</strong>: Tissue provenance·processing과 연결된 variation을 탐색할 수 있으나 causal explanation은 아니다.</li>
+</ul>
+<h3 id="f-·-healthy-query-mapping">F · Healthy query mapping</h3>
+<ul>
+<li><strong>목적</strong>: Reference에 없는 identities도 구분되는가?</li>
+<li><strong>Data &amp; method</strong>: Meyer healthy query 6 samples, 9 novel identities를 map한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-4-·-query-mapping">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: Reference gray·query predicted labels·unknown dark gray를 구분한다.</li>
+<li><strong>결과와 의미</strong>: 90% uncertainty quantile cutoff에서 전체 accuracy 75%였고 original workflow는 69%였다.</li>
+</ul>
+<h3 id="g-·-uncertainty-landscape">G · Uncertainty landscape</h3>
+<ul>
+<li><strong>목적</strong>: 어떤 cells가 불확실한가?</li>
+<li><strong>Data &amp; method</strong>: 각 query cell과 nearest prototype의 Euclidean distance를 표시한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-4-·-query-mapping">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: 색은 calibrated probability가 아니라 distance-based uncertainty이다.</li>
+<li><strong>결과와 의미</strong>: Novel types와 transition regions에서 높지만 novel T-cell subtypes 일부는 known CD4/CD8로 분류되었다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Unknown은 새로운 cell type의 확정이 아니라 검토해야 할 distance outlier이다.</p>
+</blockquote>
+<h2 id="figure-4-·-sample-level-disease-classification">Figure 4 · Sample-level disease classification</h2>
+<p><strong>Context</strong> · 같은 모델이 cell identities뿐 아니라 sample phenotype에도 정보를 담는지 묻는다. 비교적 일관된 COVID-19 study에서 숨긴 labels를 복원해 본다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-de-donno-scpoli-fig4.png" alt="2023 De Donno - scPoli Fig4" loading="lazy"><span class="figure-credit">Figure: De Donno et al., Nature Methods (2023) · CC BY 4.0</span></span></p>
+<h3 id="a-·-cell-predictions">A · Cell predictions</h3>
+<ul>
+<li><strong>목적</strong>: 숨긴 sample의 cell labels를 전파할 수 있는가?</li>
+<li><strong>Data &amp; method</strong>: Su dataset 270 samples 중 30 samples를 unlabeled로 둔다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-4-·-query-mapping">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: 큰 점은 prototype, query cells는 predicted cell type 색이다.</li>
+<li><strong>결과와 의미</strong>: Cell-level label transfer accuracy는 90%였다.</li>
+</ul>
+<h3 id="b-·-patient-mixing">B · Patient mixing</h3>
+<ul>
+<li><strong>목적</strong>: Cell integration이 patient separation을 줄이는가?</li>
+<li><strong>Data &amp; method</strong>: Integrated UMAP을 patient별로 표시한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: 시각화에는 270 중 30 samples만 표시했다.</li>
+<li><strong>결과와 의미</strong>: Patient별 mixing을 점검하되 sample-level disease prediction과 혼동하지 않는다.</li>
+</ul>
+<h3 id="c-·-disease-representation">C · Disease representation</h3>
+<ul>
+<li><strong>목적</strong>: Known sample phenotype과 embedding이 관련되는가?</li>
+<li><strong>Data &amp; method</strong>: Labeled sample vectors의 PCA와 severity metadata를 비교한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: Healthy·mild·moderate·severe 색의 분포를 읽는다.</li>
+<li><strong>결과와 의미</strong>: Ordinal-regression adjusted R²는 PC1 0.41, PC2 0.16이었다.</li>
+</ul>
+<h3 id="d-·-unlabeled-samples">D · Unlabeled samples</h3>
+<ul>
+<li><strong>목적</strong>: 새 sample의 disease class를 예측할 수 있는가?</li>
+<li><strong>Data &amp; method</strong>: Reference sample embeddings에 학습한 kNN으로 query samples를 분류한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: Gray reference 위 query predicted severity를 본다.</li>
+<li><strong>결과와 의미</strong>: Sample-class accuracy 73%는 A의 cell-label accuracy 90%와 다른 값이다.</li>
+</ul>
+<h3 id="e-·-sample-feature-comparison">E · Sample-feature comparison</h3>
+<ul>
+<li><strong>목적</strong>: Learned samples가 pseudobulk보다 나은가?</li>
+<li><strong>Data &amp; method</strong>: Five-fold CV로 sample embedding·mean expression·mean scVI representation을 비교한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: 각 점은 fold이며 error bars는 SEM이다.</li>
+<li><strong>결과와 의미</strong>: Weighted F1은 65.3±2.5%, 59.3±1.3%, 58.8±2.1% 순으로 보고되었다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Sample phenotype prediction의 성능과 integrated cell labels의 성능을 분리해야 한다.</p>
+</blockquote>
+<h2 id="figure-5-·-technical-variation-guides-integration">Figure 5 · Technical variation guides integration</h2>
+<p><strong>Context</strong> · 더 이질적인 collection에서는 disease보다 기술 차이가 sample space를 지배할 수 있다. 이 경우 embedding은 disease biomarker보다 batch-covariate 선택에 유용하다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-de-donno-scpoli-fig5.png" alt="2023 De Donno - scPoli Fig5" loading="lazy"><span class="figure-credit">Figure: De Donno et al., Nature Methods (2023) · CC BY 4.0</span></span></p>
+<h3 id="a-·-cell-identities">A · Cell identities</h3>
+<ul>
+<li><strong>목적</strong>: 이질적인 study에서도 cell types가 유지되는가?</li>
+<li><strong>Data &amp; method</strong>: Schulte-Schrepping 99 samples를 sample-level integration한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-3-·-prototypes-and-training">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: UMAP 색은 cell type이다.</li>
+<li><strong>결과와 의미</strong>: Known immune identities가 유지되는지 B의 mixing과 함께 확인한다.</li>
+</ul>
+<h3 id="b-·-experiment-mixing">B · Experiment mixing</h3>
+<ul>
+<li><strong>목적</strong>: Experiment variation은 cell space에서 줄어드는가?</li>
+<li><strong>Data &amp; method</strong>: 같은 cells를 experiment별로 표시한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: A와 같은 coordinates에서 색의 혼합을 본다.</li>
+<li><strong>결과와 의미</strong>: Cell-level correction과 sample-level technical structure는 양립할 수 있다.</li>
+</ul>
+<h3 id="c-·-experiment-association">C · Experiment association</h3>
+<ul>
+<li><strong>목적</strong>: Sample PCs의 주된 요인은 무엇인가?</li>
+<li><strong>Data &amp; method</strong>: Sample PCA에 experiment labels와 linear-model association을 표시한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: PC1·PC2의 adjusted R²를 읽는다.</li>
+<li><strong>결과와 의미</strong>: Experiment가 PC1 0.94, PC2 0.97을 설명하여 strong technical association을 보였다.</li>
+</ul>
+<h3 id="d-·-cohort-association">D · Cohort association</h3>
+<ul>
+<li><strong>목적</strong>: Cohort도 같은 variation과 관련되는가?</li>
+<li><strong>Data &amp; method</strong>: Sample PCA를 two cohorts로 색칠한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: 같은 PC axes에서 C와 비교한다.</li>
+<li><strong>결과와 의미</strong>: Cohort의 PC1 adjusted R²는 0.73이었다.</li>
+</ul>
+<h3 id="e-·-disease-in-leading-pcs">E · Disease in leading PCs</h3>
+<ul>
+<li><strong>목적</strong>: Leading PC가 disease score인가?</li>
+<li><strong>Data &amp; method</strong>: 같은 sample space를 disease state로 표시한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: Disease–PC1 association을 technical associations와 비교한다.</li>
+<li><strong>결과와 의미</strong>: Disease PC1 adjusted R²는 0.00으로 sample embedding을 곧바로 disease axis로 읽으면 안 된다.</li>
+</ul>
+<h3 id="f-·-disease-in-later-pcs">F · Disease in later PCs</h3>
+<ul>
+<li><strong>목적</strong>: Disease signal이 전혀 없는가?</li>
+<li><strong>Data &amp; method</strong>: PC2–PC3 view로 sample embeddings를 다시 본다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: E와 축이 달라진 점을 먼저 확인한다.</li>
+<li><strong>결과와 의미</strong>: Disease association은 뒤 PCs에 나타나며 PC2 adjusted R²는 0.41이었다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Sample condition 99개 대신 experiment 16개·cohort 2개를 쓰는 대안도 S7에서 검토했다.</p>
+</blockquote>
+<h2 id="figure-6-·-population-scale-pbmc-atlas">Figure 6 · Population-scale PBMC atlas</h2>
+<p><strong>Context</strong> · 수천 samples에서도 두 표현을 학습할 수 있는지 확인한다. 규모가 커질수록 technical confounding을 더 조심하며 gene patterns와 sample PCs를 연결한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-de-donno-scpoli-fig6.png" alt="2023 De Donno - scPoli Fig6" loading="lazy"><span class="figure-credit">Figure: De Donno et al., Nature Methods (2023) · CC BY 4.0</span></span></p>
+<h3 id="a-·-atlas-integration">A · Atlas integration</h3>
+<ul>
+<li><strong>목적</strong>: 수백만 cells를 통합할 수 있는가?</li>
+<li><strong>Data &amp; method</strong>: 7.8M-cell atlas 중 UMAP 표시용 1M cells를 dataset별로 표시한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-3-·-prototypes-and-training">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: 학습 전체 규모와 그림에 표시한 subsample을 구별한다.</li>
+<li><strong>결과와 의미</strong>: 25 datasets의 population-scale reference를 구성했다.</li>
+</ul>
+<h3 id="b-·-cell-type-structure">B · Cell-type structure</h3>
+<ul>
+<li><strong>목적</strong>: Large-scale integration이 identities를 보존하는가?</li>
+<li><strong>Data &amp; method</strong>: 같은 1M-cell UMAP을 14 coarse types로 표시한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-3-·-prototypes-and-training">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: A와 같은 좌표에서 type boundaries를 읽는다.</li>
+<li><strong>결과와 의미</strong>: 큰 규모에서도 cell identities를 구분하는 representation을 얻었다.</li>
+</ul>
+<h3 id="c-·-dataset-variation">C · Dataset variation</h3>
+<ul>
+<li><strong>목적</strong>: Sample space의 첫 PC는 무엇을 담는가?</li>
+<li><strong>Data &amp; method</strong>: 2,375 sample embeddings의 PCA와 dataset metadata를 비교한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: 점은 sample이며 adjusted R²를 읽는다.</li>
+<li><strong>결과와 의미</strong>: PC1은 dataset과 강하게 관련되었다(adjusted R²=0.97).</li>
+</ul>
+<h3 id="d-·-assay-variation">D · Assay variation</h3>
+<ul>
+<li><strong>목적</strong>: Sequencing assay도 PC1과 연결되는가?</li>
+<li><strong>Data &amp; method</strong>: 같은 sample PCA를 assay로 표시한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: C와 구조의 중첩을 보며 독립 효과라고 가정하지 않는다.</li>
+<li><strong>결과와 의미</strong>: Assay association은 adjusted R²=0.86이었다.</li>
+</ul>
+<h3 id="e-·-disease-variation">E · Disease variation</h3>
+<ul>
+<li><strong>목적</strong>: Phenotype association도 존재하는가?</li>
+<li><strong>Data &amp; method</strong>: 같은 sample PCA를 disease metadata로 표시한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: Dataset·assay와 disease가 confounded될 수 있음을 기억한다.</li>
+<li><strong>결과와 의미</strong>: Disease adjusted R²=0.59는 association이지 기술효과와 분리된 causal signal은 아니다.</li>
+</ul>
+<h3 id="f-·-pc-associated-genes">F · PC-associated genes</h3>
+<ul>
+<li><strong>목적</strong>: Sample variation을 expression patterns와 연결할 수 있는가?</li>
+<li><strong>Data &amp; method</strong>: Sample mean expression과 embedding PCs의 Pearson correlations를 계산한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: P&lt;0.01, |r|&gt;0.3를 만족하는 gene 수를 PC별 비교한다.</li>
+<li><strong>결과와 의미</strong>: PC1뿐 아니라 PC2·4·5에도 gene-associated variation이 있었다.</li>
+</ul>
+<h3 id="g-·-functional-enrichment">G · Functional enrichment</h3>
+<ul>
+<li><strong>목적</strong>: PC1-associated genes는 어떤 기능을 갖는가?</li>
+<li><strong>Data &amp; method</strong>: PC1-correlated genes에 pathway/biological-process enrichment를 수행한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: Term enrichment는 causal regulation이나 independent validation이 아니다.</li>
+<li><strong>결과와 의미</strong>: Immune·stress·cytokine·neutrophil-degranulation 관련 terms가 관찰되었다.</li>
+</ul>
+<h3 id="h-·-rpl31">H · RPL31</h3>
+<ul>
+<li><strong>목적</strong>: Ribosomal pattern은 두 공간에서 어떻게 보이는가?</li>
+<li><strong>Data &amp; method</strong>: RPL31 expression을 sample PCA와 cell UMAP에 표시한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: 왼쪽 sample·오른쪽 cell의 단위 차이를 구별한다.</li>
+<li><strong>결과와 의미</strong>: RPL31은 PC1과 r=−0.93으로 관련되며 corrected cell space에서 섞인 signal이 sample space에 남는다.</li>
+</ul>
+<h3 id="i-·-rhoa">I · RHOA</h3>
+<ul>
+<li><strong>목적</strong>: Immune-related pattern도 남는가?</li>
+<li><strong>Data &amp; method</strong>: RHOA expression을 같은 두 embedding spaces에 표시한다 (<a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-5-·-evaluation-and-sample-analysis">Pipeline</a>).</li>
+<li><strong>그림 읽기</strong>: H와 색 범위를 동일하다고 가정하지 말고 각 legend를 따른다.</li>
+<li><strong>결과와 의미</strong>: RHOA는 PC1과 r=0.85로 관련되지만 이 관계가 disease causality를 입증하지 않는다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Sample embeddings는 technical·biological sources가 함께 담긴 탐색 공간이다.</p>
+</blockquote>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li>Output은 integrated low-dimensional embedding이지 corrected count matrix가 아니다.</li>
+<li>High-quality harmonized labels가 필요하며 잘못된 prototypes는 biology를 강제로 뭉칠 수 있다.</li>
+<li>Prototype distance는 bounded probability가 아니며 universal unknown cutoff가 없다; healthy HLCA의 90% quantile을 다른 query에 자동 적용하지 않는다.</li>
+<li>Sample embeddings는 technical·phenotypic confounding을 그대로 반영할 수 있다. Adjusted R²가 높아도 causal source separation이 성립하지 않는다.</li>
+<li>Reference 없이 mapping할 수 있다는 것은 formal differential privacy guarantee와 다르다.</li>
+<li>Main text의 pancreas study/batch 수, encoder/decoder symbol 설명, correlation/‘coefficient of determination’ 표현과 supplementary gene spelling 불일치는 <a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#notation-audit">Notation audit</a>에 모았다.</li>
+</ul>
+<h2 id="data-and-code">Data &amp; Code</h2>
+<ul>
+<li><a href="https://www.nature.com/articles/s41592-023-02035-2">Article / complete Methods</a></li>
+<li><a href="https://static-content.springer.com/esm/art%3A10.1038%2Fs41592-023-02035-2/MediaObjects/41592_2023_2035_MOESM1_ESM.pdf">Supplementary Figures 1–15 / Tables 1–3 전체 확인</a></li>
+<li><a href="https://github.com/theislab/scPoli_reproduce">Reproduction data/code</a> · <a href="https://scarches.readthedocs.io">scArches documentation</a></li>
+<li>Figure: De Donno et al., Nature Methods (2023), CC BY 4.0; publisher PNG 사용.</li>
+</ul>
+<h2 id="related-concepts">Related concepts</h2>
+<ul>
+<li>
+<p><a class="wikilink wikilink-concept" href="/concepts/batch-correction/">Batch Correction</a> · <a class="wikilink wikilink-concept" href="/concepts/scvi/">scVI</a></p>
+</li>
+<li>
+<p><a class="wikilink wikilink-concept" href="/concepts/reference-mapping/">Reference Mapping</a> · <a class="wikilink wikilink-concept" href="/concepts/metric-learning/">Metric Learning</a></p>
+</li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#background">Background</a></li><li class="toc-l2"><a href="#data">Data</a></li><li class="toc-l2"><a href="#figure-1-·-cell-and-condition-representations">Figure 1 · Cell and condition representations</a></li><li class="toc-l3"><a href="#a-·-reference-training">A · Reference training</a></li><li class="toc-l3"><a href="#b-·-reference-mapping">B · Reference mapping</a></li><li class="toc-l3"><a href="#c-·-raw-cell-identities">C · Raw cell identities</a></li><li class="toc-l3"><a href="#d-·-raw-studies">D · Raw studies</a></li><li class="toc-l3"><a href="#e-·-integrated-identities">E · Integrated identities</a></li><li class="toc-l3"><a href="#f-·-integrated-studies">F · Integrated studies</a></li><li class="toc-l3"><a href="#g-·-mapped-query">G · Mapped query</a></li><li class="toc-l3"><a href="#h-·-query-study-mixing">H · Query study mixing</a></li><li class="toc-l3"><a href="#i-·-prediction-outcome">I · Prediction outcome</a></li><li class="toc-l3"><a href="#j-·-condition-embeddings">J · Condition embeddings</a></li><li class="toc-l2"><a href="#figure-2-·-benchmarking-two-tasks">Figure 2 · Benchmarking two tasks</a></li><li class="toc-l3"><a href="#a-·-integration">A · Integration</a></li><li class="toc-l3"><a href="#b-·-ablation">B · Ablation</a></li><li class="toc-l3"><a href="#c-·-weighted-f1">C · Weighted F1</a></li><li class="toc-l3"><a href="#d-·-joint-task-trade-off">D · Joint-task trade-off</a></li><li class="toc-l3"><a href="#e-·-macro-f1">E · Macro F1</a></li><li class="toc-l3"><a href="#f-·-rare-type-trade-off">F · Rare-type trade-off</a></li><li class="toc-l2"><a href="#figure-3-·-hlca-reference-and-healthy-query">Figure 3 · HLCA reference and healthy query</a></li><li class="toc-l3"><a href="#a-·-integrated-studies">A · Integrated studies</a></li><li class="toc-l3"><a href="#b-·-preserved-identities">B · Preserved identities</a></li><li class="toc-l3"><a href="#c-·-integration-comparison">C · Integration comparison</a></li><li class="toc-l3"><a href="#d-·-study-level-sample-structure">D · Study-level sample structure</a></li><li class="toc-l3"><a href="#e-·-sample-provenance">E · Sample provenance</a></li><li class="toc-l3"><a href="#f-·-healthy-query-mapping">F · Healthy query mapping</a></li><li class="toc-l3"><a href="#g-·-uncertainty-landscape">G · Uncertainty landscape</a></li><li class="toc-l2"><a href="#figure-4-·-sample-level-disease-classification">Figure 4 · Sample-level disease classification</a></li><li class="toc-l3"><a href="#a-·-cell-predictions">A · Cell predictions</a></li><li class="toc-l3"><a href="#b-·-patient-mixing">B · Patient mixing</a></li><li class="toc-l3"><a href="#c-·-disease-representation">C · Disease representation</a></li><li class="toc-l3"><a href="#d-·-unlabeled-samples">D · Unlabeled samples</a></li><li class="toc-l3"><a href="#e-·-sample-feature-comparison">E · Sample-feature comparison</a></li><li class="toc-l2"><a href="#figure-5-·-technical-variation-guides-integration">Figure 5 · Technical variation guides integration</a></li><li class="toc-l3"><a href="#a-·-cell-identities">A · Cell identities</a></li><li class="toc-l3"><a href="#b-·-experiment-mixing">B · Experiment mixing</a></li><li class="toc-l3"><a href="#c-·-experiment-association">C · Experiment association</a></li><li class="toc-l3"><a href="#d-·-cohort-association">D · Cohort association</a></li><li class="toc-l3"><a href="#e-·-disease-in-leading-pcs">E · Disease in leading PCs</a></li><li class="toc-l3"><a href="#f-·-disease-in-later-pcs">F · Disease in later PCs</a></li><li class="toc-l2"><a href="#figure-6-·-population-scale-pbmc-atlas">Figure 6 · Population-scale PBMC atlas</a></li><li class="toc-l3"><a href="#a-·-atlas-integration">A · Atlas integration</a></li><li class="toc-l3"><a href="#b-·-cell-type-structure">B · Cell-type structure</a></li><li class="toc-l3"><a href="#c-·-dataset-variation">C · Dataset variation</a></li><li class="toc-l3"><a href="#d-·-assay-variation">D · Assay variation</a></li><li class="toc-l3"><a href="#e-·-disease-variation">E · Disease variation</a></li><li class="toc-l3"><a href="#f-·-pc-associated-genes">F · PC-associated genes</a></li><li class="toc-l3"><a href="#g-·-functional-enrichment">G · Functional enrichment</a></li><li class="toc-l3"><a href="#h-·-rpl31">H · RPL31</a></li><li class="toc-l3"><a href="#i-·-rhoa">I · RHOA</a></li><li class="toc-l2"><a href="#limitations">Limitations</a></li><li class="toc-l2"><a href="#data-and-code">Data &amp;amp; Code</a></li><li class="toc-l2"><a href="#related-concepts">Related concepts</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/batch-correction/"><span class="kind-dot kind-concept"></span>Batch Correction</a></li><li><a href="/concepts/metric-learning/"><span class="kind-dot kind-concept"></span>Metric Learning</a></li><li><a href="/concepts/reference-mapping/"><span class="kind-dot kind-concept"></span>Reference Mapping</a></li><li><a href="/papers/2023-de-donno-scpoli-pipeline/"><span class="kind-dot kind-pipeline"></span>scPoli · Pipeline</a></li><li><a href="/concepts/scvi/"><span class="kind-dot kind-concept"></span>scVI (single-cell Variational Inference)</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

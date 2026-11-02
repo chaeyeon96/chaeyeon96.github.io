@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PBMC Aging Clock (Zhu 2023) · Study Wiki</title>
+<meta name="description" content="PBMC scRNA-seq으로 aging clock을 만들고 110세 이상 supercentenarian(SC)에 적용했더니, SC는 실제 나이보다 훨씬 젊게 예측됐다. Ribosome 발현과 inflammation이 single cell 수준에서 서로 반대로 움직였다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a></p>
+    <div class="paper-meta">
+      
+      <span class="badge">Science Advances</span>
+      <span>2023</span>
+      <span class="muted">method-and-biological-study</span>
+      
+    </div>
+    <h1 class="note-title">PBMC Aging Clock (Zhu 2023)</h1>
+    <p class="paper-full-title">Human PBMC scRNA-seq–based aging clocks reveal ribosome to inflammation balance as a single-cell aging hallmark and super longevity — Zhu et al.</p>
+    <p class="lead">PBMC scRNA-seq으로 aging clock을 만들고 110세 이상 supercentenarian(SC)에 적용했더니, SC는 실제 나이보다 훨씬 젊게 예측됐다. Ribosome 발현과 inflammation이 single cell 수준에서 서로 반대로 움직였다.</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1126/sciadv.abq7599" rel="noopener">원문 (DOI)</a>
+      <a class="btn btn-small btn-soft" href="/papers/2023-zhu-pbmc-aging-clock-pipeline/">Pipeline 따라가기</a>
+      
+      <span class="license">License · unknown</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/immunology/">Immunology</a><a class="chip chip-link" href="/sections/single-cell-analysis/">Single-cell Analysis</a></div>
+    <div class="note-body"><div class="callout callout-note">
+<div class="callout-title"><span class="callout-icon" aria-hidden="true">✎</span>랩 세미나에서 발표한 논문.</div>
+<div class="callout-body">
+</div></div>
+<div class="callout callout-tip">
+<div class="callout-title"><span class="callout-icon" aria-hidden="true">✦</span>Pipeline</div>
+<div class="callout-body">
+<p><a class="wikilink wikilink-pipeline" href="/papers/2023-zhu-pbmc-aging-clock-pipeline/">2023 Zhu - PBMC Aging Clock (Pipeline)</a>에서 composition/pseudobulk clock, LOOCV, age correction 및 CHX 검증을 구분한다.</p>
+</div></div>
+<h2 id="background">Background</h2>
+<ul>
+<li><strong>AgeDiff</strong> = predicted age − chronological age. 양수면 빠른 aging, 음수면 느린 aging.</li>
+<li><strong>MAD</strong> (mean absolute difference) = 모든 sample의 |AgeDiff| 평균. 작을수록 clock이 정확하다.</li>
+</ul>
+<p><span class="figure-hidden">이 그림은 저작권 때문에 싣지 않았습니다 · <a href="https://doi.org/10.1126/sciadv.abq7599" rel="noopener">원문에서 보기 →</a></span></p>
+<ul>
+<li>다른 data로 만든 aging clock의 성능 (논문 서론):</li>
+</ul>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Data</th>
+<th>성능</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>말초혈액 transcriptome</td>
+<td>MAD 약 7.8년</td>
+</tr>
+<tr>
+<td>혈액 proteome</td>
+<td>PCC 0.93–0.97</td>
+</tr>
+<tr>
+<td>DNA methylation (혈액)</td>
+<td>MAD 4.9년 이하</td>
+</tr>
+<tr>
+<td>Cytokine 50종</td>
+<td>MAD 15.2년</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>이 논문은 single-cell 수준의 PBMC aging clock을 만들고, 건강한 초고령(SC)에 적용해 특징을 찾는다.</li>
+</ul>
+<h2 id="data">Data</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Dataset</th>
+<th>Measurement / scope</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Shanghai East (SE)</td>
+<td>새 실측 17 healthy donors, 28–77세</td>
+<td>Reference training</td>
+</tr>
+<tr>
+<td>Guangdong Medical University (GM)</td>
+<td>기존 72–100세 cohort; SE + GM 총 28 training samples</td>
+<td>Training age-range 확장</td>
+</tr>
+<tr>
+<td>CYCT / WHCT / JOCT</td>
+<td>독립 healthy cohorts 각 5명; 각각 29–58세, 37–71세, 50s–80s</td>
+<td>External validation</td>
+</tr>
+<tr>
+<td>Supercentenarians (SC)</td>
+<td>기존 110세 이상 7명</td>
+<td>Clock 적용 및 delayed-change 분석; training 제외</td>
+</tr>
+<tr>
+<td>Cord, COVID-19, SLE</td>
+<td>기존 별도 datasets</td>
+<td>Extrapolation 및 disease-associated age deviation</td>
+</tr>
+<tr>
+<td>Primary monocytes / THP-1</td>
+<td>CHX translation inhibition + qPCR 실측</td>
+<td>Ribosome–inflammation 관계의 perturbation 검증</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="figure-1-·-datasets">Figure 1 · Datasets</h2>
+<p><strong>Context</strong> · Clock을 만들기 전에 training과 external application을 분리한다. 특히 110세 이상 SC를 training에 포함하면 longevity 평가가 순환적이 된다.</p>
+<p><strong>Panel reading guide</strong></p>
+<ul>
+<li><strong>목적</strong>: Reference와 SC application의 범위를 구분한다.</li>
+<li><strong>Data &amp; method</strong>: SE RNA와 공개 cohorts를 QC·Harmony integration·annotation한다. <a class="wikilink wikilink-pipeline" href="/papers/2023-zhu-pbmc-aging-clock-pipeline/#step-1-·-inputs">2023 Zhu - PBMC Aging Clock (Pipeline) › Step 1 · Inputs</a></li>
+<li><strong>그림 읽기</strong>: A의 cohort diagram과 B의 UMAP에서 donor/cell-type 정보를 분리한다.</li>
+<li><strong>결과와 의미</strong>: SC를 독립적으로 적용하되 cohort/chemistry confounding을 계속 고려해야 한다.</li>
+</ul>
+<h3 id="panel-observations">Panel observations</h3>
+<p><span class="figure-hidden">이 그림은 저작권 때문에 싣지 않았습니다 · <a href="https://doi.org/10.1126/sciadv.abq7599" rel="noopener">원문에서 보기 →</a></span></p>
+<ul>
+<li><strong>A–D</strong> · 기존 data: SC 7명(clock 적용 대상), independent cohort 3개(CYCT, WHCT, JOCT, 각 5명; 연령은 Data 표 참조). 새로 만든 data(SE): 28–77세 17명 (남 6, 여 11), 평균 8,545 cells, cell당 110,364 reads.</li>
+<li>SC를 뺀 data로 model을 만들고 SC에 적용했다. 모든 data를 함께 processing했다.</li>
+<li>Results의 QC 설명(MT &gt; 10% 또는 gene &lt; 200 제거; Methods의 MT &gt;15% 및 200–5,000 genes와 불일치)로 25,111 cells 제거. 남은 cell: SE 131,972 (sample당 평균 7,763), CYCT 23,796, WHCT 45,923, JOCT 19,252, SC 38,417. 이후 batch effect 제거.</li>
+</ul>
+<h2 id="figure-2-·-cell-type-proportion-clock-sc-are-much-younger">Figure 2 · Cell type proportion clock: SC are much younger</h2>
+<p><strong>Context</strong> · 전체 immune composition이 나이에 따라 달라지므로 첫 clock은 cell fraction만 사용한다. Gene-level clock과 별도의 입력이다.</p>
+<p><strong>Panel reading guide</strong></p>
+<ul>
+<li><strong>목적</strong>: Cell composition으로 age를 예측하고 external deviation을 비교한다.</li>
+<li><strong>Data &amp; method</strong>: Donor별 subtype proportions → PLSR 3 components, LOOCV, independent cohorts 및 age correction이다. <a class="wikilink wikilink-pipeline" href="/papers/2023-zhu-pbmc-aging-clock-pipeline/#step-2-·-representation">2023 Zhu - PBMC Aging Clock (Pipeline) › Step 2 · Representation</a></li>
+<li><strong>그림 읽기</strong>: A–C는 feature/validation, D–G는 cohort application, H는 CD8 composition 관계다.</li>
+<li><strong>결과와 의미</strong>: Predicted age는 learned molecular correlate이며 실제 수명이나 organ-wide age 측정이 아니다.</li>
+</ul>
+<h3 id="panel-observations-1">Panel observations</h3>
+<p><span class="figure-hidden">이 그림은 저작권 때문에 싣지 않았습니다 · <a href="https://doi.org/10.1126/sciadv.abq7599" rel="noopener">원문에서 보기 →</a></span></p>
+<ul>
+<li>Cell type proportion(x)으로 나이(y)를 예측하는 PLSR linear model.</li>
+<li><strong>A</strong> · SE sample에서 나이와 cell type 비율의 Spearman RCC (|RCC| &gt; 0.25). 나이가 들수록 CD8+ CTL이 늘고 CD8+ naive가 줄었다.</li>
+<li><strong>B</strong> · Cell type 기여도 (VIP ≥ 1).</li>
+<li><strong>C</strong> · 매우 고령(72–100세)인 Guangdong Medical University data(GM)를 TOSICA로 cell type mapping해 training을 넓혔다. SE + GM에서 상위 7개 cell type만 쓴 3-component PLSR이 PCC 0.88, MAD 8.36. Reference sample 28개면 정확도가 포화됐다 (Fig. S2D).</li>
+<li><strong>D</strong> · Independent cohort 검증. 다른 clock처럼 고령은 낮게, 젊은 나이는 높게 예측하는 systemic bias가 있어 cAgeDiff로 보정했다.</li>
+<li><strong>E</strong> · Disease 상태인 사람은 같은 나이 control보다 cAgeDiff가 높고, severity가 클수록 더 높았다.</li>
+<li><strong>H</strong> · CD8-CTL과 CD8-naive 비율은 반비례. SC는 주로 70–100세 위치에 놓였다.</li>
+</ul>
+<h2 id="figure-3-·-age-related-changes-are-delayed-in-sc">Figure 3 · Age-related changes are delayed in SC</h2>
+<p><strong>Context</strong> · Composition 차이만으로 SC의 molecular state를 설명할 수 없다. Pseudobulk clock과 expected-versus-observed expression을 비교한다.</p>
+<p><strong>Panel reading guide</strong></p>
+<ul>
+<li><strong>목적</strong>: SC의 어느 aging-associated 변화가 덜 진행됐는지 찾는다.</li>
+<li><strong>Data &amp; method</strong>: Donor × cell type counts를 합해 PLSR/LR, KEGG enrichment 및 CellPhoneDB를 수행한다. <a class="wikilink wikilink-pipeline" href="/papers/2023-zhu-pbmc-aging-clock-pipeline/#step-3-·-testing">2023 Zhu - PBMC Aging Clock (Pipeline) › Step 3 · Testing</a></li>
+<li><strong>그림 읽기</strong>: A는 delayed definition, B–C는 clock prediction, D–E는 enrichment, F–G는 inferred pairs다.</li>
+<li><strong>결과와 의미</strong>: 110세 기대값은 extrapolation이며 interaction network는 발현 기반 prediction이다.</li>
+</ul>
+<h3 id="panel-observations-2">Panel observations</h3>
+<p><span class="figure-hidden">이 그림은 저작권 때문에 싣지 않았습니다 · <a href="https://doi.org/10.1126/sciadv.abq7599" rel="noopener">원문에서 보기 →</a></span></p>
+<ul>
+<li><strong>A · Delayed aging 정의</strong> · PLSR model로 110세의 기대 비율(또는 발현)을 예측하고 SC 실제 값과 비교한다.
+<ul>
+<li><strong>Delayed age-up</strong> · 나이에 따라 늘어야 할 것이 SC에서 덜 늘었다. 예: 110세 기대 T cell 비율 40%인데 SC가 30%.</li>
+<li><strong>Delayed age-down</strong> · 나이에 따라 줄어야 할 것이 SC에서 덜 줄었다.</li>
+<li>SC는 CD8+ naive T, naive B, memory B, NK-GZMK의 감소가 유의하게 늦었다 (z-score, P &lt; 0.05). CD4+ Tm의 증가도 약간 늦었다 (P &lt; 0.1).</li>
+</ul>
+</li>
+<li><strong>B</strong> · 모든 cell pseudobulk transcriptome clock: SC 평균 예측 나이 82.49세 (실제 110세 이상).</li>
+<li><strong>C</strong> · Cell type별 pseudobulk clock: 모든 cell type에서 SC가 더 젊게 예측됐다 (예: naive T, memory B).</li>
+<li>Gene 수준: PLSR VIP &gt; 1 gene을 age-related로 보고, cell type마다 LR model로 110세 발현을 예측해 delayed age-up/down gene을 정의했다.</li>
+<li><strong>D</strong> · Delayed age-up gene (KEGG): NF-κB, TNF, TLR 같은 inflammation pathway. SC에서 덜 올라갔다.</li>
+<li><strong>E</strong> · Delayed age-down gene (KEGG): ribosome. SC에서 높게 유지됐다.</li>
+<li><strong>F</strong> · CellPhoneDB ligand–receptor: 나이에 따라 변하는 pair (PCC P &lt; 0.05). Age-up interaction은 inflammation, age-down은 ribosome·대사 관련.</li>
+<li><strong>G</strong> · SC에서는 inflammation interaction이 덜 늘고 ribosome interaction이 유지됐다 (상위 100개 표시).</li>
+</ul>
+<h2 id="figure-4-·-ribosome-counteracts-inflammation-at-single-cell-level">Figure 4 · Ribosome counteracts inflammation at single-cell level</h2>
+<p><strong>Context</strong> · Ribosome 감소와 inflammation 증가가 함께 보이므로 cell 수준의 관계를 검토한다. 관찰 association, Bayesian network, 직접 perturbation을 순서대로 구분한다.</p>
+<p><strong>Panel reading guide</strong></p>
+<ul>
+<li><strong>목적</strong>: Ribosome–inflammation 관계와 제한된 실험 지지를 평가한다.</li>
+<li><strong>Data &amp; method</strong>: RNA score·BN inference와 CHX-treated primary monocyte qPCR를 사용한다. <a class="wikilink wikilink-pipeline" href="/papers/2023-zhu-pbmc-aging-clock-pipeline/#step-4-·-validation">2023 Zhu - PBMC Aging Clock (Pipeline) › Step 4 · Validation</a></li>
+<li><strong>그림 읽기</strong>: A–D는 correlation/state frequency, E–G는 inferred networks, H는 perturbation, I는 요약 도식이다.</li>
+<li><strong>결과와 의미</strong>: CHX 결과는 translation inhibition과 cytokine induction을 지지하나 인간 longevity의 causal proof는 아니다.</li>
+</ul>
+<h3 id="panel-observations-3">Panel observations</h3>
+<p><span class="figure-hidden">이 그림은 저작권 때문에 싣지 않았습니다 · <a href="https://doi.org/10.1126/sciadv.abq7599" rel="noopener">원문에서 보기 →</a></span></p>
+<ul>
+<li>질문: 나이에 따른 ribosome 감소와 inflammation 증가가 single cell 안에서 연결된 사건인가?</li>
+<li><strong>A</strong> · Cell마다 ribosome level(Results에서는 ribosomal gene expression median; BN Methods에서는 mean)와 inflammation score(Hallmark inflammatory response gene)를 구하면 음의 상관 (PCC). SC는 ribosome이 높고 inflammation이 낮았다.</li>
+<li><strong>B</strong> · Cell type 평균으로 봐도 대부분 ribosome이 높을수록 inflammation이 낮았다. Cell type을 HI-LR(high inflammation, low ribosome)과 LI-HR로 나눴다.</li>
+<li><strong>C</strong> · 일반 cohort는 나이에 따라 ribosome이 줄지만, SC는 HI-LR cell type에서 젊은 수준을 유지했다 (RCC).</li>
+<li><strong>D</strong> · Ribosome-high cell 비율이 일반 cohort에서는 나이에 따라 줄지만, SC에서는 유지됐다.</li>
+</ul>
+<p><strong>E–I · Network inference and perturbation</strong></p>
+<ul>
+<li><strong>목적</strong>: 상관관계 이후의 근거 수준을 구분한다.</li>
+<li><strong>Data &amp; method</strong>: E는 high/low-ribosome CellPhoneDB; F–G는 BN; H는 CHX 대 DMSO monocyte IL-6/IL-8 qPCR; I는 해석 도식이다.</li>
+<li><strong>그림 읽기</strong>: H의 처리군과 vehicle의 시간 곡선을 비교하며 axis의 Time(s)와 Methods의 minutes 불일치를 기록한다.</li>
+<li><strong>결과와 의미</strong>: CHX 처리 후 inflammatory cytokine RNA가 증가한다; BN 방향은 관찰 데이터의 가정에 의존한다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Ribosome/translation과 inflammation의 균형이 single-cell aging의 hallmark이고, SC는 이 균형을 젊은 쪽으로 유지한다.</p>
+</blockquote>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li>Training donor 28명은 세포 수와 무관하게 작은 표본이다. LOOCV와 feature selection/age correction의 leakage 여부는 code로 추가 audit해야 한다.</li>
+<li>SC의 예측은 training age range 밖 extrapolation이며 negative cord age도 model scale의 한계를 보여 준다.</li>
+<li>Donor-level clock을 single-cell-resolution data로 만든 것이지 모든 개별 cell의 독립 biological age를 직접 측정한 것은 아니다.</li>
+<li>Ribosomal fraction과 inflammatory UMI fraction은 같은 library denominator의 영향을 받을 수 있다. Correlation/BN이 인과를 단독 증명하지 않는다.</li>
+<li><strong>Text inconsistencies</strong>: Results MT 10% 대 Methods 15%; Figure 4H Time(s) 대 Methods minutes; reversed PLSR의 비정방 행렬 inverse 표기는 재현 시 확인 필요.</li>
+</ul>
+<h2 id="data-and-code">Data &amp; Code</h2>
+<ul>
+<li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10306289/">Original paper and Methods</a>, <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE213516">new processed SE data GSE213516</a>.</li>
+<li>CYCT <strong>HRA000150</strong>, WHCT <strong>HRA000069</strong>, SC <strong>hum0229-v1</strong>, GM/Cord <strong>GSE157007</strong>, COVID <strong>GSE158055</strong>, SLE <strong>GSE174188</strong>.</li>
+<li>전용 clock code repository는 원문 Data availability에서 확인하지 못했다; package 이름을 재현 code 공개로 오인하지 않는다.</li>
+<li><strong>Reading status</strong>: Main text와 Methods 및 기존 Figure 4 전체를 확인했다. Supplementary PDF 접근은 403으로 막혀 전체 S1–S9 검증은 미완료다.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/pbmc/">PBMC</a> · <a class="wikilink wikilink-concept" href="/concepts/pseudobulk-analysis/">Pseudobulk Analysis</a> · <a class="wikilink wikilink-concept" href="/concepts/gene-set-scoring/">Gene Set Scoring</a> · <a class="wikilink wikilink-concept" href="/concepts/cell-cell-communication/">Cell-Cell Communication</a> (CellPhoneDB) · <a class="wikilink wikilink-concept" href="/concepts/gene-set-enrichment-analysis/">Gene Set Enrichment Analysis</a> · <a class="wikilink wikilink-concept" href="/concepts/regression-overview/">Regression Overview</a> (PLSR) · <a class="wikilink wikilink-concept" href="/concepts/batch-correction/">Batch Correction</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#background">Background</a></li><li class="toc-l2"><a href="#data">Data</a></li><li class="toc-l2"><a href="#figure-1-·-datasets">Figure 1 · Datasets</a></li><li class="toc-l3"><a href="#panel-observations">Panel observations</a></li><li class="toc-l2"><a href="#figure-2-·-cell-type-proportion-clock-sc-are-much-younger">Figure 2 · Cell type proportion clock: SC are much younger</a></li><li class="toc-l3"><a href="#panel-observations-1">Panel observations</a></li><li class="toc-l2"><a href="#figure-3-·-age-related-changes-are-delayed-in-sc">Figure 3 · Age-related changes are delayed in SC</a></li><li class="toc-l3"><a href="#panel-observations-2">Panel observations</a></li><li class="toc-l2"><a href="#figure-4-·-ribosome-counteracts-inflammation-at-single-cell-level">Figure 4 · Ribosome counteracts inflammation at single-cell level</a></li><li class="toc-l3"><a href="#panel-observations-3">Panel observations</a></li><li class="toc-l2"><a href="#limitations">Limitations</a></li><li class="toc-l2"><a href="#data-and-code">Data &amp;amp; Code</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/batch-correction/"><span class="kind-dot kind-concept"></span>Batch Correction</a></li><li><a href="/concepts/cell-cell-communication/"><span class="kind-dot kind-concept"></span>Cell-Cell Communication (CCC)</a></li><li><a href="/concepts/gene-set-enrichment-analysis/"><span class="kind-dot kind-concept"></span>Gene Set Enrichment Analysis</a></li><li><a href="/concepts/gene-set-scoring/"><span class="kind-dot kind-concept"></span>Gene Set Scoring</a></li><li><a href="/papers/2025-wang-lifespan-immune-trajectories/"><span class="kind-dot kind-paper"></span>Lifespan Immune Trajectories (Wang 2025)</a></li><li><a href="/concepts/pbmc/"><span class="kind-dot kind-concept"></span>PBMC (Peripheral Blood Mononuclear Cells)</a></li><li><a href="/concepts/pseudobulk-analysis/"><span class="kind-dot kind-concept"></span>Pseudobulk Analysis</a></li><li><a href="/concepts/regression-overview/"><span class="kind-dot kind-concept"></span>Regression Overview</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

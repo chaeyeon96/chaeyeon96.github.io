@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Class Switch Recombination (CSR) · Study Wiki</title>
+<meta name="description" content="B cell이 항원 특이성(V(D)J)은 그대로 두고 heavy chain의 constant region만 바꿔 항체 isotype(IgM → IgG, IgA, IgE)을 바꾸는 DNA 재조합.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/immunology/">Immunology</a></p>
+    <h1 class="note-title">Class Switch Recombination (CSR)</h1>
+    <p class="lead">B cell이 항원 특이성(V(D)J)은 그대로 두고 heavy chain의 constant region만 바꿔 항체 isotype(IgM → IgG, IgA, IgE)을 바꾸는 DNA 재조합.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#immunology</span><span class="chip chip-tag">#b-cell</span><span class="chip chip-tag">#isotype</span><span class="chip chip-tag">#germinal-center</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p>항원 모양에 맞춘 <strong>열쇠 머리(V, D, J)는 그대로 두고, 손잡이(C)만 교체</strong>하는 것입니다. 같은 항원을 잡되 &quot;어디서, 어떻게 싸울지&quot;를 바꿉니다.</p>
+<h2 id="자세히">자세히</h2>
+<h3 id="왜-바꾸나">왜 바꾸나</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Isotype</th>
+<th>역할</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>IgM</td>
+<td>기본형. 감염 초기 가장 먼저, 혈액에 주로 존재</td>
+</tr>
+<tr>
+<td>IgG</td>
+<td>온몸 구석구석, 가장 강력한 면역 반응 유도, 태반 통과</td>
+</tr>
+<tr>
+<td>IgA</td>
+<td>침, 눈물, 모유 등 점막 방어</td>
+</tr>
+<tr>
+<td>IgE</td>
+<td>기생충, 알레르기</td>
+</tr>
+</tbody>
+</table></div>
+<p>갓 태어난 B cell은 IgM(과 IgD)만 만든다. 상황에 따라 &quot;점막이니 IgA&quot;, &quot;더 강한 IgG&quot;가 필요해지면 CSR을 한다.</p>
+<h3 id="어떻게-하나-dna-편집">어떻게 하나 (DNA 편집)</h3>
+<ol>
+<li><strong>대상 결정</strong>: T cell이 보내는 cytokine 신호에 따라 바꿀 isotype이 정해진다.</li>
+<li><strong>절단</strong>: AID가 바꾸려는 constant 유전자 앞의 <strong>switch(S) region</strong>을 자른다.</li>
+<li><strong>연결</strong>: 그 사이의 constant 유전자들은 고리 모양으로 잘려 나가고, VDJ가 새 constant 유전자(예: Cγ) 옆에 붙는다.</li>
+</ol>
+<p>DNA 자체를 잘라내므로 <strong>한 번 IgG로 바뀐 B cell은 IgM으로 돌아갈 수 없다.</strong> 순서는 <a class="wikilink wikilink-concept" href="/concepts/b-cell-and-bcr/#3-isotype과-ighc-순서">IGHC 배열 순서</a>를 따른다.</p>
+<h3 id="shm과의-관계">SHM과의 관계</h3>
+<p>같은 효소(AID)가 V region을 공격하면 <a class="wikilink wikilink-concept" href="/concepts/somatic-hypermutation/">SHM</a>, switch region을 공격하면 CSR이다. 둘은 germinal center에서 병렬로 일어난다.</p>
+<h3 id="데이터에서">데이터에서</h3>
+<ul>
+<li>클론별 isotype(IgG1, IgG3, IgA1 등) 분포 → 자가면역에서는 특정 IgG subclass가 비정상적으로 높은 경우가 많다.</li>
+<li>IgM에서 IgG로 넘어가는 과정을 trajectory(pseudotime)로 그려 볼 수 있다.</li>
+<li><strong>AICDA</strong> 발현이 높은 B cell은 지금 CSR이나 SHM이 활발하다.</li>
+<li>같은 clonotype이 여러 isotype으로 관찰되면 그 클론 안에서 switch가 일어났다는 뜻이다.</li>
+</ul>
+<h2 id="transcript-based-inference">Transcript-based inference</h2>
+<p><a class="wikilink wikilink-paper" href="/papers/2024-ng-scicsr/">2024 Ng - sciCSR</a>는 sterile/productive IgH transcript 정보를 CSR trajectory 추론에 사용한다. 계산된 CSR potential을 앞으로 switching할 수 있는 잔여 capacity나 관측된 lineage tracing으로 해석하지 않는다. <a class="wikilink wikilink-pipeline" href="/papers/2024-ng-scicsr-pipeline/">2024 Ng - sciCSR (Pipeline)</a>에서 입력·direction prior·transition probability를 분리해 본다.</p>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/b-cell-and-bcr/">B Cell and BCR</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/somatic-hypermutation/">Somatic Hypermutation</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/clonotype-and-cdr/">Clonotype and CDR</a></li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2025-zaslavsky-mal-id/">2025 Zaslavsky - Mal-ID</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2024-dunlap-ra-synovium-clonal-associations/">2024 Dunlap - RA Synovium Clonal Associations</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2024-ng-scicsr/">2024 Ng - sciCSR</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l3"><a href="#왜-바꾸나">왜 바꾸나</a></li><li class="toc-l3"><a href="#어떻게-하나-dna-편집">어떻게 하나 (DNA 편집)</a></li><li class="toc-l3"><a href="#shm과의-관계">SHM과의 관계</a></li><li class="toc-l3"><a href="#데이터에서">데이터에서</a></li><li class="toc-l2"><a href="#transcript-based-inference">Transcript-based inference</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/b-cell-and-bcr/"><span class="kind-dot kind-concept"></span>B Cell and BCR</a></li><li><a href="/concepts/clonotype-and-cdr/"><span class="kind-dot kind-concept"></span>Clonotype and CDR</a></li><li><a href="/papers/2025-zaslavsky-mal-id/"><span class="kind-dot kind-paper"></span>Mal-ID (Zaslavsky 2025)</a></li><li><a href="/papers/2024-dunlap-ra-synovium-clonal-associations/"><span class="kind-dot kind-paper"></span>RA Synovium Clonal Associations (Dunlap 2024)</a></li><li><a href="/papers/2024-ng-scicsr/"><span class="kind-dot kind-paper"></span>sciCSR (Ng 2024)</a></li><li><a href="/concepts/somatic-hypermutation/"><span class="kind-dot kind-concept"></span>Somatic Hypermutation (SHM)</a></li><li><a href="/concepts/t-cell-and-tcr/"><span class="kind-dot kind-concept"></span>T Cell and TCR</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Single-cell Analysis · Study Wiki</title>
+<meta name="description" content="scRNA-seq 분석 pipeline과 도구를 정리하는 섹션입니다. 전체 흐름은 scRNA-seq Workflow에서 시작하세요.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link is-active">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<section class="page-hero">
+  <div class="page-hero-inner">
+    <p class="crumb"><a href="/#sections">Sections</a></p>
+    <h1 class="note-title">Single-cell Analysis</h1>
+    <p class="lead">scRNA-seq 분석 pipeline과 도구를 정리하는 섹션입니다. 전체 흐름은 scRNA-seq Workflow에서 시작하세요.</p>
+    <p class="hero-stats">28 concepts · 23 papers</p>
+  </div>
+</section>
+<section class="block">
+  <div class="block-head"><h2>Concepts</h2><p>주제별로 묶은 개념 페이지입니다.</p></div>
+  
+      <div class="topic">
+        <h3 class="topic-title">Overview</h3>
+        <div class="concept-grid"><a class="concept-card" href="/concepts/scrna-seq-workflow/"><span class="concept-name">scRNA-seq Workflow</span><span class="concept-desc">단계별 지도와 downstream 분석 메뉴</span></a><a class="concept-card" href="/concepts/single-cell-rna-seq/"><span class="concept-name">Single-cell RNA-seq</span><span class="concept-desc">기술 원리, cell-type-specific signature</span></a></div>
+      </div>
+      <div class="topic">
+        <h3 class="topic-title">Preprocessing</h3>
+        <div class="concept-grid"><a class="concept-card" href="/concepts/cell-quality-control/"><span class="concept-name">Cell Quality Control</span><span class="concept-desc">genes, counts, MT%, doublet</span></a><a class="concept-card" href="/concepts/cellbender/"><span class="concept-name">CellBender</span><span class="concept-desc">ambient RNA 제거</span></a><a class="concept-card" href="/concepts/rna-seq-normalization/"><span class="concept-name">RNA-seq Normalization</span><span class="concept-desc">CPM, TPM, TMM, log1p, SCTransform</span></a><a class="concept-card" href="/concepts/batch-correction/"><span class="concept-name">Batch Correction</span><span class="concept-desc">보정 방법, 빼야 할 gene, 보정 평가 지표, confounding</span></a><a class="concept-card" href="/concepts/scvi/"><span class="concept-name">scVI (single-cell Variational Inference)</span><span class="concept-desc">VAE 기반 integration, 보정된 expression의 성격</span></a></div>
+      </div>
+      <div class="topic">
+        <h3 class="topic-title">Clustering &amp; Annotation</h3>
+        <div class="concept-grid"><a class="concept-card" href="/concepts/knn-graph/"><span class="concept-name">KNN Graph</span><span class="concept-desc">이웃 graph, local scale, UMAP</span></a><a class="concept-card" href="/concepts/leiden-clustering/"><span class="concept-name">Leiden Clustering</span><span class="concept-desc">refinement, resolution</span></a><a class="concept-card" href="/concepts/reference-mapping/"><span class="concept-name">Reference Mapping</span><span class="concept-desc">query를 atlas representation과 label에 연결</span></a><a class="concept-card" href="/concepts/spatial-transcriptomics/"><span class="concept-name">Spatial Transcriptomics</span><span class="concept-desc">tissue 위치와 expression, niche 해석</span></a><a class="concept-card" href="/concepts/cell-type-annotation/"><span class="concept-name">Cell Type Annotation</span><span class="concept-desc">CellTypist + marker, 계층적 annotation</span></a></div>
+      </div>
+      <div class="topic">
+        <h3 class="topic-title">Differential Analysis</h3>
+        <div class="concept-grid"><a class="concept-card" href="/concepts/differential-expression/"><span class="concept-name">Differential Expression (DE)</span><span class="concept-desc">방법 지도, DE에서 batch 다루기, 결과 검증</span></a><a class="concept-card" href="/concepts/mast/"><span class="concept-name">MAST</span><span class="concept-desc">hurdle model, random effect, gene set 검정</span></a><a class="concept-card" href="/concepts/pseudobulk-analysis/"><span class="concept-name">Pseudobulk Analysis</span><span class="concept-desc">sample 단위 DE, 기술 신호 대처</span></a><a class="concept-card" href="/concepts/differential-abundance-analysis/"><span class="concept-name">Differential Abundance Analysis</span><span class="concept-desc">compositionality, scCODA, Milo</span></a></div>
+      </div>
+      <div class="topic">
+        <h3 class="topic-title">Functional Interpretation</h3>
+        <div class="concept-grid"><a class="concept-card" href="/concepts/gene-set-enrichment-analysis/"><span class="concept-name">Gene Set Enrichment Analysis</span><span class="concept-desc">ORA, preranked GSEA, camera</span></a><a class="concept-card" href="/concepts/gene-set-scoring/"><span class="concept-name">Gene Set Scoring</span><span class="concept-desc">AUCell, UCell, GSVA</span></a><a class="concept-card" href="/concepts/cytokine-and-pathway-activity/"><span class="concept-name">Cytokine and Pathway Activity</span><span class="concept-desc">CytoSig, PROGENy, DoRothEA</span></a></div>
+      </div>
+      <div class="topic">
+        <h3 class="topic-title">Networks &amp; Programs</h3>
+        <div class="concept-grid"><a class="concept-card" href="/concepts/gene-regulatory-network/"><span class="concept-name">Gene Regulatory Network</span><span class="concept-desc">TF–target inference와 evidence 해석</span></a><a class="concept-card" href="/concepts/splicing-quantitative-trait-locus/"><span class="concept-name">Splicing Quantitative Trait Locus</span><span class="concept-desc">genotype와 splice usage의 cell-type-specific 연관</span></a><a class="concept-card" href="/concepts/co-expression-network-analysis/"><span class="concept-name">Co-expression Network Analysis</span><span class="concept-desc">hdWGCNA, CS-CORE</span></a><a class="concept-card" href="/concepts/cnmf/"><span class="concept-name">cNMF (Consensus Non-negative Matrix Factorization)</span><span class="concept-desc">gene program과 usage, starCAT/TCAT</span></a><a class="concept-card" href="/concepts/scenic/"><span class="concept-name">SCENIC</span><span class="concept-desc">TF regulon</span></a><a class="concept-card" href="/concepts/cell-cell-communication/"><span class="concept-name">Cell-Cell Communication (CCC)</span><span class="concept-desc">CellChat, NicheNet, Tensor-cell2cell</span></a><a class="concept-card" href="/concepts/cellchat/"><span class="concept-name">CellChat</span><span class="concept-desc">mass action 기반 통신 확률</span></a></div>
+      </div>
+      <div class="topic">
+        <h3 class="topic-title">Dynamics</h3>
+        <div class="concept-grid"><a class="concept-card" href="/concepts/trajectory-analysis/"><span class="concept-name">Trajectory Analysis</span><span class="concept-desc">Monocle 3, PAGA, CellRank 2</span></a><a class="concept-card" href="/concepts/time-series-expression-patterns/"><span class="concept-name">Time-series Expression Patterns</span><span class="concept-desc">Mfuzz, 시간 패턴 clustering</span></a></div>
+      </div>
+</section>
+<section class="block">
+  <div class="block-head"><h2>Papers</h2><p>이 섹션과 관련된 논문입니다.</p></div>
+  <div class="paper-grid">
+    <article class="paper-card" data-sections="Single-cell Analysis|AI Drug Discovery">
+      <div class="paper-meta">
+        <span class="badge">Nature Communications</span>
+        <span>2026</span>
+        
+      </div>
+      <h3><a href="/papers/2026-jo-psoriasis-gwas-scdrs/">Psoriasis GWAS scDRS (Jo 2026)</a></h3>
+      <p class="paper-full-title">Integration of GWAS and single-cell analysis for psoriasis identifies disease-associated cell subtypes and therapeutic targets</p>
+      <p>Psoriasis meta-GWAS를 skin single-cell data에 연결해 disease-relevant cell subtype과 therapeutic target 후보를 우선순위화했다.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2026-jo-psoriasis-gwas-scdrs/">논문 정리 보기</a>
+        
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Immunology|Single-cell Analysis">
+      <div class="paper-meta">
+        <span class="badge">Cell</span>
+        <span>2025</span>
+        
+      </div>
+      <h3><a href="/papers/2025-kock-aida/">AIDA (Kock 2025)</a></h3>
+      <p class="paper-full-title">Asian diversity in human immune cells</p>
+      <p>아시아 5개국 7개 population group의 healthy donor 619명 PBMC로 만든 single-cell reference atlas(Asian Immune Diversity Atlas). Age, sex, self-reported ethnicity가 immune cell 구성과 발현에 주는 영향과, 아시아인 특이 eQTL을 보여 준다.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2025-kock-aida/">논문 정리 보기</a>
+        
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Immunology|Single-cell Analysis">
+      <div class="paper-meta">
+        <span class="badge">Nature Immunology</span>
+        <span>2025</span>
+        
+      </div>
+      <h3><a href="/papers/2025-wang-lifespan-immune-trajectories/">Lifespan Immune Trajectories (Wang 2025)</a></h3>
+      <p class="paper-full-title">Integrating single-cell RNA and T cell/B cell receptor sequencing with mass cytometry reveals dynamic trajectories of human peripheral immune cells from birth to old age</p>
+      <p>신생아부터 90세 이상까지 13개 연령 group의 PBMC를 scRNA-seq + scTCR/BCR-seq + CyTOF로 분석해, 면역 cell 구성, 발현, cell–cell interaction, clonal expansion이 생애 단계마다 어떻게 바뀌는지 그렸다. Cytotoxic B cell subset을 새로 찾았고, single-cell immune age(siAge) 예측 model을 만들었다.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2025-wang-lifespan-immune-trajectories/">논문 정리 보기</a>
+        <a class="btn btn-small btn-soft" href="/papers/2025-wang-lifespan-immune-trajectories-pipeline/">Pipeline</a>
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Immunology|Single-cell Analysis">
+      <div class="paper-meta">
+        <span class="badge">Nature Genetics</span>
+        <span>2025</span>
+        
+      </div>
+      <h3><a href="/papers/2025-edahiro-oasis/">OASIS (Edahiro 2025)</a></h3>
+      <p class="paper-full-title">Deciphering state-dependent immune features from multi-layer omics data at single-cell resolution</p>
+      <p>일본인 multi-omics cohort에서 germline, repertoire, somatic variation의 효과를 cell type뿐 아니라 연속적인 cell state에 연결한 atlas.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2025-edahiro-oasis/">논문 정리 보기</a>
+        
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Single-cell Analysis|Statistics &amp; ML">
+      <div class="paper-meta">
+        <span class="badge">Nature</span>
+        <span>2025</span>
+        
+      </div>
+      <h3><a href="/papers/2025-heimberg-scimilarity/">SCimilarity (Heimberg 2025)</a></h3>
+      <p class="paper-full-title">A cell atlas foundation model for scalable search of similar human cells</p>
+      <p>Reconstruction loss와 triplet loss를 결합한 metric learning으로 &quot;같은 cell type은 가깝게, 다른 type은 멀게&quot; 학습한 foundation model. 412개 study, 2,340만 cell의 reference에서 query cell과 비슷한 cell을 몇 초 만에 찾고, 재학습 없이 annotation과 integration을 한다.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2025-heimberg-scimilarity/">논문 정리 보기</a>
+        <a class="btn btn-small btn-soft" href="/papers/2025-heimberg-scimilarity-pipeline/">Pipeline</a>
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Single-cell Analysis|Statistics &amp; ML">
+      <div class="paper-meta">
+        <span class="badge">Nature Methods</span>
+        <span>2025</span>
+        
+      </div>
+      <h3><a href="/papers/2025-sheinin-scnet/">scNET (Sheinin 2025)</a></h3>
+      <p class="paper-full-title">scNET: learning context-specific gene and cell embeddings by integrating single-cell gene expression data with protein–protein interactions</p>
+      <p>scRNA-seq expression, PPI network, cell KNN graph를 함께 학습해 dataset의 맥락을 반영한 gene/cell embedding과 reconstructed expression을 만드는 graph autoencoder.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2025-sheinin-scnet/">논문 정리 보기</a>
+        <a class="btn btn-small btn-soft" href="/papers/2025-sheinin-scnet-pipeline/">Pipeline</a>
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Immunology|Single-cell Analysis">
+      <div class="paper-meta">
+        <span class="badge">Nature Genetics</span>
+        <span>2024</span>
+        
+      </div>
+      <h3><a href="/papers/2024-tian-aida-splicing-qtl/">AIDA Splicing QTL (Tian 2024)</a></h3>
+      <p class="paper-full-title">Single-cell RNA sequencing of peripheral blood links cell-type-specific regulation of splicing to autoimmune and inflammatory diseases</p>
+      <p>AIDA의 splicing variation을 cell type·sex·ancestry 및 genotype와 연결하고, 일부 disease GWAS signal에 기능적 해석을 더한 population genomics 연구다.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2024-tian-aida-splicing-qtl/">논문 정리 보기</a>
+        
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Immunology|Single-cell Analysis">
+      <div class="paper-meta">
+        <span class="badge">npj Aging</span>
+        <span>2024</span>
+        
+      </div>
+      <h3><a href="/papers/2024-filippov-blood-immune-aging-atlas/">Blood Immune Aging Atlas (Filippov 2024)</a></h3>
+      <p class="paper-full-title">An integrated single-cell atlas of blood immune cells in aging</p>
+      <p>일곱 PBMC aging cohort를 같은 marker 기준으로 재분석해, study 간 차이와 반복되는 age-associated 변화를 분리한 reference atlas다.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2024-filippov-blood-immune-aging-atlas/">논문 정리 보기</a>
+        
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Immunology|Single-cell Analysis">
+      <div class="paper-meta">
+        <span class="badge">Nature Communications</span>
+        <span>2024</span>
+        
+      </div>
+      <h3><a href="/papers/2024-lin-covid-19-longitudinal-ifn-atlas/">COVID-19 Longitudinal IFN Atlas (Lin 2024)</a></h3>
+      <p class="paper-full-title">Longitudinal single cell atlas identifies complex temporal relationship between type I interferon response and COVID-19 severity</p>
+      <p>Early prognostic association과 later cross-sectional association을 구분해야 IFN response의 방향을 해석할 수 있다.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2024-lin-covid-19-longitudinal-ifn-atlas/">논문 정리 보기</a>
+        
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Immunology|Single-cell Analysis">
+      <div class="paper-meta">
+        <span class="badge">JCI Insight</span>
+        <span>2024</span>
+        
+      </div>
+      <h3><a href="/papers/2024-binvignat-ra-disease-activity-pbmc/">RA Disease Activity PBMC (Binvignat 2024)</a></h3>
+      <p class="paper-full-title">Single-cell RNA-Seq analysis reveals cell subsets and gene signatures associated with rheumatoid arthritis disease activity</p>
+      <p>RA 환자 18명과 healthy 18명의 PBMC scRNA-seq으로, disease activity(DAS28-CRP)에 따라 달라지는 cell subset, gene signature, cell–cell communication을 찾았다.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2024-binvignat-ra-disease-activity-pbmc/">논문 정리 보기</a>
+        
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Immunology|Single-cell Analysis">
+      <div class="paper-meta">
+        <span class="badge">Nature Communications</span>
+        <span>2024</span>
+        
+      </div>
+      <h3><a href="/papers/2024-dunlap-ra-synovium-clonal-associations/">RA Synovium Clonal Associations (Dunlap 2024)</a></h3>
+      <p class="paper-full-title">Clonal associations between lymphocyte subsets and functional states in rheumatoid arthritis synovium</p>
+      <p>RA synovium의 T/B cell state를 antigen-receptor clonotype과 함께 비교한 관찰 연구다. Clonal association은 확인하지만 분화 방향이나 항원 특이성의 직접 증명은 아니다.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2024-dunlap-ra-synovium-clonal-associations/">논문 정리 보기</a>
+        
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Immunology|Single-cell Analysis">
+      <div class="paper-meta">
+        <span class="badge">Nature Methods</span>
+        <span>2024</span>
+        
+      </div>
+      <h3><a href="/papers/2024-ng-scicsr/">sciCSR (Ng 2024)</a></h3>
+      <p class="paper-full-title">sciCSR infers B cell state transition and predicts class-switch recombination dynamics using single-cell transcriptomic data</p>
+      <p>5′ scRNA-seq BAM에서 productive/sterile IgH transcripts를 구분하고 B-cell-specific CSR/SHM ordering으로 state transition을 추론한다.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2024-ng-scicsr/">논문 정리 보기</a>
+        <a class="btn btn-small btn-soft" href="/papers/2024-ng-scicsr-pipeline/">Pipeline</a>
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Single-cell Analysis">
+      <div class="paper-meta">
+        <span class="badge">Nature Computational Science</span>
+        <span>2024</span>
+        
+      </div>
+      <h3><a href="/papers/2024-osorio-scorpion/">SCORPION</a></h3>
+      <p class="paper-full-title">Population-level comparisons of gene regulatory networks modeled on high-throughput single-cell transcriptomics data</p>
+      <p>[!tip] Pipeline 2024 Osorio - SCORPION (Pipeline)</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2024-osorio-scorpion/">논문 정리 보기</a>
+        <a class="btn btn-small btn-soft" href="/papers/2024-osorio-scorpion-pipeline/">Pipeline</a>
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Single-cell Analysis">
+      <div class="paper-meta">
+        <span class="badge">Nature Communications</span>
+        <span>2023</span>
+        
+      </div>
+      <h3><a href="/papers/2023-su-cs-core/">CS-CORE</a></h3>
+      <p class="paper-full-title">Cell-type-specific co-expression inference from single cell RNA-sequencing data</p>
+      <p>[!tip] Pipeline 2023 Su - CS-CORE (Pipeline)</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2023-su-cs-core/">논문 정리 보기</a>
+        <a class="btn btn-small btn-soft" href="/papers/2023-su-cs-core-pipeline/">Pipeline</a>
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Single-cell Analysis">
+      <div class="paper-meta">
+        <span class="badge">Nature Genetics</span>
+        <span>2023</span>
+        
+      </div>
+      <h3><a href="/papers/2023-dann-healthy-reference-design/">Healthy Reference Design (Dann 2023)</a></h3>
+      <p class="paper-full-title">Precise identification of cell states altered in disease using healthy single-cell references</p>
+      <p>Disease data를 healthy reference와 비교할 때, embedding은 큰 healthy atlas로 학습하고 differential analysis는 cohort가 맞는 control로 하는 ACR design이 disease-specific cell state를 비교한 benchmark에서 더 안정적으로 찾는다. False positive가 없어지는 보장은 아니다.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2023-dann-healthy-reference-design/">논문 정리 보기</a>
+        <a class="btn btn-small btn-soft" href="/papers/2023-dann-healthy-reference-design-pipeline/">Pipeline</a>
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Single-cell Analysis|Statistics &amp; ML">
+      <div class="paper-meta">
+        <span class="badge">Nature Communications</span>
+        <span>2023</span>
+        
+      </div>
+      <h3><a href="/papers/2023-vasaikar-palmo/">PALMO (Vasaikar 2023)</a></h3>
+      <p class="paper-full-title">A comprehensive platform for analyzing longitudinal multi-omics data</p>
+      <p>Longitudinal multi-omics의 variation을 donor, time, cell type 관점으로 나누고 안정적인 feature와 개인별 변화·outlier를 찾는 다섯 module의 platform.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2023-vasaikar-palmo/">논문 정리 보기</a>
+        <a class="btn btn-small btn-soft" href="/papers/2023-vasaikar-palmo-pipeline/">Pipeline</a>
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Immunology|Single-cell Analysis">
+      <div class="paper-meta">
+        <span class="badge">Science Advances</span>
+        <span>2023</span>
+        
+      </div>
+      <h3><a href="/papers/2023-zhu-pbmc-aging-clock/">PBMC Aging Clock (Zhu 2023)</a></h3>
+      <p class="paper-full-title">Human PBMC scRNA-seq–based aging clocks reveal ribosome to inflammation balance as a single-cell aging hallmark and super longevity</p>
+      <p>PBMC scRNA-seq으로 aging clock을 만들고 110세 이상 supercentenarian(SC)에 적용했더니, SC는 실제 나이보다 훨씬 젊게 예측됐다. Ribosome 발현과 inflammation이 single cell 수준에서 서로 반대로 움직였다.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2023-zhu-pbmc-aging-clock/">논문 정리 보기</a>
+        <a class="btn btn-small btn-soft" href="/papers/2023-zhu-pbmc-aging-clock-pipeline/">Pipeline</a>
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Single-cell Analysis">
+      <div class="paper-meta">
+        <span class="badge">Nature Methods</span>
+        <span>2023</span>
+        
+      </div>
+      <h3><a href="/papers/2023-de-donno-scpoli/">scPoli (2023 De Donno)</a></h3>
+      <p class="paper-full-title">Population-level integration of single-cell datasets enables multi-scale analysis across samples</p>
+      <p>Cell embedding과 sample embedding을 동시에 학습하고 cell-type prototypes로 reference mapping·label transfer를 연결하는 population-level integration model.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2023-de-donno-scpoli/">논문 정리 보기</a>
+        <a class="btn btn-small btn-soft" href="/papers/2023-de-donno-scpoli-pipeline/">Pipeline</a>
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Single-cell Analysis">
+      <div class="paper-meta">
+        <span class="badge">Nature Reviews Genetics</span>
+        <span>2023</span>
+        
+      </div>
+      <h3><a href="/papers/2023-heumos-single-cell-best-practices/">Single-cell Best Practices (Heumos 2023)</a></h3>
+      <p class="paper-full-title">Best practices for single-cell analysis across modalities</p>
+      <p>scRNA-seq를 비롯한 single-cell modality별 분석 단계마다 어떤 방법을 고르면 좋은지 benchmark 근거로 정리한 review. 온라인 책 Single-cell Best Practices의 논문판이다.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2023-heumos-single-cell-best-practices/">논문 정리 보기</a>
+        
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Immunology|Single-cell Analysis">
+      <div class="paper-meta">
+        <span class="badge">Nature Communications</span>
+        <span>2021</span>
+        
+      </div>
+      <h3><a href="/papers/2021-wang-kawasaki-disease-pbmc/">Kawasaki Disease PBMC (Wang 2021)</a></h3>
+      <p class="paper-full-title">Single-cell RNA sequencing of peripheral blood mononuclear cells from acute Kawasaki disease patients</p>
+      <p>급성 Kawasaki disease(KD) 환자의 치료 전후 PBMC를 scRNA-seq으로 분석했다. Cell composition, inflammatory transcription, BCR/TCR의 변화를 구분해 읽는다.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2021-wang-kawasaki-disease-pbmc/">논문 정리 보기</a>
+        
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Immunology|Single-cell Analysis">
+      <div class="paper-meta">
+        <span class="badge">Cell Discovery</span>
+        <span>2021</span>
+        
+      </div>
+      <h3><a href="/papers/2021-wang-parkinson-t-cells/">Parkinson T Cells (Wang 2021)</a></h3>
+      <p class="paper-full-title">Single-cell transcriptome and TCR profiling reveal activated and expanded T cell populations in Parkinson&#39;s disease</p>
+      <p>Parkinson&#39;s disease 환자 PBMC의 T cell을 scRNA-seq과 scTCR-seq으로 분석해, 활성화되고 clonally expanded된 T cell population을 찾았다. Transcriptome, paired TCR, antigen prediction의 근거 수준을 구분한다.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2021-wang-parkinson-t-cells/">논문 정리 보기</a>
+        
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Single-cell Analysis|Statistics &amp; ML">
+      <div class="paper-meta">
+        <span class="badge">Nature Communications</span>
+        <span>2021</span>
+        
+      </div>
+      <h3><a href="/papers/2021-büttner-sccoda/">scCODA (2021 Büttner)</a></h3>
+      <p class="paper-full-title">scCODA is a Bayesian model for compositional single-cell data analysis</p>
+      <p>Sample별 cell-type counts를 함께 모델링해 reference 대비 compositional changes를 추정하고 posterior expected FDR로 credible effects를 선택한다.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2021-büttner-sccoda/">논문 정리 보기</a>
+        <a class="btn btn-small btn-soft" href="/papers/2021-büttner-sccoda-pipeline/">Pipeline</a>
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Single-cell Analysis|Statistics &amp; ML">
+      <div class="paper-meta">
+        <span class="badge">PLoS ONE</span>
+        <span>2013</span>
+        
+      </div>
+      <h3><a href="/papers/2013-glass-panda/">PANDA (2013 Glass)</a></h3>
+      <p class="paper-full-title">Passing Messages between Biological Networks to Refine Predicted Interactions</p>
+      <p>Motif, PPI, co-expression의 서로 다른 근거를 message passing으로 조정해 condition-specific TF–gene network를 추정한다.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2013-glass-panda/">논문 정리 보기</a>
+        <a class="btn btn-small btn-soft" href="/papers/2013-glass-panda-pipeline/">Pipeline</a>
+      </div>
+    </article></div>
+</section>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cell Type Annotation · Study Wiki</title>
+<meta name="description" content="Cluster나 개별 cell에 cell type 이름을 붙이는 단계. 자동 분류 도구로 초벌을 하고, marker gene으로 사람이 확인·수정하는 방식이 일반적이다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/single-cell-analysis/">Single-cell Analysis</a></p>
+    <h1 class="note-title">Cell Type Annotation</h1>
+    <p class="lead">Cluster나 개별 cell에 cell type 이름을 붙이는 단계. 자동 분류 도구로 초벌을 하고, marker gene으로 사람이 확인·수정하는 방식이 일반적이다.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#single-cell</span><span class="chip chip-tag">#annotation</span><span class="chip chip-tag">#cell-types</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p>Clustering은 &quot;비슷한 cell끼리 묶음&quot;까지만 해 줍니다. 그 묶음이 CD4 T cell인지 monocyte인지는 <strong>알려진 marker gene</strong>과 <strong>reference 데이터</strong>를 보고 정합니다.</p>
+<h2 id="자세히">자세히</h2>
+<h3 id="방법">방법</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>방식</th>
+<th>예</th>
+<th>장단점</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Reference 기반 자동 분류</strong></td>
+<td>CellTypist, Azimuth, scANVI label transfer, SingleR (일반 지식)</td>
+<td>빠르고 일관적. Reference에 없는 cell state는 못 잡거나 엉뚱하게 붙임</td>
+</tr>
+<tr>
+<td><strong>Marker 기반 수동</strong></td>
+<td>cluster별 marker gene, dot plot, feature plot</td>
+<td>해석이 투명. 시간이 들고 사람마다 다를 수 있음</td>
+</tr>
+<tr>
+<td><strong>혼합 (권장)</strong></td>
+<td>자동 분류 → 수동 확인 → subclustering → 재확인</td>
+<td>현실적인 표준</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>CellTypist는 모델마다 해상도가 다르다(예: immune low / high). 처음에는 coarse 모델로 큰 계통을 나누는 게 안정적이다.</li>
+<li>자동 분류 결과는 <strong>cluster 단위 majority voting</strong>으로 정리하면 개별 cell 잡음이 줄어든다.</li>
+</ul>
+<h3 id="계층적으로-붙이기">계층적으로 붙이기</h3>
+<p>한 번에 세밀하게 붙이기보다 단계를 나눈다.</p>
+<ul>
+<li><strong>Level 1</strong>: CD4 T, CD8 T, NK, B, Myeloid, MAIT 등 큰 계통</li>
+<li><strong>Level 2</strong>: Naive/Memory B, CD14/CD16 monocyte, cDC1/cDC2/pDC, Treg, γδ T 등</li>
+<li><strong>Level 3</strong>: Tfh-like, Th22-like, GZMB-high/GZMK-high CD8 TEM, KLRC2-high NK 등 상태</li>
+</ul>
+<p>각 계통을 떼어 내 다시 clustering하면(subclustering) 세밀한 subtype이 잘 보인다.</p>
+<h3 id="pbmc-marker-요약">PBMC marker 요약</h3>
+<p>Cell type별 marker는 면역 섹션에 정리해 두었다.</p>
+<ul>
+<li>T cell 분화 단계와 CD4/CD8 subset marker → <a class="wikilink wikilink-concept" href="/concepts/t-cell-and-tcr/">T Cell and TCR</a></li>
+<li>B cell (IGHM, IGHG, IGKC/IGLC, naive vs memory vs plasma) → <a class="wikilink wikilink-concept" href="/concepts/b-cell-and-bcr/">B Cell and BCR</a></li>
+<li>Monocyte, DC subset (CLEC9A, CD1c, CD123 등) → <a class="wikilink wikilink-concept" href="/concepts/pbmc/">PBMC</a></li>
+</ul>
+<h3 id="흔한-함정">흔한 함정</h3>
+<ul>
+<li><strong>CD4 CTL</strong>처럼 CD8 T, NK와 비슷한 세포독성 프로그램을 가진 cell은 섞여서 따로 구분이 어렵다. 처음에는 함께 묶어 subtyping하는 편이 낫다.</li>
+<li>Doublet, 저품질 cell이 작은 &quot;이상한&quot; cluster를 만든다 → <a class="wikilink wikilink-concept" href="/concepts/cell-quality-control/">Cell Quality Control</a></li>
+<li>Batch가 덜 보정되면 같은 cell type이 batch별 cluster로 갈린다 → <a class="wikilink wikilink-concept" href="/concepts/batch-correction/">Batch Correction</a></li>
+<li>혈액에 거의 없어야 할 cell(HSC 등)은 수가 아주 적으면 분석에서 빼거나 따로 표시한다.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/leiden-clustering/">Leiden Clustering</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/scvi/">scVI</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/t-cell-and-tcr/">T Cell and TCR</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/pbmc/">PBMC</a></li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2025-heimberg-scimilarity/">2025 Heimberg - SCimilarity</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2025-kock-aida/">2025 Kock - AIDA</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2024-filippov-blood-immune-aging-atlas/">2024 Filippov - Blood Immune Aging Atlas</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2024-tian-aida-splicing-qtl/">2024 Tian - AIDA Splicing QTL</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2023-heumos-single-cell-best-practices/">2023 Heumos - Single-cell Best Practices</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2021-wang-kawasaki-disease-pbmc/">2021 Wang - Kawasaki Disease PBMC</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2021-wang-parkinson-t-cells/">2021 Wang - Parkinson T Cells</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l3"><a href="#방법">방법</a></li><li class="toc-l3"><a href="#계층적으로-붙이기">계층적으로 붙이기</a></li><li class="toc-l3"><a href="#pbmc-marker-요약">PBMC marker 요약</a></li><li class="toc-l3"><a href="#흔한-함정">흔한 함정</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/papers/2025-kock-aida/"><span class="kind-dot kind-paper"></span>AIDA (Kock 2025)</a></li><li><a href="/papers/2024-tian-aida-splicing-qtl/"><span class="kind-dot kind-paper"></span>AIDA Splicing QTL (Tian 2024)</a></li><li><a href="/papers/2024-filippov-blood-immune-aging-atlas/"><span class="kind-dot kind-paper"></span>Blood Immune Aging Atlas (Filippov 2024)</a></li><li><a href="/concepts/differential-abundance-analysis/"><span class="kind-dot kind-concept"></span>Differential Abundance Analysis</a></li><li><a href="/papers/2021-wang-kawasaki-disease-pbmc/"><span class="kind-dot kind-paper"></span>Kawasaki Disease PBMC (Wang 2021)</a></li><li><a href="/concepts/leiden-clustering/"><span class="kind-dot kind-concept"></span>Leiden Clustering</a></li><li><a href="/concepts/metric-learning/"><span class="kind-dot kind-concept"></span>Metric Learning</a></li><li><a href="/papers/2021-wang-parkinson-t-cells/"><span class="kind-dot kind-paper"></span>Parkinson T Cells (Wang 2021)</a></li><li><a href="/concepts/pbmc/"><span class="kind-dot kind-concept"></span>PBMC (Peripheral Blood Mononuclear Cells)</a></li><li><a href="/concepts/reference-mapping/"><span class="kind-dot kind-concept"></span>Reference Mapping</a></li><li><a href="/papers/2025-heimberg-scimilarity/"><span class="kind-dot kind-paper"></span>SCimilarity (Heimberg 2025)</a></li><li><a href="/concepts/scrna-seq-workflow/"><span class="kind-dot kind-concept"></span>scRNA-seq Workflow</a></li><li><a href="/concepts/scvi/"><span class="kind-dot kind-concept"></span>scVI (single-cell Variational Inference)</a></li><li><a href="/papers/2023-heumos-single-cell-best-practices/"><span class="kind-dot kind-paper"></span>Single-cell Best Practices (Heumos 2023)</a></li><li><a href="/concepts/t-cell-and-tcr/"><span class="kind-dot kind-concept"></span>T Cell and TCR</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

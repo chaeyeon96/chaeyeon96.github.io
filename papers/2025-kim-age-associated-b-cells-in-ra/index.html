@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Age-associated B Cells in RA (Kim 2025) · Study Wiki</title>
+<meta name="description" content="약을 쓰기 전(drug-naive) RA 환자의 PBMC에서 age-associated B cell(ABC)이 phagocytosis·antigen presentation 같은 myeloid-like 특성을 보이고, 그 비율이 disease activity와 연관됨을 보였다. SYK가 이 특성의 key regulator였다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a></p>
+    <div class="paper-meta">
+      
+      <span class="badge">Clinical Immunology</span>
+      <span>2025</span>
+      <span class="muted">disease-study</span>
+      
+    </div>
+    <h1 class="note-title">Age-associated B Cells in RA (Kim 2025)</h1>
+    <p class="paper-full-title">Circulatory age-associated B cells: Their distinct transcriptomic characteristics and clinical significance in drug-naïve patients with rheumatoid arthritis — Kim et al.</p>
+    <p class="lead">약을 쓰기 전(drug-naive) RA 환자의 PBMC에서 age-associated B cell(ABC)이 phagocytosis·antigen presentation 같은 myeloid-like 특성을 보이고, 그 비율이 disease activity와 연관됨을 보였다. SYK가 이 특성의 key regulator였다.</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1016/j.clim.2024.110425" rel="noopener">원문 (DOI)</a>
+      
+      
+      <span class="license">License · unknown</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/immunology/">Immunology</a></div>
+    <div class="note-body"><h2 id="overview">Overview</h2>
+<p><span class="figure-hidden">이 그림은 저작권 때문에 싣지 않았습니다 · <a href="https://doi.org/10.1016/j.clim.2024.110425" rel="noopener">원문에서 보기 →</a></span></p>
+<ul>
+<li><strong>대상</strong> · Drug-naive RA 환자와 healthy control.</li>
+<li><strong>목적</strong> · ABC의 transcriptomic 특징과 임상적 의미를 밝히고, disease activity biomarker로 쓸 수 있는지 본다.</li>
+</ul>
+<h2 id="주요-결과">주요 결과</h2>
+<ol>
+<li><strong>B cell subset</strong> · PBMC scRNA-seq에서 B cell subset 9개를 찾았고, 그중 하나가 ABC다. IL7R+ B cell 같은 subset도 있었다.</li>
+<li><strong>Transcriptomic 특징</strong> · ABC에서 phagocytosis, antigen presentation gene이 유의하게 올라갔다. B cell 본래 역할보다 myeloid-like phenotype에 가깝다.</li>
+<li><strong>SYK</strong> · Network analysis와 in vitro 실험에서 SYK(spleen tyrosine kinase)가 이 myeloid-like 특성을 조절하는 key regulator였다. ABC에서 SYK 발현과 활성이 높았다.</li>
+<li><strong>임상 상관</strong> · Flow cytometry로 잰 ABC 비율이 RA disease activity, serum TNF-α와 양의 상관을 보였다. ABC 비율이 cutoff를 넘으면 RA와 healthy를 구분할 수 있었다.</li>
+</ol>
+<blockquote>
+<p><strong>Takeaway</strong> · RA의 ABC는 단순한 aging 효과가 아니라 autoimmunity 활성과 연관된 cell이고, SYK는 치료 target 후보다.</p>
+</blockquote>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li>Drug-naive cohort라 치료 후 변화는 모른다.</li>
+<li>결과 대부분이 correlation이고 causality는 증명되지 않았다.</li>
+<li>ABC 정의가 연구마다 달라 일반화에 한계가 있다.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/b-cell-and-bcr/">B Cell and BCR</a> · <a class="wikilink wikilink-concept" href="/concepts/rheumatoid-arthritis/">Rheumatoid Arthritis</a> · <a class="wikilink wikilink-concept" href="/concepts/single-cell-rna-seq/">Single-cell RNA-seq</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#overview">Overview</a></li><li class="toc-l2"><a href="#주요-결과">주요 결과</a></li><li class="toc-l2"><a href="#limitations">Limitations</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/b-cell-and-bcr/"><span class="kind-dot kind-concept"></span>B Cell and BCR</a></li><li><a href="/papers/2025-bolton-jia-synovial-atlas/"><span class="kind-dot kind-paper"></span>JIA Synovial Atlas (Bolton 2025)</a></li><li><a href="/papers/2024-dunlap-ra-synovium-clonal-associations/"><span class="kind-dot kind-paper"></span>RA Synovium Clonal Associations (Dunlap 2024)</a></li><li><a href="/concepts/rheumatoid-arthritis/"><span class="kind-dot kind-concept"></span>Rheumatoid Arthritis (RA)</a></li><li><a href="/concepts/single-cell-rna-seq/"><span class="kind-dot kind-concept"></span>Single-cell RNA-seq</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

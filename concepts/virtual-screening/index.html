@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Virtual Screening · Study Wiki</title>
+<meta name="description" content="큰 Compound Library에서 실험할 가치가 있는 compound를 computer로 골라내는 과정.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/ai-drug-discovery/">AI Drug Discovery</a></p>
+    <h1 class="note-title">Virtual Screening</h1>
+    <p class="lead">큰 Compound Library에서 실험할 가치가 있는 compound를 computer로 골라내는 과정.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#screening</span><span class="chip chip-tag">#computational</span><span class="chip chip-tag">#drug-discovery</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p>수백만 개를 전부 실험할 수는 없으니, 계산으로 점수를 매겨 상위 몇십 개만 실험하는 방법입니다. 실험 비용을 줄이고 hit rate(실험한 것 중 실제로 효과가 있는 비율)를 높이는 게 목표입니다.</p>
+<h2 id="자세히">자세히</h2>
+<p><strong>주요 방식</strong> (일반 지식)</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>방식</th>
+<th>기준</th>
+<th>필요한 것</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Structure-based</strong> (docking)</td>
+<td>Target protein pocket에 잘 붙는가</td>
+<td>Target protein의 3D structure</td>
+</tr>
+<tr>
+<td><strong>Ligand-based</strong></td>
+<td>알려진 active compound와 닮았는가</td>
+<td>Active compound 예시, <a class="wikilink wikilink-concept" href="/concepts/molecular-fingerprint/">Molecular Fingerprint</a></td>
+</tr>
+<tr>
+<td><strong>ML-based</strong></td>
+<td>학습된 model이 active로 예측하는가</td>
+<td>Screening data 등 training data</td>
+</tr>
+<tr>
+<td><strong>Transcriptomics-based</strong></td>
+<td><a class="wikilink wikilink-concept" href="/concepts/disease-signature/">Disease Signature</a>를 reverse하는가</td>
+<td>Disease signature, drug signature (측정 또는 예측)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>일반적인 흐름</strong></p>
+<ol>
+<li>Library 준비, drug-like filter 적용</li>
+<li>Scoring으로 전체 ranking</li>
+<li>상위 후보 중 구조가 다양한 것을 골라 실험 (비슷한 것만 고르면 실패도 같이 한다)</li>
+<li>실험으로 확인된 hit을 <a class="wikilink wikilink-concept" href="/concepts/hit-to-lead-optimization/">Hit-to-Lead Optimization</a>으로 넘김</li>
+</ol>
+<p><strong>성능 지표</strong></p>
+<ul>
+<li><strong>Hit rate</strong>: 실험한 compound 중 active 비율</li>
+<li><strong>AUROC</strong>, enrichment: ranking이 active를 얼마나 위로 올리는가</li>
+</ul>
+<h2 id="왜-중요한가">왜 중요한가</h2>
+<ul>
+<li>Early drug discovery의 비용과 시간을 크게 줄인다.</li>
+<li>Library가 수십억 개로 커지면서 빠르고 정확한 scoring이 더 중요해졌다. (일반 지식)</li>
+<li>어떤 방식이든 결과는 <strong>예측</strong>이라, 실험 검증이 반드시 따라와야 한다.</li>
+</ul>
+<h2 id="논문별-활용">논문별 활용</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a>: Transcriptomics-based virtual screening. ZINC 약 700만 개의 expression을 예측하고 Z-RGES로 ranking (Figure 1A, 3A). 사전 검증에서 CTRP HepG2 AUROC 0.768, top hit rate 약 40% (Figure 3C–D). 실제로 HCC 후보 18개 중 1/3이 HCC cell line 3종 모두를 억제했다 (Figure 4, S4D). 저자들은 docking 기반 screening과 달리 고차원 transcriptomic feature를 썼다는 점을 차별점으로 든다.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/compound-library/">Compound Library</a>: screening 대상</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/rges/">RGES</a>: transcriptomics-based screening의 scoring</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/signature-reversal/">Signature Reversal</a>: transcriptomics-based screening의 원리</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/molecular-fingerprint/">Molecular Fingerprint</a>: ligand-based screening의 기본 표현</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/hit-to-lead-optimization/">Hit-to-Lead Optimization</a>: screening 다음 단계</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/target-based-vs-phenotypic-screening/">Target-based vs Phenotypic Screening</a>: screening 전략의 큰 분류</li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l2"><a href="#왜-중요한가">왜 중요한가</a></li><li class="toc-l2"><a href="#논문별-활용">논문별 활용</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/compound-library/"><span class="kind-dot kind-concept"></span>Compound Library</a></li><li><a href="/concepts/drug-repurposing/"><span class="kind-dot kind-concept"></span>Drug Repurposing</a></li><li><a href="/concepts/ecfp/"><span class="kind-dot kind-concept"></span>ECFP</a></li><li><a href="/papers/2026-xing-gps/"><span class="kind-dot kind-paper"></span>GPS (Xing 2026)</a></li><li><a href="/papers/2026-xing-gps-pipeline/"><span class="kind-dot kind-pipeline"></span>GPS Pipeline 따라가기</a></li><li><a href="/concepts/hit-to-lead-optimization/"><span class="kind-dot kind-concept"></span>Hit-to-Lead Optimization</a></li><li><a href="/concepts/molecular-fingerprint/"><span class="kind-dot kind-concept"></span>Molecular Fingerprint</a></li><li><a href="/concepts/rges/"><span class="kind-dot kind-concept"></span>RGES (Reverse Gene Expression Score)</a></li><li><a href="/concepts/target-based-vs-phenotypic-screening/"><span class="kind-dot kind-concept"></span>Target-based vs Phenotypic Screening</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

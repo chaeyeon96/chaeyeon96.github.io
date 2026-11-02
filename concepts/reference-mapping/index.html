@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference Mapping · Study Wiki</title>
+<meta name="description" content="새 query cells를 이미 정의한 reference representation 또는 label 체계에 연결하는 분석이다. (일반 지식)">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/single-cell-analysis/">Single-cell Analysis</a></p>
+    <h1 class="note-title">Reference Mapping</h1>
+    <p class="lead">새 query cells를 이미 정의한 reference representation 또는 label 체계에 연결하는 분석이다. (일반 지식)</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#reference</span><span class="chip chip-tag">#annotation</span><span class="chip chip-tag">#integration</span></div>
+    <div class="note-body"><h2 id="intuition">Intuition</h2>
+<p>새 지도를 처음부터 다시 그리지 않고 기존 지도에서 새 sample의 위치를 찾는다. 기존 지도에 없는 지역을 억지로 가장 가까운 지역 이름으로 부르면 오해가 생긴다.</p>
+<h2 id="details">Details</h2>
+<ul>
+<li>Input은 query expression과 reference model/labels이며 output은 embedding, neighbors, transferred label 또는 uncertainty이다.</li>
+<li>Reference mapping, de novo integration, nearest-neighbor annotation은 관련되지만 같은 작업은 아니다.</li>
+<li>Healthy reference가 disease-specific state를 충분히 표현하지 못할 수 있다. Mapping이 잘 된다는 것과 biological disease effect가 보존된다는 것을 따로 평가한다.</li>
+<li>Sample/study별 holdout, rare type coverage, batch confounding, unknown-type rejection을 확인한다. (일반 지식)</li>
+</ul>
+<h2 id="why-it-matters">Why it matters</h2>
+<p>Atlas를 재사용할 수 있지만 reference 구성에 따른 편향을 query의 생물학적 차이로 해석해서는 안 된다.</p>
+<h2 id="paper-specific-use">Paper-specific use</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2023-dann-healthy-reference-design/">2023 Dann - Healthy Reference Design</a>: Atlas-only와 atlas+control design을 구분한다.</li>
+<li><a class="wikilink wikilink-paper" href="/papers/2023-de-donno-scpoli/">2023 De Donno - scPoli</a>: Sample embedding과 prototype 기반 표현을 사용한다.</li>
+<li><a class="wikilink wikilink-paper" href="/papers/2025-heimberg-scimilarity/">2025 Heimberg - SCimilarity</a>: Learned metric과 nearest-neighbor search를 이용한다.
+세 방법의 output과 학습 목적이 다르므로 동일한 embedding이라는 이유로 성능을 직접 비교하지 않는다.</li>
+</ul>
+<h2 id="query-mapping-assumptions">Query mapping assumptions</h2>
+<p><a class="wikilink wikilink-paper" href="/papers/2023-de-donno-scpoli/">2023 De Donno - scPoli</a>의 query mapping에서는 reference network와 저장된 prototype을 활용하면서 query condition representation을 학습한다. Prototype distance는 calibrated probability가 아니며 모든 dataset에 공통인 unknown threshold가 보장되지 않는다. Raw reference cells 없이 mapping할 수 있다는 것과 formal privacy guarantee는 다르다. <a class="wikilink wikilink-pipeline" href="/papers/2023-de-donno-scpoli-pipeline/#step-4-·-query-mapping">Query mapping</a> 참고.</p>
+<h2 id="related-concepts">Related concepts</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/batch-correction/">Batch Correction</a> · <a class="wikilink wikilink-concept" href="/concepts/cell-type-annotation/">Cell Type Annotation</a> · <a class="wikilink wikilink-concept" href="/concepts/metric-learning/">Metric Learning</a> · <a class="wikilink wikilink-concept" href="/concepts/knn-graph/">KNN Graph</a></li>
+</ul>
+<h2 id="papers">Papers</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2023-dann-healthy-reference-design/">2023 Dann - Healthy Reference Design</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2023-de-donno-scpoli/">2023 De Donno - scPoli</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2025-heimberg-scimilarity/">2025 Heimberg - SCimilarity</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#intuition">Intuition</a></li><li class="toc-l2"><a href="#details">Details</a></li><li class="toc-l2"><a href="#why-it-matters">Why it matters</a></li><li class="toc-l2"><a href="#paper-specific-use">Paper-specific use</a></li><li class="toc-l2"><a href="#query-mapping-assumptions">Query mapping assumptions</a></li><li class="toc-l2"><a href="#related-concepts">Related concepts</a></li><li class="toc-l2"><a href="#papers">Papers</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/papers/2023-dann-healthy-reference-design/"><span class="kind-dot kind-paper"></span>Healthy Reference Design (Dann 2023)</a></li><li><a href="/papers/2025-heimberg-scimilarity/"><span class="kind-dot kind-paper"></span>SCimilarity (Heimberg 2025)</a></li><li><a href="/papers/2023-de-donno-scpoli/"><span class="kind-dot kind-paper"></span>scPoli (2023 De Donno)</a></li><li><a href="/concepts/spatial-transcriptomics/"><span class="kind-dot kind-concept"></span>Spatial Transcriptomics</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

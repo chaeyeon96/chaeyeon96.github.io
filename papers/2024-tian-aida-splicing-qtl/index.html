@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AIDA Splicing QTL (Tian 2024) · Study Wiki</title>
+<meta name="description" content="AIDA의 splicing variation을 cell type·sex·ancestry 및 genotype와 연결하고, 일부 disease GWAS signal에 기능적 해석을 더한 population genomics 연구다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a></p>
+    <div class="paper-meta">
+      
+      <span class="badge">Nature Genetics</span>
+      <span>2024</span>
+      <span class="muted">atlas</span>
+      
+    </div>
+    <h1 class="note-title">AIDA Splicing QTL (Tian 2024)</h1>
+    <p class="paper-full-title">Single-cell RNA sequencing of peripheral blood links cell-type-specific regulation of splicing to autoimmune and inflammatory diseases — Tian et al.</p>
+    <p class="lead">AIDA의 splicing variation을 cell type·sex·ancestry 및 genotype와 연결하고, 일부 disease GWAS signal에 기능적 해석을 더한 population genomics 연구다.</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1038/s41588-024-02019-8" rel="noopener">원문 (DOI)</a>
+      
+      
+      <span class="license">License · CC BY-NC-ND 4.0</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/immunology/">Immunology</a><a class="chip chip-link" href="/sections/single-cell-analysis/">Single-cell Analysis</a></div>
+    <div class="note-body"><h2 id="background">Background</h2>
+<p>Gene expression 양이 같아도 사용하는 exon/intron junction이 다르면 isoform의 기능은 달라질 수 있다. 이 논문은 5′ scRNA-seq에서 splicing을 정량화하고 cell-type-specific genetic regulation을 찾는다. LeafCutter·SpliZ·QTLtools 같은 기존 방법을 적용한 atlas 연구이며 새로운 독립 tool을 제안하지 않아 별도 Pipeline 대신 이 페이지의 Methods reference를 사용한다.</p>
+<h2 id="data">Data</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Measured / inferred</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AIDA splicing analysis set</td>
+<td>실측 5′ scRNA-seq + genotype; Japan/Korea/Singapore의 474 healthy donors, 약 100만 PBMCs</td>
+<td>AS 분석 21 subtypes; sQTL 분석 19 types</td>
+</tr>
+<tr>
+<td>AIDA release object v1</td>
+<td>1,058,909 cells, 503 Asian donors + 5 common controls</td>
+<td>공개 release 범위; 474명 분석 subset과 구분</td>
+</tr>
+<tr>
+<td>PacBio MAS-seq</td>
+<td>4 donors의 실측 long-read cDNA</td>
+<td>Short-read junction 검증 (Fig. 1d)</td>
+</tr>
+<tr>
+<td>GENCODE v32 / Snaptron / OneK1K</td>
+<td>Annotation·기존 junction·독립 3′ dataset</td>
+<td>Coverage 및 junction 검증/비교</td>
+</tr>
+<tr>
+<td>BLUEPRINT, DICE, GTEx, ImmuNexUT</td>
+<td>독립 bulk RNA sQTL data</td>
+<td>sQTL replication (Fig. 3f)</td>
+</tr>
+<tr>
+<td>20-trait GWAS</td>
+<td>주로 Asian population의 summary statistics</td>
+<td>COLOC 및 S-LDSC (Fig. 6)</td>
+</tr>
+<tr>
+<td>K562 minigene</td>
+<td>rs74416240 G/A construct의 실측 splicing</td>
+<td>TCHP variant 기능 검증 (Fig. 6h)</td>
+</tr>
+</tbody>
+</table></div>
+<p><a class="wikilink wikilink-paper" href="/papers/2025-kock-aida/">2025 Kock - AIDA</a>의 v2 619 donors와 합치거나 같은 분석 sample 수로 쓰지 않는다.</p>
+<h2 id="figure-1-·-splicing-measurement-and-validation">Figure 1 · Splicing measurement and validation</h2>
+<p><strong>Context</strong> · 먼저 5′ scRNA-seq으로 gene body의 splicing을 측정할 수 있는지 검증한다. Cell annotation이 맞아도 junction coverage가 부족하면 sQTL 결과가 편향될 수 있다.</p>
+<p><a href="https://www.nature.com/articles/s41588-024-02019-8/figures/1">Original figure</a></p>
+<p><strong>A–C · Design and coverage</strong></p>
+<ul>
+<li><strong>목적</strong>: 5′ data의 splice-junction 정보를 평가한다.</li>
+<li><strong>Data &amp; method</strong>: AIDA read 위치와 read-count별 exon coverage를 계산한다.</li>
+<li><strong>그림 읽기</strong>: B는 transcript 위치에 따른 read 1/2 coverage, C는 read-count bin별 covered-base fraction이다.</li>
+<li><strong>결과와 의미</strong>: Read 2와 exon painting으로 5′ 바깥에도 coverage가 생기지만 gene별 depth 차이가 있다.</li>
+</ul>
+<p><strong>D · Junction validation</strong></p>
+<ul>
+<li><strong>목적</strong>: 검출 junction이 기술적 오류인지 점검한다.</li>
+<li><strong>Data &amp; method</strong>: LeafCutter junction을 GENCODE, 4-donor MAS-seq 및 Snaptron과 대조한다.</li>
+<li><strong>그림 읽기</strong>: Annotated fraction과 independent-data replication을 구분한다.</li>
+<li><strong>결과와 의미</strong>: GENCODE에 없는 junction도 long-read와 독립 자료에서 지지되므로 annotation 부재가 곧 오류는 아니다.</li>
+</ul>
+<p><strong>E–I · Cell-type resolution</strong></p>
+<ul>
+<li><strong>목적</strong>: 분석 가능한 cell type과 power를 확인한다.</li>
+<li><strong>Data &amp; method</strong>: Single-cell SpliZ 및 donor × cell type pseudobulk LeafCutter로 AS genes를 정량화한다.</li>
+<li><strong>그림 읽기</strong>: E의 숫자는 cell 수가 아니라 분석에 이용 가능한 donor 수이며 F–I는 detection과 depth의 관계다.</li>
+<li><strong>결과와 의미</strong>: Pseudobulk는 sparse single-cell junction을 보완하지만 cell 수와 library depth에 따라 detection power가 달라진다.</li>
+</ul>
+<h2 id="figure-2-·-cell-type-and-demographic-splicing">Figure 2 · Cell-type and demographic splicing</h2>
+<p><strong>Context</strong> · 측정 가능성을 확인한 뒤 어떤 biological context가 splicing과 연결되는지 본다. Gene-level expression만으로는 보이지 않는 isoform 차이에 초점을 둔다.</p>
+<p><a href="https://www.nature.com/articles/s41588-024-02019-8/figures/2">Original figure</a></p>
+<p><strong>A–C · Lineages and isoforms</strong></p>
+<ul>
+<li><strong>목적</strong>: Splicing이 lineage/state를 구분하는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Cell-type AS correlation과 PTPRC/CD44 junction 사용을 비교한다.</li>
+<li><strong>그림 읽기</strong>: A의 correlation block, B–C의 isoform별 상대 사용을 읽는다.</li>
+<li><strong>결과와 의미</strong>: Naive와 activated/memory T cells의 CD45RA/RO 사용이 달라 gene 총량과 다른 정보를 제공한다.</li>
+</ul>
+<p><strong>D–E · Sex-biased events</strong></p>
+<ul>
+<li><strong>목적</strong>: Sex-associated AS를 찾는다.</li>
+<li><strong>Data &amp; method</strong>: LeafCutter differential splicing으로 sex별 event와 FLNA isoform을 비교한다.</li>
+<li><strong>그림 읽기</strong>: Event 수와 FLNA exon coverage를 함께 읽는다.</li>
+<li><strong>결과와 의미</strong>: 48 events/32 genes가 확인됐고 FLNA short isoform은 female-biased였다.</li>
+</ul>
+<p><strong>F–G · Ancestry-associated events</strong></p>
+<ul>
+<li><strong>목적</strong>: Population 차이와 allele frequency의 관계를 본다.</li>
+<li><strong>Data &amp; method</strong>: Ancestry DSE 및 SPSB2 splice-site variant rs11064437을 분석한다.</li>
+<li><strong>그림 읽기</strong>: F는 group comparison, G는 junction·genotype와 population별 빈도를 연결한다.</li>
+<li><strong>결과와 의미</strong>: Population AS 차이 일부는 variant frequency로 설명 가능하며 ethnicity 자체를 단일 원인으로 해석하지 않는다.</li>
+</ul>
+<h2 id="figure-3-·-cell-type-specific-cis-sqtls">Figure 3 · Cell-type-specific cis-sQTLs</h2>
+<p><strong>Context</strong> · Demographic association을 넘어 genotype와 splicing의 직접적인 통계 연관을 찾는다. 발견 수가 많은 cell type이 반드시 더 강하게 조절되는 것은 아니므로 power를 함께 본다.</p>
+<p><a href="https://www.nature.com/articles/s41588-024-02019-8/figures/3">Original figure</a></p>
+<p><strong>A–E · Discovery and power</strong></p>
+<ul>
+<li><strong>목적</strong>: Cis-sQTL의 수·위치·power를 평가한다.</li>
+<li><strong>Data &amp; method</strong>: 19 cell types에서 ±1 Mb cis mapping과 functional annotation을 수행한다.</li>
+<li><strong>그림 읽기</strong>: A는 독립 sQTL 수, B–C는 splice-site 근접성, D–E는 sample 수/allelic heterogeneity다.</li>
+<li><strong>결과와 의미</strong>: 11,577 independent cis-sQTLs를 찾았으며 sample/library 규모가 discovery에 영향을 준다.</li>
+</ul>
+<p><strong>F–H · Replication and sharing</strong></p>
+<ul>
+<li><strong>목적</strong>: 독립 data 재현과 cell-type sharing을 구분한다.</li>
+<li><strong>Data &amp; method</strong>: 외부 sQTL replication과 mash effect-sharing 분석을 수행한다.</li>
+<li><strong>그림 읽기</strong>: F의 replication과 G–H의 effect 방향·크기 공유를 별도로 읽는다.</li>
+<li><strong>결과와 의미</strong>: 같은 방향이라도 effect magnitude는 cell type마다 달라질 수 있다.</li>
+</ul>
+<p><strong>I–J · Sex-biased regulation</strong></p>
+<ul>
+<li><strong>목적</strong>: Genotype effect가 sex context에 따라 달라지는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Sex-stratified sQTL 분석과 대표 locus를 비교한다.</li>
+<li><strong>그림 읽기</strong>: Effect의 sex 간 차이는 한쪽 P value만 유의한 것과 구분한다.</li>
+<li><strong>결과와 의미</strong>: Context-specific regulation을 제시하며 세부 threshold는 Methods 확인이 필요하다.</li>
+</ul>
+<h2 id="figure-4-·-dynamic-splicing-during-b-cell-differentiation">Figure 4 · Dynamic splicing during B-cell differentiation</h2>
+<p><strong>Context</strong> · 고정된 cell-type label은 연속적인 maturation을 압축한다. Pseudotime을 사용해 intron usage와 genotype effect의 변화를 따로 추적한다.</p>
+<p><a href="https://www.nature.com/articles/s41588-024-02019-8/figures/4">Original figure</a></p>
+<p><strong>A–D · B-cell trajectory</strong></p>
+<ul>
+<li><strong>목적</strong>: Naive-to-memory 진행축을 정의한다.</li>
+<li><strong>Data &amp; method</strong>: 52,964 B cells의 expression 기반 trajectory를 6 quantiles로 나눈다.</li>
+<li><strong>그림 읽기</strong>: A–C의 위치·pseudotime·bin과 D의 isotype 분포를 함께 읽는다.</li>
+<li><strong>결과와 의미</strong>: 연속 state에서의 분석이며 실제 시간 경과를 직접 관찰한 것은 아니다.</li>
+</ul>
+<p><strong>E–F · Dynamic intron usage</strong></p>
+<ul>
+<li><strong>목적</strong>: Maturation 중 splicing 형태를 구분한다.</li>
+<li><strong>Data &amp; method</strong>: 865 dynamic introns와 PAX5/PTPRC/DOCK8 예시를 분석한다.</li>
+<li><strong>그림 읽기</strong>: Stepwise·linear·quadratic 사용 pattern을 비교한다.</li>
+<li><strong>결과와 의미</strong>: Gene마다 지속·단계적·일시적인 isoform 변화가 다르다.</li>
+</ul>
+<p><strong>G · Dynamic sQTLs</strong></p>
+<ul>
+<li><strong>목적</strong>: Genotype effect도 state에 따라 달라지는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Genotype × pseudotime interaction으로 107 lead dynamic sQTLs를 검출한다.</li>
+<li><strong>그림 읽기</strong>: Heatmap의 effect 추세와 bin별 genotype boxplot을 비교한다.</li>
+<li><strong>결과와 의미</strong>: 평균 cell-type sQTL은 state별로 강화·약화되는 effect를 숨길 수 있다.</li>
+</ul>
+<h2 id="figure-5-·-hnrnpll–ptprc-trans-regulation">Figure 5 · HNRNPLL–PTPRC trans regulation</h2>
+<p><strong>Context</strong> · Cis signal만으로 먼 gene의 splice change를 설명할 수 없다. Expression regulator와 trans target이 같은 genetic signal을 공유하는지 살핀다.</p>
+<p><a href="https://www.nature.com/articles/s41588-024-02019-8/figures/5">Original figure</a></p>
+<p><strong>A–C · trans discovery</strong></p>
+<ul>
+<li><strong>목적</strong>: 원거리 splicing association을 찾는다.</li>
+<li><strong>Data &amp; method</strong>: Trans mapping과 sample-size 및 cis-discovery 관계를 평가한다.</li>
+<li><strong>그림 읽기</strong>: 발견 수와 power를 함께 읽고 연결선을 causal pathway로 단정하지 않는다.</li>
+<li><strong>결과와 의미</strong>: 607 trans-sGenes를 보고하며 cell-type specificity가 높다.</li>
+</ul>
+<p><strong>D–G · Regulatory chain</strong></p>
+<ul>
+<li><strong>목적</strong>: HNRNPLL expression과 PTPRC splicing의 연결을 검토한다.</li>
+<li><strong>Data &amp; method</strong>: Cis-eQTL/trans-sQTL COLOC 및 single-cell expression–isoform association을 분석한다.</li>
+<li><strong>그림 읽기</strong>: 같은 locus의 association peak와 expression에 따른 isoform 사용을 비교한다.</li>
+<li><strong>결과와 의미</strong>: HNRNPLL–PTPRC regulation에 일치하는 근거이지만 colocalization만으로 매개 인과가 확정되지는 않는다.</li>
+</ul>
+<p><strong>H–K · Cell proportions and fine mapping</strong></p>
+<ul>
+<li><strong>목적</strong>: 분자 변화가 T-cell phenotype과 이어지는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Cell fraction association, SMR/HEIDI 및 SuSiE fine mapping을 사용한다.</li>
+<li><strong>그림 읽기</strong>: Naive/Tem의 lead SNP와 LD 및 cell fraction effect를 구분한다.</li>
+<li><strong>결과와 의미</strong>: Cell context에 따라 lead regulatory variant가 달라지는 설명을 제시한다.</li>
+</ul>
+<h2 id="figure-6-·-disease-genetics-and-tchp-validation">Figure 6 · Disease genetics and TCHP validation</h2>
+<p><strong>Context</strong> · 이제 splicing association이 disease locus의 해석을 돕는지 묻는다. 통계적인 공유 signal과 직접적인 splice-site 실험 검증을 분리한다.</p>
+<p><a href="https://www.nature.com/articles/s41588-024-02019-8/figures/6">Original figure</a></p>
+<p><strong>A–C · GWAS interpretation</strong></p>
+<ul>
+<li><strong>목적</strong>: Immune disease risk에 splicing이 enrich되는지 본다.</li>
+<li><strong>Data &amp; method</strong>: 19 types의 cis-sQTL과 20 traits를 COLOC 및 S-LDSC로 분석한다.</li>
+<li><strong>그림 읽기</strong>: A/C의 colocalization과 B의 heritability enrichment는 서로 다른 지표다.</li>
+<li><strong>결과와 의미</strong>: Autoimmune/inflammatory traits에서 enrichment를 보이며 candidate effector genes를 좁힌다.</li>
+</ul>
+<p><strong>D–G · TCHP locus</strong></p>
+<ul>
+<li><strong>목적</strong>: Graves’ disease signal에 대한 splice mechanism을 찾는다.</li>
+<li><strong>Data &amp; method</strong>: rs74416240의 TCHP eQTL/sQTL/GWAS 및 1000 Genomes allele frequency를 비교한다.</li>
+<li><strong>그림 읽기</strong>: 동일 locus의 여러 evidence와 G의 splice-site 위치를 연결한다.</li>
+<li><strong>결과와 의미</strong>: East-Asian-enriched allele이 TCHP exon 4–5 intron retention과 연결된다.</li>
+</ul>
+<p><strong>H · Minigene experiment</strong></p>
+<ul>
+<li><strong>목적</strong>: Variant가 splicing을 바꾸는지 직접 검증한다.</li>
+<li><strong>Data &amp; method</strong>: K562에 G 또는 A allele만 다른 minigene construct를 넣어 RNA product를 측정한다.</li>
+<li><strong>그림 읽기</strong>: G/A lane의 band 위치를 vector-only 및 정상 isoform과 대조한다.</li>
+<li><strong>결과와 의미</strong>: A allele이 intron retention을 유도한다; K562 assay는 임상 Graves’ disease 인과 전체를 증명하지 않는다.</li>
+</ul>
+<h2 id="methods-reference">Methods reference</h2>
+<p>ScRNA-seq annotation은 AIDA의 lineage-specific QC를 따른다. B cell, pDC, myeloid, ILC, NK, T-cell compartment 안에서 platelet-marker-high cells 및 RBC/platelet/ambiguous clusters를 제외한다. <strong>이 QC threshold를 모든 PBMC 분석에 적용하는 보편 규칙으로 복사하지 않는다.</strong></p>
+<ul>
+<li><strong>Splicing</strong>: SpliZ는 single-cell-level statistic, LeafCutter는 intron cluster 내 상대 사용량을 donor × cell-type pseudobulk에서 다룬다. Gene expression eQTL과 intron-usage sQTL은 다른 phenotype이다.</li>
+<li><strong>Genetics</strong>: Cis mapping ±1 Mb, cis FDR &lt;0.05; trans FDR &lt;0.01; colocalization의 핵심 기준은 posterior H4 &gt;0.75다.</li>
+<li><strong>Dynamic analysis</strong>: Expression-based B-cell trajectory의 6 bins와 genotype interaction을 사용한다. Pseudotime은 donor age가 아니다.</li>
+</ul>
+<h3 id="existing-figure-identification">Existing figure identification</h3>
+<p>기존 노트의 Img1은 <strong>Main Fig. 1e</strong>의 cell-type hierarchy이고, Img2는 <strong>Extended Data Fig. 1c</strong>의 UMAP임을 PDF와 대조했다. Img2를 새 main figure처럼 번호 붙이지 않는다. Supplementary/Extended Data image를 본문에 넣지 않는 규칙에 따라 그림은 보존하되 여기서는 main panel만 표시한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-tian-aida-splicing-qtl-img1.webp" alt="2024 Tian - AIDA Splicing QTL Img1" loading="lazy"><span class="figure-credit">Figure: Tian et al., Nature Genetics (2024) · CC BY-NC-ND 4.0</span></span></p>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li>5′ capture도 full-length isoform sequencing을 대체하지 않으며 sparse junction과 coverage 차이가 남는다.</li>
+<li>Population label은 genotype·environment·site와 얽힌다. Population-associated 현상을 본질적인 집단 차이로 일반화하지 않는다.</li>
+<li>sQTL colocalization/SMR은 가정에 의존하는 통계 근거다; TCHP의 minigene 검증과 동일 수준의 증거가 아니다.</li>
+<li>Pseudotime 및 genetically predicted regulation은 실제 longitudinal transition이나 perturbation readout이 아니다.</li>
+</ul>
+<h2 id="data-and-code">Data &amp; Code</h2>
+<ul>
+<li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11631754/">Original paper, Methods and main figures</a>.</li>
+<li><a href="https://prabhakarlab.github.io/AIDA.html">AIDA release guide</a>, <a href="https://cellxgene.cziscience.com/collections/ced320a1-29f3-47c1-a735-513c7084d508">CELLxGENE collection</a>.</li>
+<li>Japan <strong>GSE280974</strong>, Korea <strong>GSE281106</strong>; Singapore raw genotypes/FASTQ는 HELIOS DAC 신청 필요.</li>
+<li><a href="https://doi.org/10.5281/zenodo.8343364">sQTL summary statistics</a>, <a href="https://github.com/boxiangliulab/AIDA_phase1_sQTL">author code</a>.</li>
+<li><strong>Reading status</strong>: Main PDF figure layout, main legends/results 및 관련 Methods를 확인했다. Supplementary PDF 다운로드는 cache miss여서 전체 읽기를 완료했다고 주장하지 않는다; 세부 설정의 완전한 재현 recipe는 아직 아니다.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li>
+<p><a class="wikilink wikilink-concept" href="/concepts/pbmc/">PBMC</a> · <a class="wikilink wikilink-concept" href="/concepts/cell-quality-control/">Cell Quality Control</a> · <a class="wikilink wikilink-concept" href="/concepts/cell-type-annotation/">Cell Type Annotation</a></p>
+</li>
+<li>
+<p>같은 cohort: <a class="wikilink wikilink-paper" href="/papers/2025-kock-aida/">2025 Kock - AIDA</a></p>
+</li>
+<li>
+<p><a class="wikilink wikilink-concept" href="/concepts/colocalization/">Colocalization</a></p>
+</li>
+<li>
+<p><a class="wikilink wikilink-concept" href="/concepts/splicing-quantitative-trait-locus/">Splicing Quantitative Trait Locus</a></p>
+</li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#background">Background</a></li><li class="toc-l2"><a href="#data">Data</a></li><li class="toc-l2"><a href="#figure-1-·-splicing-measurement-and-validation">Figure 1 · Splicing measurement and validation</a></li><li class="toc-l2"><a href="#figure-2-·-cell-type-and-demographic-splicing">Figure 2 · Cell-type and demographic splicing</a></li><li class="toc-l2"><a href="#figure-3-·-cell-type-specific-cis-sqtls">Figure 3 · Cell-type-specific cis-sQTLs</a></li><li class="toc-l2"><a href="#figure-4-·-dynamic-splicing-during-b-cell-differentiation">Figure 4 · Dynamic splicing during B-cell differentiation</a></li><li class="toc-l2"><a href="#figure-5-·-hnrnpll–ptprc-trans-regulation">Figure 5 · HNRNPLL–PTPRC trans regulation</a></li><li class="toc-l2"><a href="#figure-6-·-disease-genetics-and-tchp-validation">Figure 6 · Disease genetics and TCHP validation</a></li><li class="toc-l2"><a href="#methods-reference">Methods reference</a></li><li class="toc-l3"><a href="#existing-figure-identification">Existing figure identification</a></li><li class="toc-l2"><a href="#limitations">Limitations</a></li><li class="toc-l2"><a href="#data-and-code">Data &amp;amp; Code</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/papers/2025-kock-aida/"><span class="kind-dot kind-paper"></span>AIDA (Kock 2025)</a></li><li><a href="/concepts/cell-quality-control/"><span class="kind-dot kind-concept"></span>Cell Quality Control</a></li><li><a href="/concepts/cell-type-annotation/"><span class="kind-dot kind-concept"></span>Cell Type Annotation</a></li><li><a href="/concepts/colocalization/"><span class="kind-dot kind-concept"></span>Colocalization</a></li><li><a href="/concepts/pbmc/"><span class="kind-dot kind-concept"></span>PBMC (Peripheral Blood Mononuclear Cells)</a></li><li><a href="/concepts/splicing-quantitative-trait-locus/"><span class="kind-dot kind-concept"></span>Splicing Quantitative Trait Locus</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

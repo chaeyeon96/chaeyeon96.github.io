@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CS-CORE · Study Wiki</title>
+<meta name="description" content="[!tip] Pipeline 2023 Su - CS-CORE (Pipeline)">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a></p>
+    <div class="paper-meta">
+      
+      <span class="badge">Nature Communications</span>
+      <span>2023</span>
+      <span class="muted">method</span>
+      
+    </div>
+    <h1 class="note-title">CS-CORE</h1>
+    <p class="paper-full-title">Cell-type-specific co-expression inference from single cell RNA-sequencing data — Su et al.</p>
+    <p class="lead">[!tip] Pipeline 2023 Su - CS-CORE (Pipeline)</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1038/s41467-023-40503-7" rel="noopener">원문 (DOI)</a>
+      <a class="btn btn-small btn-soft" href="/papers/2023-su-cs-core-pipeline/">Pipeline 따라가기</a>
+      
+      <span class="license">License · CC BY 4.0</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/single-cell-analysis/">Single-cell Analysis</a></div>
+    <div class="note-body"><div class="callout callout-tip">
+<div class="callout-title"><span class="callout-icon" aria-hidden="true">✦</span>Pipeline</div>
+<div class="callout-body">
+<p><a class="wikilink wikilink-pipeline" href="/papers/2023-su-cs-core-pipeline/">2023 Su - CS-CORE (Pipeline)</a></p>
+</div></div>
+<h2 id="background">Background</h2>
+<p>Cell-type-specific co-expression은 같은 cell type 안에서 gene 간 함께 변하는 정도다. Sequencing depth confounding과 Poisson measurement error에 의한 attenuation은 서로 다른 문제이며, log normalization만으로 둘 다 해결되지 않는다.</p>
+<h2 id="data">Data</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Type / role</th>
+<th>Figures</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lau AD prefrontal cortex, 12 AD / 9 controls; GSE157827</td>
+<td>Measured snRNA-seq; simulation parameter와 brain application</td>
+<td>1–5</td>
+</tr>
+<tr>
+<td>Independent brain cohorts syn21261143 / syn22079621</td>
+<td>Measured external replication</td>
+<td>5, Supplement</td>
+</tr>
+<tr>
+<td>COVID-19 PBMC, 7 patients / 6 controls; COVID-19 Cell Atlas</td>
+<td>Measured disease/control application</td>
+<td>6</td>
+</tr>
+<tr>
+<td>GSE155224 PBMC</td>
+<td>Measured external replication</td>
+<td>Supplement</td>
+</tr>
+<tr>
+<td>Permutation / Gamma–Poisson simulations</td>
+<td>Generated truth/null, 실제 환자 추가 측정 아님</td>
+<td>1–4</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="figure-1-·-null-calibration">Figure 1 · Null calibration</h2>
+<p><strong>Context</strong> · 실제 data를 바탕으로 독립적인 gene을 만들어 sequencing depth만 바꾼다. 추정 bias와 false positive를 먼저 분리한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-su-cs-core-fig1.png" alt="2023 Su - CS-CORE Fig1" loading="lazy"><span class="figure-credit">Figure: Su et al., Nature Communications (2023) · CC BY 4.0</span></span></p>
+<p>Figure: Su, Nature Communications (2023) · CC BY 4.0 · <a href="https://www.nature.com/articles/s41467-023-40503-7/figures/1">Original figure</a></p>
+<p><strong>A · Mean-dependent bias</strong></p>
+<ul>
+<li><strong>Purpose</strong> · 독립 gene의 추정 correlation이 0인가?</li>
+<li><strong>Data &amp; method</strong> · Control excitatory neuron 기반 permutation; varying/constant depth → <a class="wikilink wikilink-pipeline" href="/papers/2023-su-cs-core-pipeline/#step-1-·-input-and-measurement-model">Pipeline</a>.</li>
+<li><strong>Reading</strong> · 평균 expression 대비 평균 co-expression, 빨강 varying·파랑 constant</li>
+<li><strong>Result &amp; meaning</strong> · CS-CORE는 depth 변화에도 0 주변을 유지한다.</li>
+</ul>
+<p><strong>B · Null p-values</strong></p>
+<ul>
+<li><strong>Purpose</strong> · 검정이 null에서 calibrated되는가?</li>
+<li><strong>Data &amp; method</strong> · Permuted counts, 7개 test 가능 방법의 Q–Q plot → <a class="wikilink wikilink-pipeline" href="/papers/2023-su-cs-core-pipeline/#step-1-·-input-and-measurement-model">Pipeline</a>.</li>
+<li><strong>Reading</strong> · Uniform null 대각선에서의 이탈을 본다</li>
+<li><strong>Result &amp; meaning</strong> · 일부 normalization 기반 검정은 varying depth에서 false positive가 증가한다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · 일부 normalization 기반 검정은 varying depth에서 false positive가 증가한다.</p>
+</blockquote>
+<h2 id="figure-2-·-normalization-artifacts">Figure 2 · Normalization artifacts</h2>
+<p><strong>Context</strong> · Null bias의 원인을 두 gene의 좌표로 확인한다. 같은 count라도 depth로 나누면 서로 다른 점이 된다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-su-cs-core-fig2.png" alt="2023 Su - CS-CORE Fig2" loading="lazy"><span class="figure-credit">Figure: Su et al., Nature Communications (2023) · CC BY 4.0</span></span></p>
+<p>Figure: Su, Nature Communications (2023) · CC BY 4.0 · <a href="https://www.nature.com/articles/s41467-023-40503-7/figures/2">Original figure</a></p>
+<p><strong>Count / scaled / log-normalized views</strong></p>
+<ul>
+<li><strong>Purpose</strong> · Normalization이 독립성을 보존하는가?</li>
+<li><strong>Data &amp; method</strong> · 독립적인 simulated gene pair; scaling 10^4, log1p → <a class="wikilink wikilink-pipeline" href="/papers/2023-su-cs-core-pipeline/#step-2-·-moment-equations-and-ols-initialization">Pipeline</a>.</li>
+<li><strong>Reading</strong> · 같은 count pair가 scaling 후 ray, log 후 diagonal 구조가 되는지 본다</li>
+<li><strong>Result &amp; meaning</strong> · Normalization 자체로 co-expression을 안전하게 추정할 수 있다는 보장은 없다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Normalization 자체로 co-expression을 안전하게 추정할 수 있다는 보장은 없다.</p>
+</blockquote>
+<h2 id="figure-3-·-estimation-detection-and-runtime">Figure 3 · Estimation, detection and runtime</h2>
+<p><strong>Context</strong> · False positive뿐 아니라 실제 correlation을 얼마나 정확히 복원하는지도 필요하다. Truth가 있는 simulation으로 평가한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-su-cs-core-fig3.png" alt="2023 Su - CS-CORE Fig3" loading="lazy"><span class="figure-credit">Figure: Su et al., Nature Communications (2023) · CC BY 4.0</span></span></p>
+<p>Figure: Su, Nature Communications (2023) · CC BY 4.0 · <a href="https://www.nature.com/articles/s41467-023-40503-7/figures/3">Original figure</a></p>
+<p><strong>A · Attenuation</strong></p>
+<ul>
+<li><strong>Purpose</strong> · True correlation 0.5를 복원하는가?</li>
+<li><strong>Data &amp; method</strong> · 5,000 genes, 1,000 cells; expression 범위 변화 → <a class="wikilink wikilink-pipeline" href="/papers/2023-su-cs-core-pipeline/#step-3-·-irls-and-covariance">Pipeline</a>.</li>
+<li><strong>Reading</strong> · Expression별 estimate와 truth 0.5를 비교한다</li>
+<li><strong>Result &amp; meaning</strong> · CS-CORE는 low-expression attenuation을 줄인다.</li>
+</ul>
+<p><strong>B · Precision–recall</strong></p>
+<ul>
+<li><strong>Purpose</strong> · 실제 edge를 구별하는가?</li>
+<li><strong>Data &amp; method</strong> · 500 genes, 5,000 cells; real-data-derived sparse truth → <a class="wikilink wikilink-pipeline" href="/papers/2023-su-cs-core-pipeline/#step-3-·-irls-and-covariance">Pipeline</a>.</li>
+<li><strong>Reading</strong> · 같은 recall에서 precision을 본다</li>
+<li><strong>Result &amp; meaning</strong> · CS-CORE가 이 benchmark에서 가장 높은 AUC를 보인다; 일반적 우월성으로 확대하지 않는다.</li>
+</ul>
+<p><strong>C · Runtime</strong></p>
+<ul>
+<li><strong>Purpose</strong> · 정확도를 계산 가능하게 얻는가?</li>
+<li><strong>Data &amp; method</strong> · B와 같은 setting, 100 repetitions → <a class="wikilink wikilink-pipeline" href="/papers/2023-su-cs-core-pipeline/#step-3-·-irls-and-covariance">Pipeline</a>.</li>
+<li><strong>Reading</strong> · 평균과 SD; locCSN/baredSC의 축소 실행 조건을 확인한다</li>
+<li><strong>Result &amp; meaning</strong> · 일부 경쟁 도구는 전체 문제를 실행하지 않았으므로 막대를 동일 workload로 읽으면 안 된다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · 일부 경쟁 도구는 전체 문제를 실행하지 않았으므로 막대를 동일 workload로 읽으면 안 된다.</p>
+</blockquote>
+<h2 id="figure-4-·-downstream-structure">Figure 4 · Downstream structure</h2>
+<p><strong>Context</strong> · Correlation bias는 edge 하나를 넘어 module과 PCA를 왜곡할 수 있다. 동일 simulation truth를 downstream 수준에서 검증한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-su-cs-core-fig4.png" alt="2023 Su - CS-CORE Fig4" loading="lazy"><span class="figure-credit">Figure: Su et al., Nature Communications (2023) · CC BY 4.0</span></span></p>
+<p>Figure: Su, Nature Communications (2023) · CC BY 4.0 · <a href="https://www.nature.com/articles/s41467-023-40503-7/figures/4">Original figure</a></p>
+<p><strong>A · Network heatmaps</strong></p>
+<ul>
+<li><strong>Purpose</strong> · 네 module 구조를 복원하는가?</li>
+<li><strong>Data &amp; method</strong> · 100 genes, 2,000 cells, 4 planted clusters → <a class="wikilink wikilink-pipeline" href="/papers/2023-su-cs-core-pipeline/#step-5-·-modules-replication-and-differential-networks">Pipeline</a>.</li>
+<li><strong>Reading</strong> · 각 방법 자체 clustering 순서와 true-label 색을 함께 본다</li>
+<li><strong>Result &amp; meaning</strong> · CS-CORE가 planted modular structure를 잘 복원한다.</li>
+</ul>
+<p><strong>B · Clustering ARI</strong></p>
+<ul>
+<li><strong>Purpose</strong> · Clustering truth와 일치하는가?</li>
+<li><strong>Data &amp; method</strong> · 25 repetitions, cluster 수 4 → <a class="wikilink wikilink-pipeline" href="/papers/2023-su-cs-core-pipeline/#step-5-·-modules-replication-and-differential-networks">Pipeline</a>.</li>
+<li><strong>Reading</strong> · ARI가 높을수록 좋다</li>
+<li><strong>Result &amp; meaning</strong> · Correlation bias는 cluster assignment도 바꾼다.</li>
+</ul>
+<p><strong>C · PCA subspace</strong></p>
+<ul>
+<li><strong>Purpose</strong> · 주요 network 방향을 복원하는가?</li>
+<li><strong>Data &amp; method</strong> · Top 4 singular-vector subspaces → <a class="wikilink wikilink-pipeline" href="/papers/2023-su-cs-core-pipeline/#step-5-·-modules-replication-and-differential-networks">Pipeline</a>.</li>
+<li><strong>Reading</strong> · Subspace distance가 작을수록 좋다</li>
+<li><strong>Result &amp; meaning</strong> · CS-CORE는 주요 방향 복원도 개선한다.</li>
+</ul>
+<p><strong>D · Mean association</strong></p>
+<ul>
+<li><strong>Purpose</strong> · Mean expression이 network 중심성을 가짜로 설명하는가?</li>
+<li><strong>Data &amp; method</strong> · Mean expression와 평균 co-expression의 Spearman correlation → <a class="wikilink wikilink-pipeline" href="/papers/2023-su-cs-core-pipeline/#step-5-·-modules-replication-and-differential-networks">Pipeline</a>.</li>
+<li><strong>Reading</strong> · Truth dashed line과 비교한다</li>
+<li><strong>Result &amp; meaning</strong> · 많은 방법에서 expression-dependent structure가 남는다.</li>
+</ul>
+<p><strong>E · Expression clustering</strong></p>
+<ul>
+<li><strong>Purpose</strong> · Expression 수준별 clustering을 잘못 network module로 읽는가?</li>
+<li><strong>Data &amp; method</strong> · Network clusters와 expression clusters의 ARI → <a class="wikilink wikilink-pipeline" href="/papers/2023-su-cs-core-pipeline/#step-5-·-modules-replication-and-differential-networks">Pipeline</a>.</li>
+<li><strong>Reading</strong> · Truth 대비 과도한 일치 여부를 본다</li>
+<li><strong>Result &amp; meaning</strong> · Network structure와 abundance structure를 구분해야 한다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Network structure와 abundance structure를 구분해야 한다.</p>
+</blockquote>
+<h2 id="figure-5-·-ad-brain-validation">Figure 5 · AD brain validation</h2>
+<p><strong>Context</strong> · Simulation 이점이 독립 실측 자료에서도 나타나는지 묻는다. Control-derived network의 재현성과 기능을 분리해 검증한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-su-cs-core-fig5.png" alt="2023 Su - CS-CORE Fig5" loading="lazy"><span class="figure-credit">Figure: Su et al., Nature Communications (2023) · CC BY 4.0</span></span></p>
+<p>Figure: Su, Nature Communications (2023) · CC BY 4.0 · <a href="https://www.nature.com/articles/s41467-023-40503-7/figures/5">Original figure</a></p>
+<p><strong>A · Replication</strong></p>
+<ul>
+<li><strong>Purpose</strong> · 독립 brain dataset에서도 edge가 검출되는가?</li>
+<li><strong>Data &amp; method</strong> · 5 brain cell types, top 5,000 expressed genes, independent cohort → <a class="wikilink wikilink-pipeline" href="/papers/2023-su-cs-core-pipeline/#step-5-·-modules-replication-and-differential-networks">Pipeline</a>.</li>
+<li><strong>Reading</strong> · 공통 significant pair 수의 CS-CORE/sctransform ratio</li>
+<li><strong>Result &amp; meaning</strong> · CS-CORE에서 더 많은 reproducible pairs가 검출된다.</li>
+</ul>
+<p><strong>B · TF-target overlap</strong></p>
+<ul>
+<li><strong>Purpose</strong> · 알려진 관계와 겹치는가?</li>
+<li><strong>Data &amp; method</strong> · TRRUST TF-target reference → <a class="wikilink wikilink-pipeline" href="/papers/2023-su-cs-core-pipeline/#step-5-·-modules-replication-and-differential-networks">Pipeline</a>.</li>
+<li><strong>Reading</strong> · Overlap count ratio와 nominal p cutoff</li>
+<li><strong>Result &amp; meaning</strong> · Reference overlap은 biological plausibility이며 causal validation은 아니다.</li>
+</ul>
+<p><strong>C · Microglia modules</strong></p>
+<ul>
+<li><strong>Purpose</strong> · 기능별 gene이 함께 연결되는가?</li>
+<li><strong>Data &amp; method</strong> · 4 GO functions의 microglia genes, hierarchical heatmaps → <a class="wikilink wikilink-pipeline" href="/papers/2023-su-cs-core-pipeline/#step-5-·-modules-replication-and-differential-networks">Pipeline</a>.</li>
+<li><strong>Reading</strong> · 같은 GO group 내부 연결을 비교한다</li>
+<li><strong>Result &amp; meaning</strong> · CS-CORE에서 기능에 맞는 module structure가 더 뚜렷하다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · CS-CORE에서 기능에 맞는 module structure가 더 뚜렷하다.</p>
+</blockquote>
+<h2 id="figure-6-·-covid-19-differential-co-expression">Figure 6 · COVID-19 differential co-expression</h2>
+<p><strong>Context</strong> · Co-expression 변화는 mean expression 증가와 다른 질문이다. Monocyte immune module의 control과 disease network를 대조한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-su-cs-core-fig6.png" alt="2023 Su - CS-CORE Fig6" loading="lazy"><span class="figure-credit">Figure: Su et al., Nature Communications (2023) · CC BY 4.0</span></span></p>
+<p>Figure: Su, Nature Communications (2023) · CC BY 4.0 · <a href="https://www.nature.com/articles/s41467-023-40503-7/figures/6">Original figure</a></p>
+<p><strong>Control versus COVID-19 networks</strong></p>
+<ul>
+<li><strong>Purpose</strong> · Interferon 관련 gene coordination이 달라지는가?</li>
+<li><strong>Data &amp; method</strong> · 7 hospitalized patients, 6 controls; monocyte top 1,000 genes → <a class="wikilink wikilink-pipeline" href="/papers/2023-su-cs-core-pipeline/#step-5-·-modules-replication-and-differential-networks">Pipeline</a>.</li>
+<li><strong>Reading</strong> · 빨강 interferon genes, 갈색 SARS-CoV-2 Reactome, 별표 양쪽</li>
+<li><strong>Result &amp; meaning</strong> · Interferon/antigen-presentation 관련 coordination 증가를 보인다; 동일인 longitudinal 변화는 아니다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Interferon/antigen-presentation 관련 coordination 증가를 보인다; 동일인 longitudinal 변화는 아니다.</p>
+</blockquote>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li>Co-expression은 직접 regulation이나 인과를 입증하지 않는다.</li>
+<li>Cell independence와 Poisson sampling 가정, cell-type annotation에 의존한다. Multiple donors를 pooled cell로 분석할 때 donor dependence를 별도로 점검해야 한다 (일반적 통계 주의).</li>
+<li>Figure 5 A/B는 nominal p cutoffs이며 모든 그림을 BH-adjusted cutoff로 읽으면 안 된다.</li>
+<li>Differential analysis의 cell label permutation은 donor-level inference와 동일하지 않다.</li>
+</ul>
+<h2 id="data-and-code">Data &amp; Code</h2>
+<ul>
+<li><a href="https://www.nature.com/articles/s41467-023-40503-7">Paper and Methods</a></li>
+<li><a href="https://github.com/ChangSuBiostats/CS-CORE">R implementation</a> · <a href="https://github.com/ChangSuBiostats/CS-CORE_python">Python</a></li>
+<li><a href="https://doi.org/10.5281/zenodo.7983426">Archived code</a> · <a href="https://doi.org/10.5281/zenodo.7983559">Figure source data</a></li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/co-expression-network-analysis/">Co-expression Network Analysis</a> (CS-CORE 설명 포함)</li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#background">Background</a></li><li class="toc-l2"><a href="#data">Data</a></li><li class="toc-l2"><a href="#figure-1-·-null-calibration">Figure 1 · Null calibration</a></li><li class="toc-l2"><a href="#figure-2-·-normalization-artifacts">Figure 2 · Normalization artifacts</a></li><li class="toc-l2"><a href="#figure-3-·-estimation-detection-and-runtime">Figure 3 · Estimation, detection and runtime</a></li><li class="toc-l2"><a href="#figure-4-·-downstream-structure">Figure 4 · Downstream structure</a></li><li class="toc-l2"><a href="#figure-5-·-ad-brain-validation">Figure 5 · AD brain validation</a></li><li class="toc-l2"><a href="#figure-6-·-covid-19-differential-co-expression">Figure 6 · COVID-19 differential co-expression</a></li><li class="toc-l2"><a href="#limitations">Limitations</a></li><li class="toc-l2"><a href="#data-and-code">Data &amp;amp; Code</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/co-expression-network-analysis/"><span class="kind-dot kind-concept"></span>Co-expression Network Analysis</a></li><li><a href="/papers/2023-su-cs-core-pipeline/"><span class="kind-dot kind-pipeline"></span>CS-CORE Pipeline</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

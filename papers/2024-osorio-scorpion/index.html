@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCORPION · Study Wiki</title>
+<meta name="description" content="[!tip] Pipeline 2024 Osorio - SCORPION (Pipeline)">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a></p>
+    <div class="paper-meta">
+      
+      <span class="badge">Nature Computational Science</span>
+      <span>2024</span>
+      <span class="muted">method</span>
+      
+    </div>
+    <h1 class="note-title">SCORPION</h1>
+    <p class="paper-full-title">Population-level comparisons of gene regulatory networks modeled on high-throughput single-cell transcriptomics data — Osorio et al.</p>
+    <p class="lead">[!tip] Pipeline 2024 Osorio - SCORPION (Pipeline)</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1038/s43588-024-00597-5" rel="noopener">원문 (DOI)</a>
+      <a class="btn btn-small btn-soft" href="/papers/2024-osorio-scorpion-pipeline/">Pipeline 따라가기</a>
+      
+      <span class="license">License · CC BY 4.0</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/single-cell-analysis/">Single-cell Analysis</a></div>
+    <div class="note-body"><div class="callout callout-tip">
+<div class="callout-title"><span class="callout-icon" aria-hidden="true">✦</span>Pipeline</div>
+<div class="callout-body">
+<p><a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/">2024 Osorio - SCORPION (Pipeline)</a></p>
+</div></div>
+<h2 id="background">Background</h2>
+<p>PANDA는 motif, TF PPI, gene co-expression 사이 일관성을 높이는 message-passing 방식이다. SCORPION은 sparse single-cell data를 coarse-grain하고 동일 prior를 유지해 sample별 GRN 비교를 가능하게 한다. Outdegree는 TF의 outgoing weight 합, indegree는 target의 incoming weight 합이다.</p>
+<h2 id="data">Data</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Type / role</th>
+<th>Figure</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BEELINE GSD</td>
+<td>Synthetic benchmark; prior 없이 expression 기반 비교</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Hnf4α/γ WT/DKO mouse intestine</td>
+<td>Measured perturbation; 4,100/4,200 cells</td>
+<td>2A–H</td>
+</tr>
+<tr>
+<td>DUX4 human ESC</td>
+<td>Measured WT 970 / selected 8C-like OE 55</td>
+<td>2I–M</td>
+</tr>
+<tr>
+<td>CRC 5 public datasets, 47 donors</td>
+<td>Measured 303,221 cells; Results QC 200,439; 560 GRNs</td>
+<td>3–5</td>
+</tr>
+<tr>
+<td>Left/right tumor core</td>
+<td>Measured 22 left / 11 right, 33 samples</td>
+<td>6A–D</td>
+</tr>
+<tr>
+<td>TCGA COAD/READ; newly generated 15 PDX</td>
+<td>Independent measured expression/survival validation</td>
+<td>6E–G</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="figure-1-·-network-inference-and-benchmark">Figure 1 · Network inference and benchmark</h2>
+<p><strong>Context</strong> · Sparse single-cell data로 sample별 network를 비교하려면 공통 prior와 안정적인 co-expression이 필요하다. Coarse-graining과 PANDA의 역할을 분리한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-osorio-scorpion-fig1.png" alt="2024 Osorio - SCORPION Fig1" loading="lazy"><span class="figure-credit">Figure: Osorio et al., Nature Computational Science (2024) · CC BY 4.0</span></span></p>
+<p>Figure: Osorio, Nature Computational Science (2024) · CC BY 4.0 · <a href="https://www.nature.com/articles/s43588-024-00597-5/figures/1">Original figure</a></p>
+<p><strong>A · Workflow</strong></p>
+<ul>
+<li><strong>Purpose</strong> · 비교 가능한 GRN을 어떻게 만드는가?</li>
+<li><strong>Data &amp; method</strong> · Single-cell counts + motif prior + STRING PPI → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-1-·-sample-specific-coarse-graining">Pipeline</a>.</li>
+<li><strong>Reading</strong> · Coarse-graining 뒤 세 network 사이 message passing</li>
+<li><strong>Result &amp; meaning</strong> · 출력은 TF×target weighted network이지 직접 측정한 binding이 아니다.</li>
+</ul>
+<p><strong>B · Benchmark</strong></p>
+<ul>
+<li><strong>Purpose</strong> · Desparsification이 network recovery에 도움이 되는가?</li>
+<li><strong>Data &amp; method</strong> · BEELINE GSD synthetic data, 13 algorithms, 7 metrics → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-1-·-sample-specific-coarse-graining">Pipeline</a>.</li>
+<li><strong>Reading</strong> · 빨강 좋은 순위, 파랑 나쁜 순위, 회색 미측정</li>
+<li><strong>Result &amp; meaning</strong> · 평균 순위가 우수하지만 synthetic benchmark와 full prior-assisted biological analysis는 구분한다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · 평균 순위가 우수하지만 synthetic benchmark와 full prior-assisted biological analysis는 구분한다.</p>
+</blockquote>
+<h2 id="figure-2-·-perturbation-validation">Figure 2 · Perturbation validation</h2>
+<p><strong>Context</strong> · 공통 prior로 추정한 network가 알려진 perturbation에 반응하는지 확인한다. Loss와 gain 실험을 서로 다른 species에서 검증한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-osorio-scorpion-fig2.png" alt="2024 Osorio - SCORPION Fig2" loading="lazy"><span class="figure-credit">Figure: Osorio et al., Nature Computational Science (2024) · CC BY 4.0</span></span></p>
+<p>Figure: Osorio, Nature Computational Science (2024) · CC BY 4.0 · <a href="https://www.nature.com/articles/s43588-024-00597-5/figures/2">Original figure</a></p>
+<p><strong>A · Hnf4α Weight distribution</strong></p>
+<ul>
+<li><strong>Purpose</strong> · Knockout의 효과를 복원하는가?</li>
+<li><strong>Data &amp; method</strong> · Mouse intestinal WT 4,100 / DKO 4,200 cells; shared 2,990 targets → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-2-·-align-three-networks">Pipeline</a>.</li>
+<li><strong>Reading</strong> · WT와 DKO density</li>
+<li><strong>Result &amp; meaning</strong> · DKO에서 weight distribution이 이동한다.</li>
+</ul>
+<p><strong>B · Hnf4α Paired differences</strong></p>
+<ul>
+<li><strong>Purpose</strong> · Knockout의 효과를 복원하는가?</li>
+<li><strong>Data &amp; method</strong> · Mouse intestinal WT 4,100 / DKO 4,200 cells; shared 2,990 targets → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-2-·-align-three-networks">Pipeline</a>.</li>
+<li><strong>Reading</strong> · DKO−WT 차이 분포</li>
+<li><strong>Result &amp; meaning</strong> · 평균 차이가 음수로 이동한다.</li>
+</ul>
+<p><strong>C · Hnf4α Target deviations</strong></p>
+<ul>
+<li><strong>Purpose</strong> · Knockout의 효과를 복원하는가?</li>
+<li><strong>Data &amp; method</strong> · Mouse intestinal WT 4,100 / DKO 4,200 cells; shared 2,990 targets → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-2-·-align-three-networks">Pipeline</a>.</li>
+<li><strong>Reading</strong> · WT/DKO Spearman scatter, 95% interval 밖 target</li>
+<li><strong>Result &amp; meaning</strong> · Outlier는 network 변화 후보이며 expression fold change와 동일하지 않다.</li>
+</ul>
+<p><strong>D · Hnf4α Enterocyte enrichment</strong></p>
+<ul>
+<li><strong>Purpose</strong> · Knockout의 효과를 복원하는가?</li>
+<li><strong>Data &amp; method</strong> · Mouse intestinal WT 4,100 / DKO 4,200 cells; shared 2,990 targets → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-2-·-align-three-networks">Pipeline</a>.</li>
+<li><strong>Reading</strong> · Ranked differences의 GSEA</li>
+<li><strong>Result &amp; meaning</strong> · Enterocyte identity gene targeting 감소와 일치한다.</li>
+</ul>
+<p><strong>E · Hnf4γ Weight distribution</strong></p>
+<ul>
+<li><strong>Purpose</strong> · Knockout의 효과를 복원하는가?</li>
+<li><strong>Data &amp; method</strong> · Mouse intestinal WT 4,100 / DKO 4,200 cells; shared 2,990 targets → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-2-·-align-three-networks">Pipeline</a>.</li>
+<li><strong>Reading</strong> · WT와 DKO density</li>
+<li><strong>Result &amp; meaning</strong> · DKO에서 weight distribution이 이동한다.</li>
+</ul>
+<p><strong>F · Hnf4γ Paired differences</strong></p>
+<ul>
+<li><strong>Purpose</strong> · Knockout의 효과를 복원하는가?</li>
+<li><strong>Data &amp; method</strong> · Mouse intestinal WT 4,100 / DKO 4,200 cells; shared 2,990 targets → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-2-·-align-three-networks">Pipeline</a>.</li>
+<li><strong>Reading</strong> · DKO−WT 차이 분포</li>
+<li><strong>Result &amp; meaning</strong> · 평균 차이가 음수로 이동한다.</li>
+</ul>
+<p><strong>G · Hnf4γ Target deviations</strong></p>
+<ul>
+<li><strong>Purpose</strong> · Knockout의 효과를 복원하는가?</li>
+<li><strong>Data &amp; method</strong> · Mouse intestinal WT 4,100 / DKO 4,200 cells; shared 2,990 targets → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-2-·-align-three-networks">Pipeline</a>.</li>
+<li><strong>Reading</strong> · WT/DKO Spearman scatter, 95% interval 밖 target</li>
+<li><strong>Result &amp; meaning</strong> · Outlier는 network 변화 후보이며 expression fold change와 동일하지 않다.</li>
+</ul>
+<p><strong>H · Hnf4γ Enterocyte enrichment</strong></p>
+<ul>
+<li><strong>Purpose</strong> · Knockout의 효과를 복원하는가?</li>
+<li><strong>Data &amp; method</strong> · Mouse intestinal WT 4,100 / DKO 4,200 cells; shared 2,990 targets → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-2-·-align-three-networks">Pipeline</a>.</li>
+<li><strong>Reading</strong> · Ranked differences의 GSEA</li>
+<li><strong>Result &amp; meaning</strong> · Enterocyte identity gene targeting 감소와 일치한다.</li>
+</ul>
+<p><strong>I · ESC map</strong></p>
+<ul>
+<li><strong>Purpose</strong> · 8C-like subset은 무엇인가?</li>
+<li><strong>Data &amp; method</strong> · DUX4 experiment, marker-based UMAP → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-2-·-align-three-networks">Pipeline</a>.</li>
+<li><strong>Reading</strong> · Highlighted subset과 나머지 ESC</li>
+<li><strong>Result &amp; meaning</strong> · WT 970와 selected OE 55 cells의 비교임을 명시한다.</li>
+</ul>
+<p><strong>J · DUX4 edge distribution</strong></p>
+<ul>
+<li><strong>Purpose</strong> · DUX4 overexpression의 regulatory response를 확인한다.</li>
+<li><strong>Data &amp; method</strong> · Human ESC WT 970 / selected 8C-like OE 55; 622 TF, 13,422 targets → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-5-·-network-comparison">Pipeline</a>.</li>
+<li><strong>Reading</strong> · WT/OE edge-weight density를 비교한다.</li>
+<li><strong>Result &amp; meaning</strong> · OE network의 DUX4 targeting distribution이 이동한다.</li>
+</ul>
+<p><strong>K · Paired differences</strong></p>
+<ul>
+<li><strong>Purpose</strong> · DUX4 overexpression의 regulatory response를 확인한다.</li>
+<li><strong>Data &amp; method</strong> · Human ESC WT 970 / selected 8C-like OE 55; 622 TF, 13,422 targets → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-5-·-network-comparison">Pipeline</a>.</li>
+<li><strong>Reading</strong> · OE−WT 차이 분포와 0을 비교한다.</li>
+<li><strong>Result &amp; meaning</strong> · 차이가 양수로 이동해 overexpression 실험 방향과 일치한다.</li>
+</ul>
+<p><strong>L · Target deviations</strong></p>
+<ul>
+<li><strong>Purpose</strong> · DUX4 overexpression의 regulatory response를 확인한다.</li>
+<li><strong>Data &amp; method</strong> · Human ESC WT 970 / selected 8C-like OE 55; 622 TF, 13,422 targets → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-5-·-network-comparison">Pipeline</a>.</li>
+<li><strong>Reading</strong> · WT/OE edge scatter에서 95% interval 밖 target을 본다.</li>
+<li><strong>Result &amp; meaning</strong> · Extreme differences는 target 후보이며 직접 측정한 expression fold change가 아니다.</li>
+</ul>
+<p><strong>M · 8C-like enrichment</strong></p>
+<ul>
+<li><strong>Purpose</strong> · DUX4 overexpression의 regulatory response를 확인한다.</li>
+<li><strong>Data &amp; method</strong> · Human ESC WT 970 / selected 8C-like OE 55; 622 TF, 13,422 targets → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-5-·-network-comparison">Pipeline</a>.</li>
+<li><strong>Reading</strong> · Ranked differences에 대한 GSEA curve를 읽는다.</li>
+<li><strong>Result &amp; meaning</strong> · 8C-like marker program과 positive enrichment를 보인다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · DUX4 targeting 증가와 8C-like program이 연결된다; 모든 OE cell의 평균이 아니다.</p>
+</blockquote>
+<h2 id="figure-3-·-crc-network-atlas">Figure 3 · CRC network atlas</h2>
+<p><strong>Context</strong> · 두 조건의 proof-of-concept를 multi-sample atlas로 확장한다. Cell embedding과 network embedding의 점 단위는 서로 다르다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-osorio-scorpion-fig3.png" alt="2024 Osorio - SCORPION Fig3" loading="lazy"><span class="figure-credit">Figure: Osorio et al., Nature Computational Science (2024) · CC BY 4.0</span></span></p>
+<p>Figure: Osorio, Nature Computational Science (2024) · CC BY 4.0 · <a href="https://www.nature.com/articles/s43588-024-00597-5/figures/3">Original figure</a></p>
+<p><strong>A · Healthy</strong></p>
+<ul>
+<li><strong>Purpose</strong> · Tissue별 cell composition을 보여 주는가?</li>
+<li><strong>Data &amp; method</strong> · Measured CRC atlas, QC 200,439 cells → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-3-·-message-passing">Pipeline</a>.</li>
+<li><strong>Reading</strong> · A–D UMAP 점 하나는 cell</li>
+<li><strong>Result &amp; meaning</strong> · Cell-type annotation을 sample별 GRN 생성에 사용한다.</li>
+</ul>
+<p><strong>B · Border</strong></p>
+<ul>
+<li><strong>Purpose</strong> · Tissue별 cell composition을 보여 주는가?</li>
+<li><strong>Data &amp; method</strong> · Measured CRC atlas, QC 200,439 cells → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-3-·-message-passing">Pipeline</a>.</li>
+<li><strong>Reading</strong> · A–D UMAP 점 하나는 cell</li>
+<li><strong>Result &amp; meaning</strong> · Cell-type annotation을 sample별 GRN 생성에 사용한다.</li>
+</ul>
+<p><strong>C · Core</strong></p>
+<ul>
+<li><strong>Purpose</strong> · Tissue별 cell composition을 보여 주는가?</li>
+<li><strong>Data &amp; method</strong> · Measured CRC atlas, QC 200,439 cells → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-3-·-message-passing">Pipeline</a>.</li>
+<li><strong>Reading</strong> · A–D UMAP 점 하나는 cell</li>
+<li><strong>Result &amp; meaning</strong> · Cell-type annotation을 sample별 GRN 생성에 사용한다.</li>
+</ul>
+<p><strong>D · Liver metastasis</strong></p>
+<ul>
+<li><strong>Purpose</strong> · Tissue별 cell composition을 보여 주는가?</li>
+<li><strong>Data &amp; method</strong> · Measured CRC atlas, QC 200,439 cells → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-3-·-message-passing">Pipeline</a>.</li>
+<li><strong>Reading</strong> · A–D UMAP 점 하나는 cell</li>
+<li><strong>Result &amp; meaning</strong> · Cell-type annotation을 sample별 GRN 생성에 사용한다.</li>
+</ul>
+<p><strong>E · Network embedding</strong></p>
+<ul>
+<li><strong>Purpose</strong> · GRN이 cell identity를 담는가?</li>
+<li><strong>Data &amp; method</strong> · 560 sample×cell-type networks; gene indegrees → PCA → t-SNE → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-3-·-message-passing">Pipeline</a>.</li>
+<li><strong>Reading</strong> · 점 하나는 network</li>
+<li><strong>Result &amp; meaning</strong> · Tissue에 관계없이 같은 cell type network가 가까이 모인다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Tissue에 관계없이 같은 cell type network가 가까이 모인다.</p>
+</blockquote>
+<h2 id="figure-4-·-progression-associated-edges">Figure 4 · Progression-associated edges</h2>
+<p><strong>Context</strong> · Epithelial network에서 tissue 위치에 따른 변화 패턴을 찾는다. 위치 순서는 실제 longitudinal tracking이 아니라 모델의 설명변수다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-osorio-scorpion-fig4.png" alt="2024 Osorio - SCORPION Fig4" loading="lazy"><span class="figure-credit">Figure: Osorio et al., Nature Computational Science (2024) · CC BY 4.0</span></span></p>
+<p>Figure: Osorio, Nature Computational Science (2024) · CC BY 4.0 · <a href="https://www.nature.com/articles/s43588-024-00597-5/figures/4">Original figure</a></p>
+<p><strong>A · Edge regression</strong></p>
+<ul>
+<li><strong>Purpose</strong> · 어떤 edge가 ordered tissue와 연관되는가?</li>
+<li><strong>Data &amp; method</strong> · 149 epithelial networks; normal 42, border 9, core 94, metastasis 4 → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-5-·-network-comparison">Pipeline</a>.</li>
+<li><strong>Reading</strong> · 1→4 tissue coding에 대한 edge β</li>
+<li><strong>Result &amp; meaning</strong> · Significant slope는 association이며 시간에 따른 인과 변화의 증명이 아니다.</li>
+</ul>
+<p><strong>B · TF ranking</strong></p>
+<ul>
+<li><strong>Purpose</strong> · 어떤 TF의 총 targeting이 변하는가?</li>
+<li><strong>Data &amp; method</strong> · TF별 edge β 합 → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-5-·-network-comparison">Pipeline</a>.</li>
+<li><strong>Reading</strong> · Positive/negative outdegree ranking</li>
+<li><strong>Result &amp; meaning</strong> · SP1 등 progression-associated regulator 후보를 요약한다.</li>
+</ul>
+<p><strong>C–D · Hallmarks</strong></p>
+<ul>
+<li><strong>Purpose</strong> · Gene-side 변화는 어떤 program과 관련되는가?</li>
+<li><strong>Data &amp; method</strong> · Gene indegree regression + hallmark GSEA → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-5-·-network-comparison">Pipeline</a>.</li>
+<li><strong>Reading</strong> · C positive NES, D negative NES</li>
+<li><strong>Result &amp; meaning</strong> · 50 hallmarks 중 11개 FDR&lt;0.05; CIN-related programs와 연결된다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · 50 hallmarks 중 11개 FDR&lt;0.05; CIN-related programs와 연결된다.</p>
+</blockquote>
+<h2 id="figure-5-·-progression-network">Figure 5 · Progression network</h2>
+<p><strong>Context</strong> · 앞선 regression 결과를 network로 표시한다. 이 그림은 left/right 분석이 아니라 progression-associated edge summary다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-osorio-scorpion-fig5.png" alt="2024 Osorio - SCORPION Fig5" loading="lazy"><span class="figure-credit">Figure: Osorio et al., Nature Computational Science (2024) · CC BY 4.0</span></span></p>
+<p>Figure: Osorio, Nature Computational Science (2024) · CC BY 4.0 · <a href="https://www.nature.com/articles/s43588-024-00597-5/figures/5">Original figure</a></p>
+<p><strong>Network view</strong></p>
+<ul>
+<li><strong>Purpose</strong> · 어떤 TF-target 관계가 함께 변하는가?</li>
+<li><strong>Data &amp; method</strong> · Figure 4 slope-derived network → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-5-·-network-comparison">Pipeline</a>.</li>
+<li><strong>Reading</strong> · 빨강 증가, 파랑 감소; 굵은 TF labels</li>
+<li><strong>Result &amp; meaning</strong> · 화살표는 TF→gene model 방향이며 실험적으로 확인한 causal edge를 뜻하지 않는다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · 화살표는 TF→gene model 방향이며 실험적으로 확인한 causal edge를 뜻하지 않는다.</p>
+</blockquote>
+<h2 id="figure-6-·-left–right-comparison-and-validation">Figure 6 · Left–right comparison and validation</h2>
+<p><strong>Context</strong> · 같은 tumor core에서도 해부학적 origin에 따라 regulatory program이 다른지 묻는다. Network prediction을 independent expression 자료와 연결한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-osorio-scorpion-fig6.png" alt="2024 Osorio - SCORPION Fig6" loading="lazy"><span class="figure-credit">Figure: Osorio et al., Nature Computational Science (2024) · CC BY 4.0</span></span></p>
+<p>Figure: Osorio, Nature Computational Science (2024) · CC BY 4.0 · <a href="https://www.nature.com/articles/s43588-024-00597-5/figures/6">Original figure</a></p>
+<p><strong>A · Cohort map</strong></p>
+<ul>
+<li><strong>Purpose</strong> · 어떤 sample을 비교하는가?</li>
+<li><strong>Data &amp; method</strong> · 22 left / 11 right tumor core samples → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-5-·-network-comparison">Pipeline</a>.</li>
+<li><strong>Reading</strong> · Side별 anatomical diagram과 n</li>
+<li><strong>Result &amp; meaning</strong> · 기존 노트의 left 11/right 22는 반대였으므로 바로잡는다.</li>
+</ul>
+<p><strong>B · Differential targeting</strong></p>
+<ul>
+<li><strong>Purpose</strong> · TF outdegree가 side별로 다른가?</li>
+<li><strong>Data &amp; method</strong> · 622 TF targeting 비교 → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-5-·-network-comparison">Pipeline</a>.</li>
+<li><strong>Reading</strong> · Volcano effect와 significance</li>
+<li><strong>Result &amp; meaning</strong> · Right-high 118, left-high 287 TF가 관찰된다.</li>
+</ul>
+<p><strong>C–D · Top TFs</strong></p>
+<ul>
+<li><strong>Purpose</strong> · 상위 regulator의 방향은 무엇인가?</li>
+<li><strong>Data &amp; method</strong> · 33 independent samples, top 10 per side → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-5-·-network-comparison">Pipeline</a>.</li>
+<li><strong>Reading</strong> · C left-high, D right-high</li>
+<li><strong>Result &amp; meaning</strong> · Left UPR, right TNF/NF-κB enrichment와 연결된다.</li>
+</ul>
+<p><strong>E · Survival</strong></p>
+<ul>
+<li><strong>Purpose</strong> · NFKB2 expression은 survival과 연관되는가?</li>
+<li><strong>Data &amp; method</strong> · TCGA COAD/READ, log-rank → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-5-·-network-comparison">Pipeline</a>.</li>
+<li><strong>Reading</strong> · Expression-defined group survival curves</li>
+<li><strong>Result &amp; meaning</strong> · Association이지 NFKB2 억제의 치료 효과는 아니다.</li>
+</ul>
+<p><strong>F–G · Expression validation</strong></p>
+<ul>
+<li><strong>Purpose</strong> · Network 방향이 다른 cohort expression에서도 보이는가?</li>
+<li><strong>Data &amp; method</strong> · TCGA 및 새 PDX 15개: left 6/right 9 → <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/#step-5-·-network-comparison">Pipeline</a>.</li>
+<li><strong>Reading</strong> · F ZNF350, G NFKB2; FPKM/CPM 차이를 확인한다</li>
+<li><strong>Result &amp; meaning</strong> · Expression validation은 network 모든 edge의 직접 검증과 다르다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Expression validation은 network 모든 edge의 직접 검증과 다르다.</p>
+</blockquote>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li>Prior quality와 sufficient depth에 의존한다; rare-state coarse-graining은 phenotype 차이를 지울 수 있다.</li>
+<li>Main introduction 200,436와 Results/Supplementary Table 6의 200,439가 불일치한다. 여기서는 QC 설명의 200,439를 쓰되 차이를 숨기지 않는다.</li>
+<li>Figure 2 confidence interval은 95%이며 기존 96% 표기를 수정했다. Figure 2C/G/L은 scatter, D/H/M은 GSEA다.</li>
+<li>Figure 6F legend의 ZND350은 Results의 ZNF350과 불일치한다. Figure 4/6 boxplot legend의 median±1.5 IQR 설명은 통상적인 box 정의와 달라 원그림/source data 재확인이 필요하다.</li>
+<li>CRC tissue ordering과 side association은 관찰 연구이며 patient-level confounding을 제거했다는 보장은 없다.</li>
+</ul>
+<h2 id="data-and-code">Data &amp; Code</h2>
+<ul>
+<li><a href="https://www.nature.com/articles/s43588-024-00597-5">Paper / Methods</a></li>
+<li><a href="https://github.com/kuijjerlab/SCORPION">Code</a> · <a href="https://doi.org/10.5281/zenodo.10515946">Versioned networks and code</a></li>
+<li>CRC inputs: GSE132465, GSE144735, HRA000979, E-MTAB-8107, GSE178318.</li>
+<li>Supplementary Figure 1 annotation, Figure 2 PPCOR, Figure 3 randomized priors, Figure 4 within-donor reproducibility를 확인했다.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li>
+<p><a class="wikilink wikilink-paper" href="/papers/2013-glass-panda/">2013 Glass - PANDA</a> · <a class="wikilink wikilink-concept" href="/concepts/scenic/">SCENIC</a> · <a class="wikilink wikilink-concept" href="/concepts/gene-set-enrichment-analysis/">Gene Set Enrichment Analysis</a> · <a class="wikilink wikilink-concept" href="/concepts/network-propagation/">Network Propagation</a></p>
+</li>
+<li>
+<p><a class="wikilink wikilink-concept" href="/concepts/gene-regulatory-network/">Gene Regulatory Network</a></p>
+</li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#background">Background</a></li><li class="toc-l2"><a href="#data">Data</a></li><li class="toc-l2"><a href="#figure-1-·-network-inference-and-benchmark">Figure 1 · Network inference and benchmark</a></li><li class="toc-l2"><a href="#figure-2-·-perturbation-validation">Figure 2 · Perturbation validation</a></li><li class="toc-l2"><a href="#figure-3-·-crc-network-atlas">Figure 3 · CRC network atlas</a></li><li class="toc-l2"><a href="#figure-4-·-progression-associated-edges">Figure 4 · Progression-associated edges</a></li><li class="toc-l2"><a href="#figure-5-·-progression-network">Figure 5 · Progression network</a></li><li class="toc-l2"><a href="#figure-6-·-left–right-comparison-and-validation">Figure 6 · Left–right comparison and validation</a></li><li class="toc-l2"><a href="#limitations">Limitations</a></li><li class="toc-l2"><a href="#data-and-code">Data &amp;amp; Code</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/gene-regulatory-network/"><span class="kind-dot kind-concept"></span>Gene Regulatory Network</a></li><li><a href="/concepts/gene-set-enrichment-analysis/"><span class="kind-dot kind-concept"></span>Gene Set Enrichment Analysis</a></li><li><a href="/concepts/network-propagation/"><span class="kind-dot kind-concept"></span>Network Propagation</a></li><li><a href="/papers/2013-glass-panda/"><span class="kind-dot kind-paper"></span>PANDA (2013 Glass)</a></li><li><a href="/concepts/scenic/"><span class="kind-dot kind-concept"></span>SCENIC</a></li><li><a href="/papers/2024-osorio-scorpion-pipeline/"><span class="kind-dot kind-pipeline"></span>SCORPION Pipeline</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

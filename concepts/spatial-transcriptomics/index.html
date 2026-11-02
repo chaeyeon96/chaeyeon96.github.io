@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spatial Transcriptomics · Study Wiki</title>
+<meta name="description" content="Tissue 안의 위치 정보와 RNA expression을 연결하는 측정·분석 방법이다. (일반 지식)">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/single-cell-analysis/">Single-cell Analysis</a></p>
+    <h1 class="note-title">Spatial Transcriptomics</h1>
+    <p class="lead">Tissue 안의 위치 정보와 RNA expression을 연결하는 측정·분석 방법이다. (일반 지식)</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#spatial</span><span class="chip chip-tag">#transcriptomics</span><span class="chip chip-tag">#tissue</span></div>
+    <div class="note-body"><h2 id="intuition">Intuition</h2>
+<p>Cell들이 무엇을 발현하는지뿐 아니라 조직의 어디에 모여 있는지도 함께 보는 지도다.</p>
+<h2 id="details">Details</h2>
+<ul>
+<li>Platform에 따라 측정 단위가 spot, segmented cell 또는 분자 위치이며, resolution과 gene coverage가 다르다.</li>
+<li>한 spot에 여러 cells가 섞일 수 있어 spot expression을 특정 cell type의 직접 측정으로 단정하지 않는다.</li>
+<li>scRNA-seq reference를 이용한 deconvolution·label mapping은 추정값이다. Immunofluorescence 같은 별도 assay는 다른 evidence를 제공한다.</li>
+<li>Neighborhood나 niche는 공간적 공동 분포를 뜻한다. 가까이 있다는 사실만으로 ligand–receptor signaling이나 causal regulation이 증명되지는 않는다. (일반 지식)</li>
+</ul>
+<h2 id="why-it-matters">Why it matters</h2>
+<p>Dissociation으로 사라지는 tissue organization을 보완한다. Biological replicate는 spatial spots의 개수가 아니라 독립 tissue/donor 수준에서도 확인해야 한다.</p>
+<h2 id="paper-specific-use">Paper-specific use</h2>
+<p><a class="wikilink wikilink-paper" href="/papers/2025-bolton-jia-synovial-atlas/">2025 Bolton - JIA Synovial Atlas</a>는 synovial single-cell reference, spatial transcriptomics, multiplexed imaging을 연결한다. 각 assay의 대상과 조직 수, spatial observation과 functional evidence의 차이는 논문의 Data 및 Figure 설명을 확인한다.</p>
+<h2 id="related-concepts">Related concepts</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/single-cell-rna-seq/">Single-cell RNA-seq</a> · <a class="wikilink wikilink-concept" href="/concepts/reference-mapping/">Reference Mapping</a> · <a class="wikilink wikilink-concept" href="/concepts/cell-cell-communication/">Cell-Cell Communication</a> · <a class="wikilink wikilink-concept" href="/concepts/mixed-effects-model/">Mixed Effects Model</a></li>
+</ul>
+<h2 id="papers">Papers</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2025-bolton-jia-synovial-atlas/">2025 Bolton - JIA Synovial Atlas</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#intuition">Intuition</a></li><li class="toc-l2"><a href="#details">Details</a></li><li class="toc-l2"><a href="#why-it-matters">Why it matters</a></li><li class="toc-l2"><a href="#paper-specific-use">Paper-specific use</a></li><li class="toc-l2"><a href="#related-concepts">Related concepts</a></li><li class="toc-l2"><a href="#papers">Papers</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/papers/2025-bolton-jia-synovial-atlas/"><span class="kind-dot kind-paper"></span>JIA Synovial Atlas (Bolton 2025)</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

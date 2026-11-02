@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Somatic Hypermutation (SHM) · Study Wiki</title>
+<meta name="description" content="항원을 만난 B cell이 germinal center에서 BCR의 variable region(V 유전자)에 의도적으로 돌연변이를 쌓아, 항원을 더 강하게 잡는 클론을 고르는 과정. 그 결과가 affinity maturation이다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/immunology/">Immunology</a></p>
+    <h1 class="note-title">Somatic Hypermutation (SHM)</h1>
+    <p class="lead">항원을 만난 B cell이 germinal center에서 BCR의 variable region(V 유전자)에 의도적으로 돌연변이를 쌓아, 항원을 더 강하게 잡는 클론을 고르는 과정. 그 결과가 affinity maturation이다.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#immunology</span><span class="chip chip-tag">#b-cell</span><span class="chip chip-tag">#bcr</span><span class="chip chip-tag">#germinal-center</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p>처음 만든 항체가 &quot;기성품 열쇠&quot;라면, SHM을 거친 항체는 열쇠 구멍에 딱 맞게 깎은 &quot;정밀 가공 열쇠&quot;입니다. 백신을 맞고 시간이 지날수록 면역이 견고해지는 이유입니다.</p>
+<h2 id="자세히">자세히</h2>
+<h3 id="어디서-언제-어디에">어디서, 언제, 어디에</h3>
+<ul>
+<li><strong>장소</strong>: 림프절의 <strong>germinal center</strong></li>
+<li><strong>시기</strong>: B cell이 항원을 만나 활성화된 뒤 증식하는 동안</li>
+<li><strong>위치</strong>: <strong>V(variable) region</strong>. Constant region이 아니다. Constant region은 돌연변이가 아니라 <a class="wikilink wikilink-concept" href="/concepts/class-switch-recombination/">Class Switch Recombination</a>으로 통째로 교체된다.</li>
+</ul>
+<h3 id="메커니즘-aid">메커니즘: AID</h3>
+<p>일반 세포 분열보다 약 <strong>100만 배</strong> 높은 빈도로 변이가 생긴다.</p>
+<ol>
+<li>**AID (activation-induced cytidine deaminase)**가 V region DNA에 붙는다.</li>
+<li>Cytosine(C)을 uracil(U)로 바꾼다 (DNA에 있으면 안 되는 염기).</li>
+<li>복구 시스템이 이 &quot;에러&quot;를 고치다가 의도적으로 실수해 다른 염기로 바뀐다.</li>
+</ol>
+<h3 id="bcr이-다-달라진다-intraclonal-diversity">BCR이 다 달라진다: intraclonal diversity</h3>
+<p>하나의 조상 B cell에서 나온 수만 개의 자손이 <strong>각자 조금씩 다른 BCR</strong>을 갖게 된다. 그중 우연히 더 잘 붙는 것이 생긴다.</p>
+<h3 id="선발-selection">선발 (selection)</h3>
+<ol>
+<li>변이 발생: 결합력이 강해지거나, 약해지거나, 그대로</li>
+<li>항원 테스트: germinal center의 FDC(follicular dendritic cell)가 항원을 들고 있음</li>
+<li>적자생존
+<ul>
+<li>강해진 클론 → 항원을 더 잘 가져오고 Tfh의 도움을 받아 <strong>생존, 추가 증식</strong></li>
+<li>약해진 클론 → 도움을 못 받아 <strong>사멸</strong></li>
+</ul>
+</li>
+<li>살아남은 클론 → memory B cell, plasma cell</li>
+</ol>
+<p>&quot;질보다 양&quot;(무작위 변이로 다양화)에서 &quot;양보다 질&quot;(가장 잘 붙는 것만 저장)로 가는 진화적 최적화입니다.</p>
+<h3 id="shm-vs-csr">SHM vs CSR</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>SHM</th>
+<th>CSR</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>대상</td>
+<td>V region</td>
+<td>C region (switch region)</td>
+</tr>
+<tr>
+<td>목적</td>
+<td>결합력(affinity) ↑</td>
+<td>기능(isotype) 변경</td>
+</tr>
+<tr>
+<td>효소</td>
+<td>AID</td>
+<td>AID</td>
+</tr>
+<tr>
+<td>결과</td>
+<td>항원을 더 꽉 잡음</td>
+<td>IgM → IgG, IgA 등</td>
+</tr>
+</tbody>
+</table></div>
+<p>둘 다 AID가 일으키며 germinal center에서 <strong>병렬로</strong> 일어난다. 논리적으로는 SHM이 살짝 앞서고(결합력 확보) CSR이 뒤따르는 경향이 있고, CSR 뒤에 다시 SHM이 일어나기도 한다.</p>
+<h3 id="tcr에는-없다">TCR에는 없다</h3>
+<p>T cell은 흉선에서 자기 반응성 검사를 통과했고 MHC와도 맞아야 하므로, 무작위 변이는 자가면역이나 인식 실패 위험이 크다. 그래서 <strong>TCR은 SHM을 하지 않는다</strong> → <a class="wikilink wikilink-concept" href="/concepts/t-cell-and-tcr/">T Cell and TCR</a></p>
+<h3 id="데이터에서-shm-재기">데이터에서 SHM 재기</h3>
+<ul>
+<li><strong>Germline은 어떻게 아나</strong>: 환자 개인의 germline을 따로 시퀀싱하지 않고, <strong>IgBLAST</strong> 같은 도구로 표준 V/D/J reference database와 정렬해 가장 가까운 germline 유전자를 찾는다. 그 germline과 다른 염기를 SHM으로 센다.</li>
+<li><strong>Mutation rate</strong>: IGHV 조각 중 변이된 비율. 높을수록 오래 훈련된(성숙한) 클론.</li>
+<li><strong>Lineage tree</strong>: 같은 clonotype 안의 변이 패턴으로 조상–자손 가계도를 그린다.</li>
+<li><strong>Selection pressure</strong>: 변이가 framework(FR)가 아니라 <strong>CDR에 몰려</strong> 있으면 항원 선택을 강하게 받은 클론 → <a class="wikilink wikilink-concept" href="/concepts/clonotype-and-cdr/">Clonotype and CDR</a></li>
+<li><strong>상태 해석</strong> (CSR과 함께):
+<ul>
+<li>IgM⁺ / mutation low: 막 싸움을 시작한 신참</li>
+<li>IgM⁺ / mutation high: 몸통은 기본형이지만 실력은 베테랑</li>
+<li>IgG⁺ / mutation high: 둘 다 업그레이드된 정예(memory, plasma)</li>
+</ul>
+</li>
+<li>AID 유전자 <strong>AICDA</strong> 발현이 높으면 지금 SHM/CSR이 활발한 B cell이다.</li>
+</ul>
+<h2 id="논문별-활용">논문별 활용</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2025-zaslavsky-mal-id/">2025 Zaslavsky - Mal-ID</a> (Model 1): IgM/IgD에는 항원을 아직 만나지 않은 naive B cell이 많이 섞여 있어, <strong>IGHV 변이율 1% 이상</strong>인 서열만 골라 &quot;훈련을 거친&quot; 클론만 썼다. Germline 비교는 IgBLAST v1.3.0 reference로 했다. HIV에서는 IgM/IgD의 높은 SHM 자체가 핵심 신호였다.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/b-cell-and-bcr/">B Cell and BCR</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/class-switch-recombination/">Class Switch Recombination</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/clonotype-and-cdr/">Clonotype and CDR</a></li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2025-zaslavsky-mal-id/">2025 Zaslavsky - Mal-ID</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2024-dunlap-ra-synovium-clonal-associations/">2024 Dunlap - RA Synovium Clonal Associations</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2024-ng-scicsr/">2024 Ng - sciCSR</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l3"><a href="#어디서-언제-어디에">어디서, 언제, 어디에</a></li><li class="toc-l3"><a href="#메커니즘-aid">메커니즘: AID</a></li><li class="toc-l3"><a href="#bcr이-다-달라진다-intraclonal-diversity">BCR이 다 달라진다: intraclonal diversity</a></li><li class="toc-l3"><a href="#선발-selection">선발 (selection)</a></li><li class="toc-l3"><a href="#shm-vs-csr">SHM vs CSR</a></li><li class="toc-l3"><a href="#tcr에는-없다">TCR에는 없다</a></li><li class="toc-l3"><a href="#데이터에서-shm-재기">데이터에서 SHM 재기</a></li><li class="toc-l2"><a href="#논문별-활용">논문별 활용</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/b-cell-and-bcr/"><span class="kind-dot kind-concept"></span>B Cell and BCR</a></li><li><a href="/concepts/class-switch-recombination/"><span class="kind-dot kind-concept"></span>Class Switch Recombination (CSR)</a></li><li><a href="/concepts/clonotype-and-cdr/"><span class="kind-dot kind-concept"></span>Clonotype and CDR</a></li><li><a href="/papers/2025-zaslavsky-mal-id/"><span class="kind-dot kind-paper"></span>Mal-ID (Zaslavsky 2025)</a></li><li><a href="/papers/2024-dunlap-ra-synovium-clonal-associations/"><span class="kind-dot kind-paper"></span>RA Synovium Clonal Associations (Dunlap 2024)</a></li><li><a href="/papers/2024-ng-scicsr/"><span class="kind-dot kind-paper"></span>sciCSR (Ng 2024)</a></li><li><a href="/concepts/t-cell-and-tcr/"><span class="kind-dot kind-concept"></span>T Cell and TCR</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

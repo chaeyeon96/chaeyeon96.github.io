@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leiden Clustering · Study Wiki</title>
+<meta name="description" content="KNN Graph 위에서 modularity(또는 CPM)를 최대화하도록 cell을 community로 나누는 알고리즘. Seurat, Scanpy의 표준 clustering이다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/single-cell-analysis/">Single-cell Analysis</a></p>
+    <h1 class="note-title">Leiden Clustering</h1>
+    <p class="lead">KNN Graph 위에서 modularity(또는 CPM)를 최대화하도록 cell을 community로 나누는 알고리즘. Seurat, Scanpy의 표준 clustering이다.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#single-cell</span><span class="chip chip-tag">#clustering</span><span class="chip chip-tag">#graph</span><span class="chip chip-tag">#community-detection</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p>KNN graph가 &quot;누가 누구와 친한가&quot;의 지도라면, Leiden은 그 지도를 보고 <strong>&quot;어디까지가 한 동네인가&quot;를 선 긋는</strong> 단계입니다. K-means처럼 그룹 수를 미리 정하지 않고, graph 구조에서 자연스럽게 생긴 동네를 찾습니다.</p>
+<h2 id="자세히">자세히</h2>
+<h3 id="louvain과의-차이">Louvain과의 차이</h3>
+<ul>
+<li><strong>Louvain</strong>: 빠르지만, 실제로는 서로 연결이 끊긴 cell들이 한 cluster에 억지로 묶이는(disconnected community) 문제가 있다.</li>
+<li><strong>Leiden</strong>: 속도는 비슷하게 유지하면서 <strong>refinement 단계</strong>를 추가해 이 문제를 고쳤다. 더 견고하고 생물학적으로 균일한 cluster가 나온다.</li>
+</ul>
+<h3 id="알고리즘-4단계">알고리즘 4단계</h3>
+<ol>
+<li><strong>Local moving</strong>: 처음에는 모든 cell이 각자 cluster. Cell을 하나씩 골라 이웃의 cluster로 옮겨 보고, <strong>전체 modularity가 가장 많이 오르는 쪽</strong>으로 이동. 더 이상 안 오를 때까지 반복.</li>
+<li><strong>Refinement</strong> (Leiden의 핵심): 1단계에서 만든 cluster 안을 다시 보고, 연결이 부실한 부분은 쪼개거나 하위 cluster로 재배치.</li>
+<li><strong>Aggregation</strong>: 확정된 cluster를 <strong>super-node</strong> 하나로 합친다. 내부 edge는 self-loop, cluster 사이 edge는 super-node 사이의 굵은 edge가 된다.</li>
+<li><strong>Iteration</strong>: 축소된 graph로 1단계부터 반복. 구조가 변하지 않을 때까지.</li>
+</ol>
+<p>이 덕분에 큰 줄기(면역세포)부터 세밀한 가지(특정 memory T subset)까지 계층적으로 찾고, 데이터를 조금 바꿔도 결과가 안정적이며, 수십만 cell도 몇 분 안에 처리한다.</p>
+<h3 id="resolution-대신-조절하는-값">Resolution: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.0315em;">k</span></span></span></span> 대신 조절하는 값</h3>
+<p>Modularity 식의 기대 연결 항에 붙는 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>γ</mi></mrow><annotation encoding="application/x-tex">\gamma</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.0556em;">γ</span></span></span></span>다 → <a class="wikilink wikilink-concept" href="/concepts/modularity/">Modularity</a></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Resolution</th>
+<th>비유</th>
+<th>결과</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>낮음 (0.1–0.4)</td>
+<td>돋보기를 멀리서</td>
+<td>cluster 수 적음 (예: &quot;lymphocyte&quot;)</td>
+</tr>
+<tr>
+<td>높음 (0.8–2.0)</td>
+<td>돋보기를 가까이</td>
+<td>cluster 수 많음 (예: naive T, memory T, Treg)</td>
+</tr>
+</tbody>
+</table></div>
+<p>보통 0.5 근처에서 시작해 marker를 보며 조절한다.</p>
+<h3 id="잘-안-나뉠-때-체크">잘 안 나뉠 때 체크</h3>
+<ul>
+<li>KNN의 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.0315em;">k</span></span></span></span>가 너무 크면 cell이 지나치게 끈끈해져 잘 안 쪼개진다.</li>
+<li>원하는 세밀함이 안 나오면 resolution을 조금씩 올린다.</li>
+<li>하나의 큰 cell type 안을 따로 subclustering하는 것도 흔하다 (예: T cell만 떼어 다시 clustering).</li>
+</ul>
+<h3 id="전체-흐름">전체 흐름</h3>
+<ol>
+<li>Input: cell별 발현량</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/pca/">PCA</a> 또는 <a class="wikilink wikilink-concept" href="/concepts/scvi/">scVI</a> latent: 압축과 노이즈 제거</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/knn-graph/">KNN Graph</a>: 이웃 찾기, local scaling</li>
+<li><strong>Leiden</strong>: modularity 최적화로 cluster 확정</li>
+<li>Output: cell별 cluster ID → <a class="wikilink wikilink-concept" href="/concepts/cell-type-annotation/">Cell Type Annotation</a></li>
+</ol>
+<h2 id="논문별-활용">논문별 활용</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2025-sheinin-scnet/">2025 Sheinin - scNET</a>: 특정 cluster 수를 주지 않고 resolution을 0~1로 바꿔 가며 Leiden을 돌리고, 정답 label과 가장 잘 맞는 최대 <a class="wikilink wikilink-concept" href="/concepts/adjusted-rand-index/">ARI</a>로 embedding 성능을 비교했다. Gene 임베딩 평가(Fig 2)에는 K-means(K = 30)를 따로 썼다.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/knn-graph/">KNN Graph</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/modularity/">Modularity</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/adjusted-rand-index/">Adjusted Rand Index</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/cell-type-annotation/">Cell Type Annotation</a></li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2024-binvignat-ra-disease-activity-pbmc/">2024 Binvignat - RA Disease Activity PBMC</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2021-wang-kawasaki-disease-pbmc/">2021 Wang - Kawasaki Disease PBMC</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l3"><a href="#louvain과의-차이">Louvain과의 차이</a></li><li class="toc-l3"><a href="#알고리즘-4단계">알고리즘 4단계</a></li><li class="toc-l3"><a href="#resolution-대신-조절하는-값">Resolution: kkk 대신 조절하는 값</a></li><li class="toc-l3"><a href="#잘-안-나뉠-때-체크">잘 안 나뉠 때 체크</a></li><li class="toc-l3"><a href="#전체-흐름">전체 흐름</a></li><li class="toc-l2"><a href="#논문별-활용">논문별 활용</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/adjusted-rand-index/"><span class="kind-dot kind-concept"></span>Adjusted Rand Index (ARI)</a></li><li><a href="/concepts/cell-type-annotation/"><span class="kind-dot kind-concept"></span>Cell Type Annotation</a></li><li><a href="/papers/2021-wang-kawasaki-disease-pbmc/"><span class="kind-dot kind-paper"></span>Kawasaki Disease PBMC (Wang 2021)</a></li><li><a href="/concepts/knn-graph/"><span class="kind-dot kind-concept"></span>KNN Graph</a></li><li><a href="/concepts/modularity/"><span class="kind-dot kind-concept"></span>Modularity</a></li><li><a href="/concepts/pca/"><span class="kind-dot kind-concept"></span>PCA (Principal Component Analysis)</a></li><li><a href="/papers/2024-binvignat-ra-disease-activity-pbmc/"><span class="kind-dot kind-paper"></span>RA Disease Activity PBMC (Binvignat 2024)</a></li><li><a href="/papers/2025-sheinin-scnet/"><span class="kind-dot kind-paper"></span>scNET (Sheinin 2025)</a></li><li><a href="/papers/2025-sheinin-scnet-pipeline/"><span class="kind-dot kind-pipeline"></span>scNET Pipeline (Sheinin 2025)</a></li><li><a href="/concepts/scrna-seq-workflow/"><span class="kind-dot kind-concept"></span>scRNA-seq Workflow</a></li><li><a href="/concepts/trajectory-analysis/"><span class="kind-dot kind-concept"></span>Trajectory Analysis</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

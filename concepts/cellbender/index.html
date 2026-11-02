@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CellBender · Study Wiki</title>
+<meta name="description" content="빈 droplet에 떠다니는 ambient RNA(배경 RNA)를 확률 모델로 추정해, 각 cell의 count에서 빼 주는 도구 (cellbender remove-background).">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/single-cell-analysis/">Single-cell Analysis</a></p>
+    <h1 class="note-title">CellBender</h1>
+    <p class="lead">빈 droplet에 떠다니는 ambient RNA(배경 RNA)를 확률 모델로 추정해, 각 cell의 count에서 빼 주는 도구 (cellbender remove-background).</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#single-cell</span><span class="chip chip-tag">#qc</span><span class="chip chip-tag">#ambient-rna</span><span class="chip chip-tag">#tool</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p>Cell을 터뜨려 droplet에 담을 때, 이미 터진 cell에서 나온 RNA가 용액에 떠다니다 모든 droplet에 조금씩 섞입니다. CellBender는 &quot;빈 droplet에 들어 있는 RNA 패턴&quot;을 배경으로 보고, 각 cell에서 그만큼을 빼 줍니다.</p>
+<h2 id="자세히">자세히</h2>
+<h3 id="언제-효과가-큰가">언제 효과가 큰가</h3>
+<ul>
+<li>UMI curve(barcode를 count 순으로 줄 세운 그림)에서 **&quot;empty droplet plateau&quot;**가 눈에 보이고, 그 빈 droplet들이 50~수백 count를 갖고 있으면 → 배경 RNA가 많으니 <strong>크게 정리된다.</strong></li>
+<li>빈 droplet의 count가 아주 적으면 → 배경이 적어 별로 빼지 않는다.</li>
+<li>배경이 너무 많아 plateau 자체가 눈에 안 보이면 → 결과를 특히 조심해서 확인해야 한다.</li>
+</ul>
+<h3 id="실행-후-qc-체크">실행 후 QC 체크</h3>
+<ol>
+<li><strong>Log file</strong>: 자동으로 정한 cell 수와 empty droplet 수의 prior가 UMI curve에서 기대한 값과 맞는지. &quot;probable cells&quot;, &quot;additional barcodes&quot;, &quot;empty droplets&quot;가 모두 0이 아니고 그럴듯한지.</li>
+<li><strong>HTML report</strong>: 경고와 재실행 권고를 읽는다.</li>
+<li><strong>PDF output</strong>: 위쪽 그래프에서 학습이 수렴했는지 확인. CellBender는 early stopping을 자동으로 하지 않으므로 수렴하지 않았으면 epoch를 늘려 다시 돌린다.</li>
+</ol>
+<h3 id="실무-메모">실무 메모</h3>
+<ul>
+<li>Sample(채널)별로 따로 돌린다.</li>
+<li>Output의 cell 확률로 바로 filtering하기보다, <strong>보정된 count만 쓰고</strong> cell QC는 따로 하는 경우가 많다 → <a class="wikilink wikilink-concept" href="/concepts/cell-quality-control/">Cell Quality Control</a></li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/cell-quality-control/">Cell Quality Control</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/scrna-seq-workflow/">scRNA-seq Workflow</a></li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2023-heumos-single-cell-best-practices/">2023 Heumos - Single-cell Best Practices</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l3"><a href="#언제-효과가-큰가">언제 효과가 큰가</a></li><li class="toc-l3"><a href="#실행-후-qc-체크">실행 후 QC 체크</a></li><li class="toc-l3"><a href="#실무-메모">실무 메모</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/cell-quality-control/"><span class="kind-dot kind-concept"></span>Cell Quality Control</a></li><li><a href="/concepts/scrna-seq-workflow/"><span class="kind-dot kind-concept"></span>scRNA-seq Workflow</a></li><li><a href="/papers/2023-heumos-single-cell-best-practices/"><span class="kind-dot kind-paper"></span>Single-cell Best Practices (Heumos 2023)</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

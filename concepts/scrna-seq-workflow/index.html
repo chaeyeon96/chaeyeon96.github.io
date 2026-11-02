@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>scRNA-seq Workflow · Study Wiki</title>
+<meta name="description" content="Raw sequencing data에서 cell type별 해석까지 가는 scRNA-seq 분석의 표준 단계 지도. 각 단계는 별도 개념 페이지로 연결된다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/single-cell-analysis/">Single-cell Analysis</a></p>
+    <h1 class="note-title">scRNA-seq Workflow</h1>
+    <p class="lead">Raw sequencing data에서 cell type별 해석까지 가는 scRNA-seq 분석의 표준 단계 지도. 각 단계는 별도 개념 페이지로 연결된다.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#single-cell</span><span class="chip chip-tag">#pipeline</span><span class="chip chip-tag">#workflow</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<ol>
+<li><strong>세포 만들기</strong>: read를 정렬하고 진짜 cell을 고른다.</li>
+<li><strong>청소하기</strong>: 배경 RNA, 질 나쁜 cell, doublet을 뺀다.</li>
+<li><strong>정리하기</strong>: normalize하고 batch 차이를 지운다.</li>
+<li><strong>지도 그리기</strong>: 이웃 graph를 만들고 clustering, UMAP으로 본다.</li>
+<li><strong>이름 붙이기</strong>: cluster에 cell type을 단다.</li>
+<li><strong>비교하기</strong>: 조건 간 발현, 비율, 통신, 경로를 비교한다.</li>
+</ol>
+<h2 id="자세히">자세히</h2>
+<pre class="mermaid">flowchart TD
+    A[&quot;FASTQ&quot;] --&gt; B[&quot;Step 1 · Alignment, cell calling&lt;br/&gt;Cell Ranger, STARsolo, DRAGEN&quot;]
+    B --&gt; C[&quot;Step 2 · Ambient RNA 제거&lt;br/&gt;CellBender&quot;]
+    C --&gt; D[&quot;Step 3 · Cell QC&lt;br/&gt;genes, counts, MT%, doublet&quot;]
+    D --&gt; E[&quot;Step 4 · Normalization&lt;br/&gt;log1p(CPM), SCTransform&quot;]
+    E --&gt; F[&quot;Step 5 · HVG 선택 → PCA&quot;]
+    F --&gt; G[&quot;Step 6 · Batch correction / integration&lt;br/&gt;scVI, Harmony&quot;]
+    G --&gt; H[&quot;Step 7 · KNN graph&quot;]
+    H --&gt; I[&quot;Leiden clustering&quot;]
+    H --&gt; J[&quot;UMAP&quot;]
+    I --&gt; K[&quot;Step 8 · Cell type annotation&lt;br/&gt;CellTypist + marker&quot;]
+    K --&gt; L[&quot;Step 9 · Downstream 분석&quot;]
+</pre>
+<p><em>설명 그림 (직접 작성)</em></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>단계</th>
+<th>하는 일</th>
+<th>페이지</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Read 정렬, barcode별 count matrix, cell calling</td>
+<td><a class="wikilink wikilink-concept" href="/concepts/single-cell-rna-seq/">Single-cell RNA-seq</a></td>
+</tr>
+<tr>
+<td>2</td>
+<td>빈 droplet의 배경 RNA(ambient RNA) 제거</td>
+<td><a class="wikilink wikilink-concept" href="/concepts/cellbender/">CellBender</a></td>
+</tr>
+<tr>
+<td>3</td>
+<td>죽어가는 cell, doublet 제거</td>
+<td><a class="wikilink wikilink-concept" href="/concepts/cell-quality-control/">Cell Quality Control</a></td>
+</tr>
+<tr>
+<td>4</td>
+<td>Sequencing depth 차이 보정</td>
+<td><a class="wikilink wikilink-concept" href="/concepts/rna-seq-normalization/">RNA-seq Normalization</a></td>
+</tr>
+<tr>
+<td>5–6</td>
+<td>차원 축소, batch 제거</td>
+<td><a class="wikilink wikilink-concept" href="/concepts/pca/">PCA</a>, <a class="wikilink wikilink-concept" href="/concepts/batch-correction/">Batch Correction</a>, <a class="wikilink wikilink-concept" href="/concepts/scvi/">scVI</a></td>
+</tr>
+<tr>
+<td>7</td>
+<td>이웃 graph, clustering, 시각화</td>
+<td><a class="wikilink wikilink-concept" href="/concepts/knn-graph/">KNN Graph</a>, <a class="wikilink wikilink-concept" href="/concepts/leiden-clustering/">Leiden Clustering</a></td>
+</tr>
+<tr>
+<td>8</td>
+<td>Cluster에 cell type 이름</td>
+<td><a class="wikilink wikilink-concept" href="/concepts/cell-type-annotation/">Cell Type Annotation</a></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="9-downstream-분석-메뉴">9. Downstream 분석 메뉴</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>질문</th>
+<th>분석</th>
+<th>페이지</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>어떤 gene이 달라졌나</td>
+<td>Differential expression</td>
+<td><a class="wikilink wikilink-concept" href="/concepts/differential-expression/">Differential Expression</a>, <a class="wikilink wikilink-concept" href="/concepts/mast/">MAST</a>, <a class="wikilink wikilink-concept" href="/concepts/pseudobulk-analysis/">Pseudobulk Analysis</a></td>
+</tr>
+<tr>
+<td>어떤 pathway가 달라졌나</td>
+<td>Enrichment, gene set scoring</td>
+<td><a class="wikilink wikilink-concept" href="/concepts/gene-set-enrichment-analysis/">Gene Set Enrichment Analysis</a>, <a class="wikilink wikilink-concept" href="/concepts/gene-set-scoring/">Gene Set Scoring</a></td>
+</tr>
+<tr>
+<td>Cell type 비율이 달라졌나</td>
+<td>Differential abundance</td>
+<td><a class="wikilink wikilink-concept" href="/concepts/differential-abundance-analysis/">Differential Abundance Analysis</a></td>
+</tr>
+<tr>
+<td>Gene들이 어떤 module로 묶이나</td>
+<td>Co-expression, gene program</td>
+<td><a class="wikilink wikilink-concept" href="/concepts/co-expression-network-analysis/">Co-expression Network Analysis</a>, <a class="wikilink wikilink-concept" href="/concepts/cnmf/">cNMF</a></td>
+</tr>
+<tr>
+<td>어떤 TF가 조절하나</td>
+<td>GRN inference</td>
+<td><a class="wikilink wikilink-concept" href="/concepts/scenic/">SCENIC</a></td>
+</tr>
+<tr>
+<td>Cell끼리 어떤 신호를 주고받나</td>
+<td>Cell–cell communication</td>
+<td><a class="wikilink wikilink-concept" href="/concepts/cell-cell-communication/">Cell-Cell Communication</a></td>
+</tr>
+<tr>
+<td>Cytokine, pathway가 얼마나 활성화됐나</td>
+<td>Activity scoring</td>
+<td><a class="wikilink wikilink-concept" href="/concepts/cytokine-and-pathway-activity/">Cytokine and Pathway Activity</a></td>
+</tr>
+<tr>
+<td>Cell 상태가 어떻게 이어지나</td>
+<td>Trajectory, pseudotime</td>
+<td><a class="wikilink wikilink-concept" href="/concepts/trajectory-analysis/">Trajectory Analysis</a></td>
+</tr>
+<tr>
+<td>시간에 따라 어떤 패턴으로 변하나</td>
+<td>Time-series clustering</td>
+<td><a class="wikilink wikilink-concept" href="/concepts/time-series-expression-patterns/">Time-series Expression Patterns</a></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="꼭-기억할-원칙">꼭 기억할 원칙</h3>
+<ul>
+<li><strong>Sample이 통계 단위다.</strong> Cell 수천 개도 환자 몇 명에서 나왔다면 N은 환자 수다 → <a class="wikilink wikilink-concept" href="/concepts/mixed-effects-model/">Mixed Effects Model</a>, <a class="wikilink wikilink-concept" href="/concepts/pseudobulk-analysis/">Pseudobulk Analysis</a></li>
+<li><strong>Batch effect는 모든 단계에 영향을 준다.</strong> 특히 case와 control이 서로 다른 batch에 쏠려 있으면(confounding) 보정으로도 구분이 어렵다.</li>
+<li><strong>Clustering과 annotation은 반복 작업이다.</strong> Resolution을 바꾸고 marker를 확인하며 여러 번 오간다.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/single-cell-rna-seq/">Single-cell RNA-seq</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/cell-quality-control/">Cell Quality Control</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/batch-correction/">Batch Correction</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/differential-expression/">Differential Expression</a></li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2023-heumos-single-cell-best-practices/">2023 Heumos - Single-cell Best Practices</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l3"><a href="#9-downstream-분석-메뉴">9. Downstream 분석 메뉴</a></li><li class="toc-l3"><a href="#꼭-기억할-원칙">꼭 기억할 원칙</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/cell-quality-control/"><span class="kind-dot kind-concept"></span>Cell Quality Control</a></li><li><a href="/concepts/cellbender/"><span class="kind-dot kind-concept"></span>CellBender</a></li><li><a href="/papers/2023-heumos-single-cell-best-practices/"><span class="kind-dot kind-paper"></span>Single-cell Best Practices (Heumos 2023)</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

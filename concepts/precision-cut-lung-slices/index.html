@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Precision-Cut Lung Slices (PCLS) · Study Wiki</title>
+<meta name="description" content="Lung tissue를 얇게 잘라 몸 밖에서 며칠간 배양하는 ex vivo model. 원래 tissue의 구조와 여러 cell type의 구성을 유지한 채 compound를 시험할 수 있다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/ai-drug-discovery/">AI Drug Discovery</a></p>
+    <h1 class="note-title">Precision-Cut Lung Slices (PCLS)</h1>
+    <p class="lead">Lung tissue를 얇게 잘라 몸 밖에서 며칠간 배양하는 ex vivo model. 원래 tissue의 구조와 여러 cell type의 구성을 유지한 채 compound를 시험할 수 있다.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#ex-vivo</span><span class="chip chip-tag">#tissue-model</span><span class="chip chip-tag">#fibrosis</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p>환자나 동물의 폐 조직을 햄 썰듯 얇게 잘라 접시에서 살려 두고, 거기에 약을 넣어 보는 실험입니다. Cell 하나만 키우는 실험보다 실제 폐에 가깝고, 사람에게 직접 쓰는 것보다 훨씬 쉽습니다.</p>
+<h2 id="자세히">자세히</h2>
+<p><strong>만드는 방법</strong> (일반 지식)</p>
+<ol>
+<li>Lung에 agarose를 채워 단단하게 만든다.</li>
+<li>Vibratome으로 수백 μm 두께로 일정하게 자른다.</li>
+<li>배양액에서 며칠간 유지하며 compound를 처리한다.</li>
+</ol>
+<p><strong>재료</strong></p>
+<ul>
+<li><strong>Human PCLS</strong>: 폐 이식이나 수술로 얻은 환자 lung. IPF 같은 disease tissue를 그대로 쓸 수 있다.</li>
+<li><strong>Mouse PCLS</strong>: 동물 model의 lung. 대량으로 빠르게 시험할 때.</li>
+</ul>
+<p><strong>측정</strong></p>
+<ul>
+<li>Fibrosis marker의 protein(western blot)이나 mRNA(qPCR) 변화</li>
+<li>Bulk RNA-seq 후 deconvolution으로 cell type 비율 변화 추정</li>
+</ul>
+<p><strong>장단점</strong> (일반 지식)</p>
+<ul>
+<li>장점: tissue 구조, ECM, 여러 cell type 간 상호작용이 유지된다. 환자 tissue로 사람 biology를 직접 본다.</li>
+<li>단점: 배양 기간이 짧다(보통 며칠). Blood flow, 면역 세포 유입, 전신 PK가 없다. 환자마다 편차가 크다.</li>
+</ul>
+<h2 id="왜-중요한가">왜 중요한가</h2>
+<ul>
+<li>Cell line 실험과 동물 실험 사이를 잇는 단계다.</li>
+<li>사람 disease tissue에서 직접 효과를 볼 수 있어, 동물 model이 사람 disease를 잘 재현하지 못하는 질환(예: IPF)에서 특히 유용하다.</li>
+</ul>
+<h2 id="논문별-활용">논문별 활용</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a>: IPF drug 검증의 핵심 model이다.
+<ul>
+<li>Mouse PCLS로 repurposing 후보 20개를 1차 시험 → human PCLS로 진행</li>
+<li><strong>Pyrithyldione</strong>: 환자 8명의 PCLS에서 fibrosis marker(COL1A, FN1, SMA, CTHRC1) 감소, nintedanib과 비슷 (Figure 6C). PCLS bulk RNA-seq deconvolution으로 myofibroblast fraction 감소 확인 (Figure 6E)</li>
+<li><strong>Drug 18</strong>: 여러 환자 PCLS에서 10 μM로 FN1, SMA, CTHRC1 유의하게 감소 (Figure 6H)</li>
+<li>Adjacent lung slice를 control로 써서 환자 간 편차를 줄였다.</li>
+</ul>
+</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/single-cell-rna-seq/">Single-cell RNA-seq</a>: PCLS bulk data를 deconvolution하는 reference</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/xenograft-model/">Xenograft Model</a>: 또 다른 preclinical model (in vivo)</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/ic50/">IC50</a>: 단순 cell 실험 단계의 지표</li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l2"><a href="#왜-중요한가">왜 중요한가</a></li><li class="toc-l2"><a href="#논문별-활용">논문별 활용</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/papers/2026-xing-gps/"><span class="kind-dot kind-paper"></span>GPS (Xing 2026)</a></li><li><a href="/papers/2026-xing-gps-pipeline/"><span class="kind-dot kind-pipeline"></span>GPS Pipeline 따라가기</a></li><li><a href="/concepts/single-cell-rna-seq/"><span class="kind-dot kind-concept"></span>Single-cell RNA-seq</a></li><li><a href="/concepts/xenograft-model/"><span class="kind-dot kind-concept"></span>Xenograft Model</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

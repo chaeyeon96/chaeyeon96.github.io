@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Statistics &amp; ML · Study Wiki</title>
+<meta name="description" content="연구에 쓰는 통계 모델과 머신러닝 개념을 정리하는 섹션입니다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link is-active">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<section class="page-hero">
+  <div class="page-hero-inner">
+    <p class="crumb"><a href="/#sections">Sections</a></p>
+    <h1 class="note-title">Statistics &amp; ML</h1>
+    <p class="lead">연구에 쓰는 통계 모델과 머신러닝 개념을 정리하는 섹션입니다.</p>
+    <p class="hero-stats">16 concepts · 7 papers</p>
+  </div>
+</section>
+<section class="block">
+  <div class="block-head"><h2>Concepts</h2><p>주제별로 묶은 개념 페이지입니다.</p></div>
+  
+      <div class="topic">
+        <h3 class="topic-title">Regression</h3>
+        <div class="concept-grid"><a class="concept-card" href="/concepts/regression-overview/"><span class="concept-name">Regression Overview</span><span class="concept-desc">반응변수와 데이터 구조에 따른 회귀 모델 지도</span></a><a class="concept-card" href="/concepts/logistic-regression/"><span class="concept-name">Logistic Regression</span><span class="concept-desc">이항 반응, odds ratio 해석, separation과 Bayesian regularization</span></a><a class="concept-card" href="/concepts/mixed-effects-model/"><span class="concept-name">Mixed Effects Model</span><span class="concept-desc">fixed vs random effect, pseudoreplication</span></a><a class="concept-card" href="/concepts/beta-regression/"><span class="concept-name">Beta Regression</span><span class="concept-desc">0–1 비율 데이터, 정확한 0 처리, Beta GLMM</span></a></div>
+      </div>
+      <div class="topic">
+        <h3 class="topic-title">Evaluation</h3>
+        <div class="concept-grid"><a class="concept-card" href="/concepts/confusion-matrix/"><span class="concept-name">Confusion Matrix</span><span class="concept-desc">sensitivity, specificity, precision, PPV/NPV, threshold trade-off</span></a><a class="concept-card" href="/concepts/adjusted-rand-index/"><span class="concept-name">Adjusted Rand Index (ARI)</span><span class="concept-desc">clustering이 정답과 얼마나 맞는지</span></a></div>
+      </div>
+      <div class="topic">
+        <h3 class="topic-title">Dimensionality Reduction</h3>
+        <div class="concept-grid"><a class="concept-card" href="/concepts/pca/"><span class="concept-name">PCA (Principal Component Analysis)</span><span class="concept-desc">분산을 가장 많이 설명하는 축으로 요약, data leakage 주의</span></a></div>
+      </div>
+      <div class="topic">
+        <h3 class="topic-title">Graph &amp; Network</h3>
+        <div class="concept-grid"><a class="concept-card" href="/concepts/modularity/"><span class="concept-name">Modularity</span><span class="concept-desc">community가 우연보다 얼마나 빽빽한가, resolution γ</span></a><a class="concept-card" href="/concepts/network-propagation/"><span class="concept-name">Network Propagation</span><span class="concept-desc">random walk with restart로 관련 node 찾기</span></a><a class="concept-card" href="/concepts/graph-convolutional-network/"><span class="concept-name">Graph Convolutional Network (GCN)</span><span class="concept-desc">이웃 정보를 모으는 신경망</span></a></div>
+      </div>
+      <div class="topic">
+        <h3 class="topic-title">Deep Learning &amp; Explainability</h3>
+        <div class="concept-grid"><a class="concept-card" href="/concepts/information-entropy/"><span class="concept-name">Information Entropy</span><span class="concept-desc">probability uncertainty와 threshold 해석</span></a><a class="concept-card" href="/concepts/colocalization/"><span class="concept-name">Colocalization</span><span class="concept-desc">GWAS–QTL shared signal과 causal evidence 구분</span></a><a class="concept-card" href="/concepts/metric-learning/"><span class="concept-name">Metric Learning</span><span class="concept-desc">의미 있는 거리를 학습하는 embedding</span></a><a class="concept-card" href="/concepts/attention/"><span class="concept-name">Attention</span><span class="concept-desc">query, key, value로 중요한 정보에 집중</span></a><a class="concept-card" href="/concepts/shap/"><span class="concept-name">SHAP (Shapley Additive Explanations)</span><span class="concept-desc">feature 기여도 (트리 모델)</span></a><a class="concept-card" href="/concepts/integrated-gradients/"><span class="concept-name">Integrated Gradients (IG)</span><span class="concept-desc">신경망 attribution, saturation 문제</span></a></div>
+      </div>
+</section>
+<section class="block">
+  <div class="block-head"><h2>Papers</h2><p>이 섹션과 관련된 논문입니다.</p></div>
+  <div class="paper-grid">
+    <article class="paper-card" data-sections="Immunology|Statistics &amp; ML">
+      <div class="paper-meta">
+        <span class="badge">Science</span>
+        <span>2025</span>
+        
+      </div>
+      <h3><a href="/papers/2025-zaslavsky-mal-id/">Mal-ID (Zaslavsky 2025)</a></h3>
+      <p class="paper-full-title">Disease diagnostics using machine learning of B cell and T cell receptor sequences</p>
+      <p>Bulk BCR/TCR repertoires의 composition, convergent sequence, language-model representation을 결합해 immune states를 분류하는 연구용 framework.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2025-zaslavsky-mal-id/">논문 정리 보기</a>
+        <a class="btn btn-small btn-soft" href="/papers/2025-zaslavsky-mal-id-pipeline/">Pipeline</a>
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Single-cell Analysis|Statistics &amp; ML">
+      <div class="paper-meta">
+        <span class="badge">Nature</span>
+        <span>2025</span>
+        
+      </div>
+      <h3><a href="/papers/2025-heimberg-scimilarity/">SCimilarity (Heimberg 2025)</a></h3>
+      <p class="paper-full-title">A cell atlas foundation model for scalable search of similar human cells</p>
+      <p>Reconstruction loss와 triplet loss를 결합한 metric learning으로 &quot;같은 cell type은 가깝게, 다른 type은 멀게&quot; 학습한 foundation model. 412개 study, 2,340만 cell의 reference에서 query cell과 비슷한 cell을 몇 초 만에 찾고, 재학습 없이 annotation과 integration을 한다.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2025-heimberg-scimilarity/">논문 정리 보기</a>
+        <a class="btn btn-small btn-soft" href="/papers/2025-heimberg-scimilarity-pipeline/">Pipeline</a>
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Single-cell Analysis|Statistics &amp; ML">
+      <div class="paper-meta">
+        <span class="badge">Nature Methods</span>
+        <span>2025</span>
+        
+      </div>
+      <h3><a href="/papers/2025-sheinin-scnet/">scNET (Sheinin 2025)</a></h3>
+      <p class="paper-full-title">scNET: learning context-specific gene and cell embeddings by integrating single-cell gene expression data with protein–protein interactions</p>
+      <p>scRNA-seq expression, PPI network, cell KNN graph를 함께 학습해 dataset의 맥락을 반영한 gene/cell embedding과 reconstructed expression을 만드는 graph autoencoder.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2025-sheinin-scnet/">논문 정리 보기</a>
+        <a class="btn btn-small btn-soft" href="/papers/2025-sheinin-scnet-pipeline/">Pipeline</a>
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Single-cell Analysis|Statistics &amp; ML">
+      <div class="paper-meta">
+        <span class="badge">Nature Communications</span>
+        <span>2023</span>
+        
+      </div>
+      <h3><a href="/papers/2023-vasaikar-palmo/">PALMO (Vasaikar 2023)</a></h3>
+      <p class="paper-full-title">A comprehensive platform for analyzing longitudinal multi-omics data</p>
+      <p>Longitudinal multi-omics의 variation을 donor, time, cell type 관점으로 나누고 안정적인 feature와 개인별 변화·outlier를 찾는 다섯 module의 platform.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2023-vasaikar-palmo/">논문 정리 보기</a>
+        <a class="btn btn-small btn-soft" href="/papers/2023-vasaikar-palmo-pipeline/">Pipeline</a>
+      </div>
+    </article>
+    <article class="paper-card" data-sections="AI Drug Discovery|Statistics &amp; ML">
+      <div class="paper-meta">
+        <span class="badge">Nature Communications</span>
+        <span>2021</span>
+        
+      </div>
+      <h3><a href="/papers/2021-ruiz-multiscale-interactome/">Multiscale Interactome (Ruiz 2021)</a></h3>
+      <p class="paper-full-title">Identification of disease treatment mechanisms through the multiscale interactome</p>
+      <p>Protein interactions와 biological-function hierarchy를 함께 diffusion해 drug–disease treatment를 예측하고 관련 gene/function을 설명한다.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2021-ruiz-multiscale-interactome/">논문 정리 보기</a>
+        <a class="btn btn-small btn-soft" href="/papers/2021-ruiz-multiscale-interactome-pipeline/">Pipeline</a>
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Single-cell Analysis|Statistics &amp; ML">
+      <div class="paper-meta">
+        <span class="badge">Nature Communications</span>
+        <span>2021</span>
+        
+      </div>
+      <h3><a href="/papers/2021-büttner-sccoda/">scCODA (2021 Büttner)</a></h3>
+      <p class="paper-full-title">scCODA is a Bayesian model for compositional single-cell data analysis</p>
+      <p>Sample별 cell-type counts를 함께 모델링해 reference 대비 compositional changes를 추정하고 posterior expected FDR로 credible effects를 선택한다.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2021-büttner-sccoda/">논문 정리 보기</a>
+        <a class="btn btn-small btn-soft" href="/papers/2021-büttner-sccoda-pipeline/">Pipeline</a>
+      </div>
+    </article>
+    <article class="paper-card" data-sections="Single-cell Analysis|Statistics &amp; ML">
+      <div class="paper-meta">
+        <span class="badge">PLoS ONE</span>
+        <span>2013</span>
+        
+      </div>
+      <h3><a href="/papers/2013-glass-panda/">PANDA (2013 Glass)</a></h3>
+      <p class="paper-full-title">Passing Messages between Biological Networks to Refine Predicted Interactions</p>
+      <p>Motif, PPI, co-expression의 서로 다른 근거를 message passing으로 조정해 condition-specific TF–gene network를 추정한다.</p>
+      <div class="paper-links">
+        <a class="btn btn-small" href="/papers/2013-glass-panda/">논문 정리 보기</a>
+        <a class="btn btn-small btn-soft" href="/papers/2013-glass-panda-pipeline/">Pipeline</a>
+      </div>
+    </article></div>
+</section>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Differential Expression (DE) · Study Wiki</title>
+<meta name="description" content="두 조건(질병 vs 정상, 치료 전 vs 후 등) 사이에서 발현이 유의하게 다른 gene(DEG)을 찾는 분석. Single-cell에서는 cell 단위로 할지, sample 단위로 모아서 할지가 가장 큰 선택이다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/single-cell-analysis/">Single-cell Analysis</a></p>
+    <h1 class="note-title">Differential Expression (DE)</h1>
+    <p class="lead">두 조건(질병 vs 정상, 치료 전 vs 후 등) 사이에서 발현이 유의하게 다른 gene(DEG)을 찾는 분석. Single-cell에서는 cell 단위로 할지, sample 단위로 모아서 할지가 가장 큰 선택이다.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#single-cell</span><span class="chip chip-tag">#differential-expression</span><span class="chip chip-tag">#statistics</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p>&quot;이 cell type에서 환자와 정상인 사이에 어떤 gene이 오르고 내렸나?&quot;를 묻는 분석입니다. 핵심 함정은 <strong>cell 수천 개를 독립 샘플처럼 다루면 p-value가 터무니없이 작아진다</strong>는 것입니다.</p>
+<h2 id="자세히">자세히</h2>
+<h3 id="방법-지도">방법 지도</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>계열</th>
+<th>도구</th>
+<th>특징</th>
+<th>언제</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>단순 검정</strong></td>
+<td>Wilcoxon (Seurat 기본), t-test</td>
+<td>빠르고 직관적. dropout, overdispersion, sample 구조 무시</td>
+<td>cluster marker 찾기</td>
+</tr>
+<tr>
+<td><strong>Cell 수준 모델</strong></td>
+<td><a class="wikilink wikilink-concept" href="/concepts/mast/">MAST</a> (hurdle model)</td>
+<td>dropout을 명시적으로 모델링, covariate와 random effect 가능</td>
+<td>cell 수준 차이, 면역 연구에서 흔함</td>
+</tr>
+<tr>
+<td></td>
+<td>glmGamPoi</td>
+<td>빠른 Gamma-Poisson GLM</td>
+<td>대규모 데이터</td>
+</tr>
+<tr>
+<td><strong>Bayesian / generative</strong></td>
+<td><a class="wikilink wikilink-concept" href="/concepts/scvi/">scVI</a> DE</td>
+<td>모델에서 반복 샘플링해 <strong>Bayes factor</strong> 계산, batch를 모델 안에서 통제</td>
+<td>batch가 복잡한 대규모 데이터</td>
+</tr>
+<tr>
+<td></td>
+<td>BASiCS</td>
+<td>기술 노이즈와 생물학 변동 분리. 계산량 큼</td>
+<td>소규모</td>
+</tr>
+<tr>
+<td><strong>Sample 수준</strong></td>
+<td><a class="wikilink wikilink-concept" href="/concepts/pseudobulk-analysis/">Pseudobulk</a> + edgeR / DESeq2 / limma-voom</td>
+<td>cell을 sample별로 합쳐 bulk 도구 사용. paired, covariate 가능</td>
+<td><strong>반복 sample, 종단 연구에서 가장 권장</strong></td>
+</tr>
+<tr>
+<td></td>
+<td>dream (variancePartition), lme4, glmmTMB</td>
+<td>pseudobulk에 mixed model</td>
+<td>반복측정, 복잡한 random effect</td>
+</tr>
+<tr>
+<td><strong>종단 특화</strong></td>
+<td>PALMO, IDEAS</td>
+<td>longitudinal 변동 분해, 분포 수준 비교</td>
+<td>시간축 cohort</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>정리</strong></p>
+<ul>
+<li>Cluster marker 탐색 → Wilcoxon, MAST</li>
+<li>노이즈 보정 + robust → scVI, glmGamPoi</li>
+<li><strong>Sample 반복, 종단, paired 설계</strong> → <strong>pseudobulk → edgeR/DESeq2/limma-voom</strong>, 보조로 MAST(cell 수준 확인), 필요하면 scVI Bayes factor</li>
+</ul>
+<h3 id="batch를-de에서-다루는-법">Batch를 DE에서 다루는 법</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>전략</th>
+<th>방법</th>
+<th>비고</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>① 공변량으로 넣기 (가장 권장)</strong></td>
+<td>원래 count 유지 + <code>~ condition + batch + ...</code></td>
+<td>해석이 가장 명확한 기준선</td>
+</tr>
+<tr>
+<td><strong>② latent factor 추가</strong></td>
+<td>sva/svaseq, RUVSeq, PEER(bulk·pseudobulk), zinbwave/NewWave, IA-SVA(single-cell)로 숨은 요인을 뽑아 공변량으로</td>
+<td>알려지지 않은 노이즈가 클 때</td>
+</tr>
+<tr>
+<td><strong>③ 보정된 값으로 DE</strong></td>
+<td>ComBat-Seq 등으로 count 자체를 보정</td>
+<td>over-correction 위험. condition과 batch가 꼬여 있지 않은지 반드시 확인</td>
+</tr>
+<tr>
+<td>✗ Representation 전용</td>
+<td>Harmony, fastMNN, scVI latent</td>
+<td><strong>clustering, UMAP용.</strong> DE 입력값으로 쓰지 않는다</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>scVI의 보정된 expression(평균값)을 MAST 같은 빈도주의 도구에 그대로 넣으면 <strong>분산이 실제보다 작다고 착각해 위양성이 늘어난다.</strong> scVI로 보정했다면 scVI 자체 DE를 쓰거나, 원래 count + 공변량을 쓴다.</li>
+<li>Condition과 batch가 겹친(confounded) 설계에서는 batch를 공변량으로 넣으면 모델이 rank deficient가 되어 <strong>질병 효과가 batch에 먹힌다.</strong> 이때는 condition 정보를 먼저 빼고(그룹 내 centering) 남은 변동으로 batch 요인을 뽑는 등의 우회가 필요하다 → <a class="wikilink wikilink-concept" href="/concepts/batch-correction/">Batch Correction</a></li>
+</ul>
+<h3 id="deg-결과-검증-체크리스트">DEG 결과 검증 체크리스트</h3>
+<ol>
+<li><strong>통계</strong>: raw p-value 히스토그램(신호는 0 근처, 나머지는 균등), QQ-plot(초반에 크게 벗어나면 위양성 의심)</li>
+<li><strong>효과 크기</strong>: MA plot(신호가 low-count gene에만 몰리면 의심), volcano plot(logFC는 작은데 p만 작은 gene이 많으면 주의)</li>
+<li><strong>생물학</strong>: 알려진 marker가 기대 방향인지, 무관한 gene이 대거 뜨지 않는지</li>
+<li><strong>기술 요인</strong>: MT-, RPS/RPL, HB-, platelet gene(PPBP, PF4)이 여러 cell type에서 같은 방향으로 뜨면 <strong>오염이나 조성 차이</strong> 신호일 가능성 → <a class="wikilink wikilink-concept" href="/concepts/pseudobulk-analysis/#기술-신호가-deg로-뜰-때">Pseudobulk Analysis › 기술 신호가 DEG로 뜰 때</a></li>
+<li><strong>재현성</strong>: label permutation 시 DEG가 거의 없어야 함, pseudobulk로도 같은 패턴인지, 독립 데이터셋에서 같은 방향인지</li>
+</ol>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/mast/">MAST</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/pseudobulk-analysis/">Pseudobulk Analysis</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/scvi/">scVI</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/mixed-effects-model/">Mixed Effects Model</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/gene-set-enrichment-analysis/">Gene Set Enrichment Analysis</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l3"><a href="#방법-지도">방법 지도</a></li><li class="toc-l3"><a href="#batch를-de에서-다루는-법">Batch를 DE에서 다루는 법</a></li><li class="toc-l3"><a href="#deg-결과-검증-체크리스트">DEG 결과 검증 체크리스트</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/batch-correction/"><span class="kind-dot kind-concept"></span>Batch Correction</a></li><li><a href="/concepts/cell-cell-communication/"><span class="kind-dot kind-concept"></span>Cell-Cell Communication (CCC)</a></li><li><a href="/concepts/gene-set-enrichment-analysis/"><span class="kind-dot kind-concept"></span>Gene Set Enrichment Analysis</a></li><li><a href="/concepts/mast/"><span class="kind-dot kind-concept"></span>MAST</a></li><li><a href="/concepts/mixed-effects-model/"><span class="kind-dot kind-concept"></span>Mixed Effects Model</a></li><li><a href="/concepts/pseudobulk-analysis/"><span class="kind-dot kind-concept"></span>Pseudobulk Analysis</a></li><li><a href="/papers/2025-sheinin-scnet-pipeline/"><span class="kind-dot kind-pipeline"></span>scNET Pipeline (Sheinin 2025)</a></li><li><a href="/concepts/scrna-seq-workflow/"><span class="kind-dot kind-concept"></span>scRNA-seq Workflow</a></li><li><a href="/concepts/scvi/"><span class="kind-dot kind-concept"></span>scVI (single-cell Variational Inference)</a></li><li><a href="/concepts/time-series-expression-patterns/"><span class="kind-dot kind-concept"></span>Time-series Expression Patterns</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

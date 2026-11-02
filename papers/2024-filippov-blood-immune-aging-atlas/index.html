@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blood Immune Aging Atlas (Filippov 2024) · Study Wiki</title>
+<meta name="description" content="일곱 PBMC aging cohort를 같은 marker 기준으로 재분석해, study 간 차이와 반복되는 age-associated 변화를 분리한 reference atlas다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a></p>
+    <div class="paper-meta">
+      
+      <span class="badge">npj Aging</span>
+      <span>2024</span>
+      <span class="muted">atlas</span>
+      
+    </div>
+    <h1 class="note-title">Blood Immune Aging Atlas (Filippov 2024)</h1>
+    <p class="paper-full-title">An integrated single-cell atlas of blood immune cells in aging — Filippov et al.</p>
+    <p class="lead">일곱 PBMC aging cohort를 같은 marker 기준으로 재분석해, study 간 차이와 반복되는 age-associated 변화를 분리한 reference atlas다.</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1038/s41514-024-00185-x" rel="noopener">원문 (DOI)</a>
+      
+      
+      <span class="license">License · CC BY 4.0</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/immunology/">Immunology</a><a class="chip chip-link" href="/sections/single-cell-analysis/">Single-cell Analysis</a></div>
+    <div class="note-body"><h2 id="background">Background</h2>
+<p>Study마다 Tn/Tcm의 정의가 다르면 같은 이름의 cell type도 서로 다른 population이 된다. 이 연구는 annotation을 맞춘 뒤에도 cohort 차이가 남는지, 어떤 aging 결과가 반복되는지 묻는다. 새 integration algorithm이 아니라 기존 scVI/totalVI 등을 사용하는 atlas re-analysis이므로 별도 tool Pipeline으로 분류하지 않는다.</p>
+<h2 id="data">Data</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Measurement / scope</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Seven aging cohorts</td>
+<td>실측 10x PBMC RNA; 103 donors, young 53 / old 50; 최종 1,047,793 cells</td>
+<td>Figure 1–5의 atlas 및 cohort별 비교</td>
+</tr>
+<tr>
+<td>GEO</td>
+<td>GSE157007, GSE213516, GSE214546</td>
+<td>기존 count matrix 재사용</td>
+</tr>
+<tr>
+<td>NGDC / Synapse</td>
+<td>HRA000203, HRA000624, HRA003766 / syn22255433</td>
+<td>기존 sequencing data 재처리</td>
+</tr>
+<tr>
+<td>Independent CITE-seq</td>
+<td>HIV vaccine trial 8 donors, T cells 73,060개; RNA + surface protein</td>
+<td>Tn/Tcm marker 점검 (Supplementary Fig. S7)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Young/old의 연령 범위와 sex 구성이 cohort마다 다르다. Dataset 크기는 독립적인 biological replicate 수가 아니며, donor가 비교 단위다. GSE213516·GSE214546·HRA003766은 3′, 나머지는 5′ chemistry다.</p>
+<h2 id="figure-1-·-cohort-design">Figure 1 · Cohort design</h2>
+<p><strong>Context</strong> · 먼저 서로 다른 연구를 어느 범위까지 비교할 수 있는지 확인한다. Age와 sex의 구성 차이는 integration 후에도 없어지는 실험 설계 문제가 아니다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-filippov-blood-immune-aging-atlas-fig1.webp" alt="2024 Filippov - Blood Immune Aging Atlas Fig1" loading="lazy"><span class="figure-credit">Figure: Filippov et al., npj Aging (2024) · CC BY 4.0</span></span></p>
+<p><strong>A · Re-analysis design</strong></p>
+<ul>
+<li><strong>목적</strong>: 통합의 입력과 산출물을 확인한다.</li>
+<li><strong>Data &amp; method</strong>: 일곱 기존 PBMC count matrix를 QC, scVI integration, 재annotation한다.</li>
+<li><strong>그림 읽기</strong>: Study별 matrix가 하나의 annotation과 비교 분석으로 연결되는 흐름을 본다.</li>
+<li><strong>결과와 의미</strong>: 서로 다른 label 체계를 통일해 cohort 간 재현성을 평가할 기반을 만든다.</li>
+</ul>
+<p><strong>B–D · Cohort balance</strong></p>
+<ul>
+<li><strong>목적</strong>: Age/sex/cell yield의 불균형을 파악한다.</li>
+<li><strong>Data &amp; method</strong>: 각 cohort의 donor metadata와 QC 후 cell 수를 요약한다.</li>
+<li><strong>그림 읽기</strong>: B는 연령 범위, C는 sex, D는 donor별 cell 수를 비교한다.</li>
+<li><strong>결과와 의미</strong>: 동일한 young/old 명칭이 동일 연령대·sex 구성을 뜻하지 않는다.</li>
+</ul>
+<h2 id="figure-2-·-whole-pbmc-annotation">Figure 2 · Whole-PBMC annotation</h2>
+<p><strong>Context</strong> · 입력 차이를 확인했으므로 공통 cell type 지도에서 study별 구성을 비교한다. UMAP mixing만으로 abundance의 비교 가능성을 판단하지 않는다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-filippov-blood-immune-aging-atlas-fig2.png" alt="2024 Filippov - Blood Immune Aging Atlas Fig2" loading="lazy"><span class="figure-credit">Figure: Filippov et al., npj Aging (2024) · CC BY 4.0</span></span></p>
+<p><strong>A, E · Cell identities</strong></p>
+<ul>
+<li><strong>목적</strong>: 주요 PBMC lineage가 marker와 일치하는지 본다.</li>
+<li><strong>Data &amp; method</strong>: QC 후 1,047,793 cells를 scVI latent space에서 clustering하고 canonical RNA marker로 annotation한다.</li>
+<li><strong>그림 읽기</strong>: A의 UMAP label을 E의 marker expression 위치와 대조한다.</li>
+<li><strong>결과와 의미</strong>: 주요 immune compartment를 같은 정의로 정렬한다.</li>
+</ul>
+<p><strong>B–D · Dataset and donor composition</strong></p>
+<ul>
+<li><strong>목적</strong>: Study·age·sex의 차이를 분리해 읽는다.</li>
+<li><strong>Data &amp; method</strong>: Cohort별 cell fraction과 age/sex group의 UMAP density를 계산한다.</li>
+<li><strong>그림 읽기</strong>: B의 stacked bar와 C–D의 density를 비교하되 cell density를 donor별 유의성으로 읽지 않는다.</li>
+<li><strong>결과와 의미</strong>: 통합 이후에도 cohort별 cell composition 차이가 뚜렷하다.</li>
+</ul>
+<h3 id="annotation-reference">Annotation reference</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Cell type</th>
+<th>Marker</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>B</td>
+<td>CD79A</td>
+</tr>
+<tr>
+<td>Naive B</td>
+<td>IGHM, IGHD</td>
+</tr>
+<tr>
+<td>Memory B</td>
+<td>IGHA1, IGHA2</td>
+</tr>
+<tr>
+<td>Plasma cell</td>
+<td>CD79A, JCHAIN, MZB1</td>
+</tr>
+<tr>
+<td>Atypical B cell (ABC)</td>
+<td>B cell 77,378개를 따로 재분석해 찾음 (Fig. S4)</td>
+</tr>
+<tr>
+<td>Classical monocyte</td>
+<td>CD68, CD14</td>
+</tr>
+<tr>
+<td>Non-classical monocyte</td>
+<td>CD68, FCGR3A</td>
+</tr>
+<tr>
+<td>DC</td>
+<td>CD68, CD1C, FCER1A</td>
+</tr>
+<tr>
+<td>pDC</td>
+<td>CD68, MZB1, JCHAIN</td>
+</tr>
+<tr>
+<td>NK</td>
+<td>CD56hi, CD56lo</td>
+</tr>
+<tr>
+<td>Circulating progenitor</td>
+<td>CD34</td>
+</tr>
+<tr>
+<td>Cycling</td>
+<td>MKI67</td>
+</tr>
+<tr>
+<td>MALAT1-high</td>
+<td>UMI가 가장 적고 MT 비율이 가장 높음 (Fig. S3c, d). 품질이 낮은 cell일 수 있음</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="figure-3-·-t-cell-re-annotation">Figure 3 · T-cell re-annotation</h2>
+<p><strong>Context</strong> · 전체 PBMC보다 T-cell subset의 경계가 더 모호하다. Protein reference에서 확인한 marker를 사용해 Tn/Tcm 구분을 다시 점검한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-filippov-blood-immune-aging-atlas-fig3.png" alt="2024 Filippov - Blood Immune Aging Atlas Fig3" loading="lazy"><span class="figure-credit">Figure: Filippov et al., npj Aging (2024) · CC BY 4.0</span></span></p>
+<p><strong>A, E · T-cell map</strong></p>
+<ul>
+<li><strong>목적</strong>: T-cell subtype의 경계를 일관되게 정의한다.</li>
+<li><strong>Data &amp; method</strong>: 672,765 T cells를 scVI로 재통합하고 LRRN3·PASK·CCR7 및 effector marker를 함께 사용한다.</li>
+<li><strong>그림 읽기</strong>: A의 subtype 위치를 E의 marker 분포와 비교한다.</li>
+<li><strong>결과와 의미</strong>: LRRN3와 PASK를 함께 읽으면 Tn/Tcm을 CCR7 하나보다 구체적으로 구분할 수 있다.</li>
+</ul>
+<p><strong>B–D · Heterogeneity</strong></p>
+<ul>
+<li><strong>목적</strong>: 세분화 후에도 cohort와 demographic 차이가 남는지 본다.</li>
+<li><strong>Data &amp; method</strong>: 재annotation한 T-cell fraction 및 age/sex density를 계산한다.</li>
+<li><strong>그림 읽기</strong>: B는 study별 분율, C–D는 group density이며 독립적인 기능 측정은 아니다.</li>
+<li><strong>결과와 의미</strong>: T-cell composition의 차이가 남고, young 쪽에 naive/MAIT가 더 많다.</li>
+</ul>
+<h3 id="marker-interpretation">Marker interpretation</h3>
+<ul>
+<li><strong>문제</strong> · CD4/CD8의 naive T(Tn)와 central memory T(Tcm)는 발현이 비슷해서 study마다 나누는 방식이 달랐다. 어떤 study는 CD8 Tcm을, 다른 study는 CD4/CD8 Tn을 구분하지 못했다.</li>
+<li><strong>방법</strong> · HIV vaccine trial 참가자 8명의 CITE-seq T cell 73,060개를 reference로 썼다. CD45RA/CD45RO surface protein을 함께 재므로 Tn과 Tcm의 정답이 있다. totalVI로 RNA와 protein을 함께 embedding했다 (Fig. S7a, b).</li>
+<li><strong>결론 marker</strong></li>
+</ul>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Subset</th>
+<th>Marker</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CD4+ Tn</td>
+<td>LEF1, TCF7, CCR7, SELL 높음, <strong>LRRN3+</strong></td>
+</tr>
+<tr>
+<td>CD4+ Tcm</td>
+<td>위 marker 공유, LRRN3 낮음, <strong>PASK+</strong>, CD69</td>
+</tr>
+<tr>
+<td>CD8+ Tn</td>
+<td>CD4 Tn과 같은 marker + PASK가 CD4 Tn보다 높음</td>
+</tr>
+<tr>
+<td>CD8+ Tcm</td>
+<td>CCR7 낮음, PASK 낮음, CD69</td>
+</tr>
+<tr>
+<td>CD8+ Tem</td>
+<td>KLRG1, GZMK, GNLY, NKG7 (Tcm보다 높음)</td>
+</tr>
+<tr>
+<td>Cytotoxicity</td>
+<td>EOMES, TBX21 (CD4 CTL, CD8 Tem)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="additional-t-cell-states">Additional T-cell states</h3>
+<ul>
+<li>T cell 672,765개를 scVI로 다시 통합하고 clustering했다 (Fig. 3a, e).</li>
+<li>CD4: Tn (LRRN3+, CCR7hi), Tcm (LRRN3−, PASK+), Tem (KLRG1+, PASKlo), CD4 CTL (GNLYhi, NKG7hi), Treg (FOXP3, CTLA4, IL2RA).</li>
+<li>CD8: Tn (LRRN3+, CCR7hi, PASKhi), Tcm (CCR7lo, PASKlo), Tem (GNLYhi, NKG7hi).</li>
+<li>기타: γδ T (TRDC), MAIT (SLC4A10), NKT (CD3D, CD8, NCAM1 모두 낮음), double-negative T.</li>
+<li><strong>Tribo</strong> · Ribosomal gene(RPL10, RPL8, RPL11, RPS13)과 FAU가 높은 T cell cluster. 3' data(GSE213516, HRA003766)에는 거의 없고, GSE214546에서도 T cell의 0.14%뿐이었다. 즉 chemistry(5' vs 3')에 따라 나타나는 cluster다.</li>
+</ul>
+<h2 id="figure-4-·-malat1-high-is-not-a-single-exhausted-state">Figure 4 · MALAT1-high is not a single exhausted state</h2>
+<p><strong>Context</strong> · MALAT1-high cluster를 하나의 exhausted T-cell 집단으로 부르면 잘못된 생물학적 결론이 생길 수 있다. Marker 조합과 data quality를 함께 확인한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-filippov-blood-immune-aging-atlas-fig4.png" alt="2024 Filippov - Blood Immune Aging Atlas Fig4" loading="lazy"><span class="figure-credit">Figure: Filippov et al., npj Aging (2024) · CC BY 4.0</span></span></p>
+<p><strong>A · Cohort origin</strong></p>
+<ul>
+<li><strong>목적</strong>: Cluster가 특정 study에 치우치는지 확인한다.</li>
+<li><strong>Data &amp; method</strong>: MALAT1-high 14,007 cells를 분리해 dataset별 위치를 표시한다.</li>
+<li><strong>그림 읽기</strong>: UMAP의 색은 study origin이며 cell type label이 아니다.</li>
+<li><strong>결과와 의미</strong>: HRA003766이 큰 비중을 차지해 공통 aging state로 단정하기 어렵다.</li>
+</ul>
+<p><strong>B–C · Identity and age</strong></p>
+<ul>
+<li><strong>목적</strong>: 단일 identity 및 age association 가정을 검토한다.</li>
+<li><strong>Data &amp; method</strong>: Lineage·naive·exhaustion marker expression과 age별 density를 비교한다.</li>
+<li><strong>그림 읽기</strong>: B의 CD3D/CD4/CD8A/CCR7 등과 C의 group density를 함께 읽는다.</li>
+<li><strong>결과와 의미</strong>: Naive-like, memory-like 및 다른 lineage signal이 섞인다; 낮은 UMI·높은 MT 때문에 stress/QC 설명도 고려한다.</li>
+</ul>
+<h2 id="figure-5-·-replicated-abundance-shifts">Figure 5 · Replicated abundance shifts</h2>
+<p><strong>Context</strong> · 재annotation의 목적은 예쁜 atlas가 아니라 다른 cohort에서도 반복되는 변화를 찾는 것이다. Sample별 비율로 되돌아가 young/old 차이의 방향과 일관성을 검토한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2024-filippov-blood-immune-aging-atlas-fig5.png" alt="2024 Filippov - Blood Immune Aging Atlas Fig5" loading="lazy"><span class="figure-credit">Figure: Filippov et al., npj Aging (2024) · CC BY 4.0</span></span></p>
+<p><strong>A · CD8 Tn</strong></p>
+<ul>
+<li><strong>목적</strong>: Naive CD8 감소가 cohort를 넘어 반복되는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Donor별 CD8 Tn fraction을 young/old t-test로 비교하며 GSE157007은 young 2명이라 test하지 않는다.</li>
+<li><strong>그림 읽기</strong>: 점은 donor, box는 group 분포이며 study마다 y축 범위를 확인한다.</li>
+<li><strong>결과와 의미</strong>: CD8 Tn 감소가 가장 일관된 aging 변화다.</li>
+</ul>
+<p><strong>B · MAIT</strong></p>
+<ul>
+<li><strong>목적</strong>: MAIT 감소의 재현성을 확인한다.</li>
+<li><strong>Data &amp; method</strong>: 같은 donor별 분석을 MAIT fraction에 적용한다.</li>
+<li><strong>그림 읽기</strong>: 각 study의 변화 방향과 P value를 함께 읽는다.</li>
+<li><strong>결과와 의미</strong>: 감소 방향은 반복되지만 모든 cohort에서 유의한 것은 아니다.</li>
+</ul>
+<p><strong>C · All fractions</strong></p>
+<ul>
+<li><strong>목적</strong>: 두 subset 외의 차이를 전체 맥락에서 확인한다.</li>
+<li><strong>Data &amp; method</strong>: Sample × cell-type fraction heatmap을 작성한다.</li>
+<li><strong>그림 읽기</strong>: 열은 sample이고 위 annotation은 study/age다.</li>
+<li><strong>결과와 의미</strong>: Cohort 차이가 크므로 pooled 결과만으로 보편적 aging signature를 선언하면 안 된다.</li>
+</ul>
+<h3 id="transcriptomic-validation">Transcriptomic validation</h3>
+<p>Figure 5 이후 본문은 cohort별 DE와 pseudobulk 검증으로 확장된다. 최소 네 dataset에서 반복되는 gene을 모았고, CD8 Tn에서 inflammation/effector-associated genes(PTGER2, CLIC1, S100A4, PRF1, GZMA, CCL5)의 증가가 두 분석에서 공유됐다. 새 Main Figure 6이 있는 것처럼 번호를 붙이지 않는다.</p>
+<h2 id="methods-reference">Methods reference</h2>
+<ul>
+<li><strong>QC</strong>: Sample별 UMI/MT 분포로 threshold를 정하며 단일 보편 cutoff를 제시하지 않는다; non-immune marker-high/PTPRC-low cells와 immunoglobulin/TCR genes를 제거한다.</li>
+<li><strong>Doublets</strong>: scDblFinder 10회 중 최소 6회 positive인 cells를 표시하고, enriched cluster를 검토·제거한 뒤 integration을 반복한다.</li>
+<li><strong>Integration</strong>: Dataset별 HVG 5,000개를 통합; raw counts → scVI, dataset/donor categorical covariate + MT percentage continuous covariate, 400 epochs, 10 latent dimensions.</li>
+<li><strong>DE</strong>: Methods의 Wilcoxon <strong>rank-sum</strong> test, logFC 0.25 및 FDR 0.05; cell type이 어느 age group에서든 30 cells 미만이면 제외한다. Results에는 signed-rank라고 쓰여 있어 표기 불일치가 있다.</li>
+<li><strong>Pseudobulk validation</strong>: Sample × cell type별 count 합, 10 cells 미만 profile 제외; age group마다 최소 3 profiles가 있을 때 glmGamPoi 분석한다.</li>
+</ul>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li>Cross-sectional age association이며 longitudinal 변화나 원인 규명이 아니다.</li>
+<li>Age band·sex·ancestry·chemistry·metadata의 차이가 남는다. Integration은 관찰되지 않은 confounding을 제거하는 보증이 아니다.</li>
+<li>MALAT1-high와 Tribo를 보편적인 biological state로 자동 채택하지 않는다; chemistry와 QC에 민감하다.</li>
+<li>Cell-level DE의 pseudoreplication을 donor-level pseudobulk로 보완했지만, 작은 cohort의 power는 여전히 제한된다.</li>
+</ul>
+<h2 id="data-and-code">Data &amp; Code</h2>
+<ul>
+<li><a href="https://doi.org/10.1038/s41514-024-00185-x">Original paper and Methods</a>, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11606963/">PMC full text</a>.</li>
+<li><a href="https://github.com/f6v/PBMC_ageing_atlas">Author analysis repository</a>; raw accession은 Data 표 참조.</li>
+<li><strong>Reading status</strong>: Main PDF 10 pages, main figures 및 Methods를 확인했다. Supplementary 파일 자체의 전체 표·그림은 미검증이며 위 S7 설명은 본문과 기존 상세 노트에 근거한다.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/cell-type-annotation/">Cell Type Annotation</a> · <a class="wikilink wikilink-concept" href="/concepts/scvi/">scVI</a> · <a class="wikilink wikilink-concept" href="/concepts/batch-correction/">Batch Correction</a> · <a class="wikilink wikilink-concept" href="/concepts/t-cell-and-tcr/">T Cell and TCR</a> · <a class="wikilink wikilink-concept" href="/concepts/pbmc/">PBMC</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#background">Background</a></li><li class="toc-l2"><a href="#data">Data</a></li><li class="toc-l2"><a href="#figure-1-·-cohort-design">Figure 1 · Cohort design</a></li><li class="toc-l2"><a href="#figure-2-·-whole-pbmc-annotation">Figure 2 · Whole-PBMC annotation</a></li><li class="toc-l3"><a href="#annotation-reference">Annotation reference</a></li><li class="toc-l2"><a href="#figure-3-·-t-cell-re-annotation">Figure 3 · T-cell re-annotation</a></li><li class="toc-l3"><a href="#marker-interpretation">Marker interpretation</a></li><li class="toc-l3"><a href="#additional-t-cell-states">Additional T-cell states</a></li><li class="toc-l2"><a href="#figure-4-·-malat1-high-is-not-a-single-exhausted-state">Figure 4 · MALAT1-high is not a single exhausted state</a></li><li class="toc-l2"><a href="#figure-5-·-replicated-abundance-shifts">Figure 5 · Replicated abundance shifts</a></li><li class="toc-l3"><a href="#transcriptomic-validation">Transcriptomic validation</a></li><li class="toc-l2"><a href="#methods-reference">Methods reference</a></li><li class="toc-l2"><a href="#limitations">Limitations</a></li><li class="toc-l2"><a href="#data-and-code">Data &amp;amp; Code</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/batch-correction/"><span class="kind-dot kind-concept"></span>Batch Correction</a></li><li><a href="/concepts/cell-type-annotation/"><span class="kind-dot kind-concept"></span>Cell Type Annotation</a></li><li><a href="/papers/2025-wang-lifespan-immune-trajectories/"><span class="kind-dot kind-paper"></span>Lifespan Immune Trajectories (Wang 2025)</a></li><li><a href="/concepts/pbmc/"><span class="kind-dot kind-concept"></span>PBMC (Peripheral Blood Mononuclear Cells)</a></li><li><a href="/concepts/scvi/"><span class="kind-dot kind-concept"></span>scVI (single-cell Variational Inference)</a></li><li><a href="/concepts/t-cell-and-tcr/"><span class="kind-dot kind-concept"></span>T Cell and TCR</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

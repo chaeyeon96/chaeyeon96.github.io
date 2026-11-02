@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connectivity Map (CMap) · Study Wiki</title>
+<meta name="description" content="여러 compound를 cell에 처리하고 gene expression 변화를 측정해 모아 둔 database이자, signature로 compound를 query하는 방법.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/ai-drug-discovery/">AI Drug Discovery</a></p>
+    <h1 class="note-title">Connectivity Map (CMap)</h1>
+    <p class="lead">여러 compound를 cell에 처리하고 gene expression 변화를 측정해 모아 둔 database이자, signature로 compound를 query하는 방법.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#database</span><span class="chip chip-tag">#transcriptomics</span><span class="chip chip-tag">#CMap</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p>&quot;Compound → expression 변화&quot;를 대량으로 기록한 사전입니다. Disease signature를 query로 넣으면, 그 signature와 <strong>비슷하게</strong> 또는 <strong>반대로</strong> expression을 바꾸는 compound를 찾아 줍니다.</p>
+<ul>
+<li><strong>반대</strong> pattern → 그 disease의 therapeutic candidate (<a class="wikilink wikilink-concept" href="/concepts/signature-reversal/">Signature Reversal</a>)</li>
+<li><strong>비슷한</strong> pattern → MoA가 비슷한 compound, 또는 disease를 악화시킬 수 있는 compound</li>
+</ul>
+<h2 id="자세히">자세히</h2>
+<p><strong>역사</strong> (일반 지식)</p>
+<ul>
+<li><strong>2006</strong>: Broad Institute에서 처음 발표 (Lamb et al., <em>Science</em>). 약 1,300개 compound, cell line 몇 종.</li>
+<li><strong>이후</strong>: profiling 비용을 낮춘 <strong>L1000</strong> assay로 크게 확장되어 <a class="wikilink wikilink-concept" href="/concepts/lincs-l1000/">LINCS L1000</a>이 되었다. Compound뿐 아니라 shRNA knockdown, overexpression perturbation도 포함한다.</li>
+</ul>
+<p><strong>Query 원리</strong> (일반 지식)</p>
+<ol>
+<li>Compound마다 모든 gene을 expression change 순으로 rank한다.</li>
+<li>Disease signature의 up gene이 이 ranking의 위쪽에, down gene이 아래쪽에 몰려 있는지 KS statistic으로 본다.</li>
+<li><strong>Connectivity score</strong>로 요약한다. Positive = 비슷, negative = 반대.</li>
+</ol>
+<h2 id="왜-중요한가">왜 중요한가</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/signature-reversal/">Signature Reversal</a>을 처음으로 <strong>대규모로</strong> 가능하게 했다.</li>
+<li>지금 쓰이는 reversal score(<a class="wikilink wikilink-concept" href="/concepts/rges/">RGES</a> 등)도 connectivity score에서 출발했다.</li>
+<li>한계: <strong>database에 있는 compound만</strong> query할 수 있다. Novel compound는 profiling하지 않는 한 찾을 수 없다.</li>
+</ul>
+<h2 id="논문별-활용">논문별 활용</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a>: CMap 계열 data(LINCS)로 model을 학습시켜 database에 없는 compound의 expression을 예측함으로써 이 한계를 넘으려 했다. GPS가 4개 cell line 예측을 합쳐 screening하는 것도 &quot;초기 connectivity map이 한 방식과 같다&quot;고 언급한다.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/lincs-l1000/">LINCS L1000</a>: CMap의 확장판 database</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/signature-reversal/">Signature Reversal</a>: CMap으로 하는 대표적인 분석</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/rges/">RGES</a>: connectivity score에서 파생된 점수</li>
+<li><a class="wikilink wikilink-concept" href="/concepts/disease-signature/">Disease Signature</a>: query로 넣는 signature</li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-xing-gps/">2026 Xing - GPS</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2021-ruiz-multiscale-interactome/">2021 Ruiz - Multiscale Interactome</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l2"><a href="#왜-중요한가">왜 중요한가</a></li><li class="toc-l2"><a href="#논문별-활용">논문별 활용</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/disease-signature/"><span class="kind-dot kind-concept"></span>Disease Signature</a></li><li><a href="/concepts/drug-repurposing/"><span class="kind-dot kind-concept"></span>Drug Repurposing</a></li><li><a href="/papers/2026-xing-gps/"><span class="kind-dot kind-paper"></span>GPS (Xing 2026)</a></li><li><a href="/papers/2026-xing-gps-pipeline/"><span class="kind-dot kind-pipeline"></span>GPS Pipeline 따라가기</a></li><li><a href="/concepts/lincs-l1000/"><span class="kind-dot kind-concept"></span>LINCS L1000</a></li><li><a href="/concepts/mechanism-of-action/"><span class="kind-dot kind-concept"></span>Mechanism of Action (MoA)</a></li><li><a href="/papers/2021-ruiz-multiscale-interactome/"><span class="kind-dot kind-paper"></span>Multiscale Interactome (Ruiz 2021)</a></li><li><a href="/concepts/rges/"><span class="kind-dot kind-concept"></span>RGES (Reverse Gene Expression Score)</a></li><li><a href="/concepts/signature-reversal/"><span class="kind-dot kind-concept"></span>Signature Reversal</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

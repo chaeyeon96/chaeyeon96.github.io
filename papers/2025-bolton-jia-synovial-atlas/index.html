@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JIA Synovial Atlas (Bolton 2025) · Study Wiki</title>
+<meta name="description" content="JIA synovium은 blood·synovial fluid로 대체하기 어려운 조직별 cell state와 spatial niche를 가진다. Disease-associated gene의 위치와 adult RA와의 차이를 보여 주는 atlas이며, 개별 환자의 예후나 최적 치료제를 검증한 임상시험은 아니다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a></p>
+    <div class="paper-meta">
+      
+      <span class="badge">Science Translational Medicine</span>
+      <span>2025</span>
+      <span class="muted">disease-study</span>
+      
+    </div>
+    <h1 class="note-title">JIA Synovial Atlas (Bolton 2025)</h1>
+    <p class="paper-full-title">Synovial tissue atlas in juvenile idiopathic arthritis reveals pathogenic niches associated with disease severity — Bolton et al.</p>
+    <p class="lead">JIA synovium은 blood·synovial fluid로 대체하기 어려운 조직별 cell state와 spatial niche를 가진다. Disease-associated gene의 위치와 adult RA와의 차이를 보여 주는 atlas이며, 개별 환자의 예후나 최적 치료제를 검증한 임상시험은 아니다.</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1126/scitranslmed.adt6050" rel="noopener">원문 (DOI)</a>
+      
+      
+      <span class="license">License · CC BY 4.0</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/immunology/">Immunology</a></div>
+    <div class="note-body"><h2 id="background">Background</h2>
+<p>JIA의 치료 선택에 필요한 tissue-level pathology가 충분히 알려져 있지 않았다. Blood나 synovial fluid에서 관찰한 immune signal이 실제 synovium을 얼마나 반영하는지, 소아의 tissue architecture가 adult RA와 같은지도 불분명했다.</p>
+<p>이 연구는 matched anatomical compartments의 <strong>cell composition → cell state → spatial niche → disease-associated genes → pediatric/adult comparison</strong> 순서로 질문을 좁힌다. Spatial niche는 서로 가까이 분포하는 cell population과 그 주변의 gene-expression pattern을 함께 구분한 조직 영역이다.</p>
+<h2 id="data">Data</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Data / source</th>
+<th>Type and confirmed scope</th>
+<th>Role / figure</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Newly collected JIA cohort, two UK centers</td>
+<td>DMARD-naïve, age &lt;17 years, 19 participants; 18/19 biopsies from knee; diagnosis 이후 biopsy까지 median 19 days</td>
+<td>전체 연구 모집단, <a href="#figure-1-·-matched-compartments">Figure 1A</a></td>
+</tr>
+<tr>
+<td>5′ scRNA-seq; PBMC/SFMC CITE-seq</td>
+<td>QC 후 250,816 cells; tissue n=10, PBMC n=9, SFMC n=9; Figure 1A의 scRNA-seq participant 합집합 n=12</td>
+<td>실측 transcriptome/protein; compartment·cell-state 비교, Figures 1–3</td>
+</tr>
+<tr>
+<td>Xenium spatial transcriptomics</td>
+<td>8 children; 377-gene panel; 365,279 cells, 413 fields of view</td>
+<td>실측 targeted RNA 위치; seven niches와 proximity, Figures 4, 6, 8</td>
+</tr>
+<tr>
+<td>Histology / multiplexed immunofluorescence</td>
+<td>Histology n=18; Cell DIVE n=7, annotation에 21 markers; spatial RNA와 imaging을 모두 쓴 biopsy는 1개</td>
+<td>조직 구조 및 별도 modality 검증, Figures 4–7</td>
+</tr>
+<tr>
+<td>Previously published adult reference datasets</td>
+<td>Adult RA tissue n=13, non-arthritic adult tissue n=3; disease duration &lt;1 year 및 DMARD-naïve 비교는 JIA n=7 / RA n=12</td>
+<td>External biological comparison, Figure 7A; 별도 RA label-transfer reference n=69는 Figure 7F</td>
+</tr>
+<tr>
+<td>Previously reported JIA severity genes and GWAS loci</td>
+<td>Severity discovery cohort: extended oligoarticular n=8 / persistent n=13; 현 연구 SFMC n=9에 expression mapping</td>
+<td>기존 disease association을 atlas에 위치시킴; 새 prospective predictor가 아님, Figure 6E–G</td>
+</tr>
+<tr>
+<td>JIA-derived fibroblast bulk RNA-seq</td>
+<td>3 biological donors, 1 independent experiment; TGF-β stimulation vs control</td>
+<td>실제 perturbation 후 gene-expression overlap 검증, Figure 8H–I</td>
+</tr>
+</tbody>
+</table></div>
+<div class="callout callout-warning">
+<div class="callout-title"><span class="callout-icon" aria-hidden="true">!</span>Sample-count reconciliation</div>
+<div class="callout-body">
+<p>모든 modality가 같은 19명을 완전히 측정한 것은 아니다. Figure 2B–C legend는 matched correlation n=7을 명시하지만 Supplementary Methods의 sample-attrition 문장은 세 compartment 비교에 n=6을 적는다. 개별 분석의 n을 혼용하지 않으며, 이 차이는 원문 안의 unresolved reporting discrepancy로 남긴다.</p>
+</div></div>
+<h2 id="figure-1-·-matched-compartments">Figure 1 · Matched compartments</h2>
+<p><strong>Context</strong> · Blood와 synovial fluid가 tissue를 대변하는지 판단하려면 같은 질환의 여러 anatomical compartments를 직접 비교해야 한다. 먼저 표본 구성과 주요 cell type의 차이를 보여 준다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2025-bolton-jia-synovial-atlas-fig1.png" alt="2025 Bolton - JIA Synovial Atlas Fig1" loading="lazy"><span class="figure-credit">Figure: Bolton et al., Science Translational Medicine (2025) · CC BY 4.0</span></span></p>
+<p><em>Figure: Bolton et al., Science Translational Medicine (2025), author accepted manuscript · CC BY 4.0; legend 제외 original figure.</em></p>
+<p><strong>A · Study design</strong></p>
+<ul>
+<li><strong>목적</strong>: 어떤 participant와 modality가 각 분석에 들어갔는지 확인한다.</li>
+<li><strong>Data &amp; method</strong>: 새 JIA cohort의 tissue, PBMC, SFMC와 modality별 sample map (<a href="#method-overview-·-study-design">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 위 도식은 histology/spatial/imaging, 아래 막대는 participant별 scRNA-seq cell 수다.</li>
+<li><strong>결과와 의미</strong>: DMARD-naïve 초기 JIA를 다중 modality로 보았지만 modality별 n과 participant overlap은 서로 다르다.</li>
+</ul>
+<p><strong>B · Cell-type map</strong></p>
+<ul>
+<li><strong>목적</strong>: 세 compartment에서 어떤 cell type이 검출되는지 본다.</li>
+<li><strong>Data &amp; method</strong>: QC 후 250,816 cells의 integrated scRNA-seq UMAP (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 같은 색은 같은 major cell type이며 세 UMAP은 compartment별로 분리되어 있다.</li>
+<li><strong>결과와 의미</strong>: Fibroblast·pericyte·vascular populations는 주로 tissue에서 검출되어 PBMC/SFMC만으로 tissue 전체를 설명하기 어렵다.</li>
+</ul>
+<p><strong>C · Recovered cell counts</strong></p>
+<ul>
+<li><strong>목적</strong>: Sampling 규모와 cell composition을 구분한다.</li>
+<li><strong>Data &amp; method</strong>: Compartment별 실측 QC-passed cell count (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 가로축은 absolute cell number, 막대 내부 색은 cell type이다.</li>
+<li><strong>결과와 의미</strong>: 각 compartment에서 회수된 cell 수가 달라 raw count를 그대로 biological abundance로 읽으면 안 된다.</li>
+</ul>
+<p><strong>D · Composition PCA</strong></p>
+<ul>
+<li><strong>목적</strong>: Immune composition만으로 compartment가 구분되는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Sample-level immune-cell proportions의 PCA (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 점 하나는 participant sample이고 색은 tissue/PBMC/SFMC다.</li>
+<li><strong>결과와 의미</strong>: Compartment별 분리가 보여 tissue와 fluid의 immune composition도 같지 않다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · 분석의 출발점은 blood·fluid·tissue가 서로 다른 biological compartment라는 점이다.</p>
+</blockquote>
+<h2 id="figure-2-·-compartment-specific-immune-programs">Figure 2 · Compartment-specific immune programs</h2>
+<p><strong>Context</strong> · Figure 1에서 composition 차이가 보였다. 이제 abundance의 방향, 개인별 대응 관계, 같은 lineage 안의 transcriptional program 차이를 분리해 살핀다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2025-bolton-jia-synovial-atlas-fig2.png" alt="2025 Bolton - JIA Synovial Atlas Fig2" loading="lazy"><span class="figure-credit">Figure: Bolton et al., Science Translational Medicine (2025) · CC BY 4.0</span></span></p>
+<p><em>Figure: Bolton et al., Science Translational Medicine (2025), author accepted manuscript · CC BY 4.0; legend 제외 original figure.</em></p>
+<p><strong>A · Differential abundance</strong></p>
+<ul>
+<li><strong>목적</strong>: 어느 immune lineage가 각 compartment에 풍부한지 비교한다.</li>
+<li><strong>Data &amp; method</strong>: Tissue n=10/PBMC n=9/SFMC n=9; scProportionTest와 permutation (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: x축 log2 fold change의 방향과 compartment 색을 보고 회색 non-significant 항목을 구분한다.</li>
+<li><strong>결과와 의미</strong>: Plasma cells는 tissue에 풍부하고, SFMC에는 여러 innate/DC populations가 상대적으로 풍부하다.</li>
+</ul>
+<p><strong>B · Matched correlations</strong></p>
+<ul>
+<li><strong>목적</strong>: Fluid/blood의 proportion이 같은 환자의 tissue와 함께 변하는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Matched samples의 Spearman correlation; legend n=7 (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 각 점은 participant이며 tissue와 상대 compartment의 cell proportion을 비교한다.</li>
+<li><strong>결과와 의미</strong>: LAMP3+ DC·cycling cells는 SFMC와, CD4 T·myeloid cells는 PBMC와 일부 상관이 있지만 전체 lineage에 일반화되지 않는다.</li>
+</ul>
+<p><strong>C · Correlation summary</strong></p>
+<ul>
+<li><strong>목적</strong>: Matched association이 어느 lineage에 국한되는지 요약한다.</li>
+<li><strong>Data &amp; method</strong>: Figure 2B와 같은 matched correlation matrix (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 색은 Spearman coefficient, 별표는 unadjusted P&lt;0.05다.</li>
+<li><strong>결과와 의미</strong>: 많은 lineage는 유의한 correlation이 없고, 작은 n과 multiple testing을 고려해야 한다.</li>
+</ul>
+<p><strong>D · Differential-expression burden</strong></p>
+<ul>
+<li><strong>목적</strong>: Location에 따른 transcriptional 차이의 규모를 본다.</li>
+<li><strong>Data &amp; method</strong>: Lineage별 sample-pseudobulk DESeq2; |log2FC|&gt;1, adjusted P&lt;0.01 (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 막대 길이는 DEG 수이고 색은 tissue vs SFMC 또는 PBMC 비교다.</li>
+<li><strong>결과와 의미</strong>: 여러 major immune lineages에서 많은 DEG가 있어 composition 차이만으로 compartment 차이를 설명할 수 없다.</li>
+</ul>
+<p><strong>E · Myeloid programs</strong></p>
+<ul>
+<li><strong>목적</strong>: 같은 lineage에서 location-specific functional program을 찾는다.</li>
+<li><strong>Data &amp; method</strong>: Compartment별 pseudobulk DEG module과 GO enrichment (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 왼쪽 heatmap은 gene×sample expression, 오른쪽 dotplot은 module별 GO term이다.</li>
+<li><strong>결과와 의미</strong>: Tissue myeloid cells에는 IL-1 response·collagen catabolism, SFMC에는 interferon-related programs가 두드러진다.</li>
+</ul>
+<p><strong>F · Dendritic-cell programs</strong></p>
+<ul>
+<li><strong>목적</strong>: 같은 lineage에서 location-specific functional program을 찾는다.</li>
+<li><strong>Data &amp; method</strong>: Compartment별 pseudobulk DEG module과 GO enrichment (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 왼쪽 heatmap은 gene×sample expression, 오른쪽 dotplot은 module별 GO term이다.</li>
+<li><strong>결과와 의미</strong>: Tissue myeloid DC의 inflammatory response와 SFMC DC의 T-cell costimulation-related expression이 구분된다.</li>
+</ul>
+<p><strong>G · T/NK/ILC programs</strong></p>
+<ul>
+<li><strong>목적</strong>: 같은 lineage에서 location-specific functional program을 찾는다.</li>
+<li><strong>Data &amp; method</strong>: Compartment별 pseudobulk DEG module과 GO enrichment (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 왼쪽 heatmap은 gene×sample expression, 오른쪽 dotplot은 module별 GO term이다.</li>
+<li><strong>결과와 의미</strong>: Tissue에는 TGF-β response·CD4 differentiation, SFMC에는 interferon·chemotaxis·proliferation-related programs가 높다.</li>
+</ul>
+<p><strong>H · B/plasma-cell programs</strong></p>
+<ul>
+<li><strong>목적</strong>: 같은 lineage에서 location-specific functional program을 찾는다.</li>
+<li><strong>Data &amp; method</strong>: Compartment별 pseudobulk DEG module과 GO enrichment (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 왼쪽 heatmap은 gene×sample expression, 오른쪽 dotplot은 module별 GO term이다.</li>
+<li><strong>결과와 의미</strong>: Tissue에는 immunoglobulin/complement-related genes, SFMC에는 interferon-response genes가 상대적으로 높다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · PBMC나 SFMC는 tissue의 단순한 대체 표본이 아니다; gene-expression program도 compartment-specific하다.</p>
+</blockquote>
+<h2 id="figure-3-·-fine-immune-and-stromal-states">Figure 3 · Fine immune and stromal states</h2>
+<p><strong>Context</strong> · Major lineage 비교만으로 pathogenic state를 특정하기 어렵다. 세부 clustering으로 cell state를 나누고 tissue에서 누가 signaling을 주고받을지 탐색한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2025-bolton-jia-synovial-atlas-fig3.png" alt="2025 Bolton - JIA Synovial Atlas Fig3" loading="lazy"><span class="figure-credit">Figure: Bolton et al., Science Translational Medicine (2025) · CC BY 4.0</span></span></p>
+<p><em>Figure: Bolton et al., Science Translational Medicine (2025), author accepted manuscript · CC BY 4.0; legend 제외 original figure.</em></p>
+<p><strong>A · Myeloid and dendritic states</strong></p>
+<ul>
+<li><strong>목적</strong>: Major lineage 안의 세부 state와 compartment 분포를 구분한다.</li>
+<li><strong>Data &amp; method</strong>: Integrated scRNA-seq subclustering 및 RNA/protein marker annotation (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 왼쪽 UMAP의 색은 subcluster, 오른쪽 stacked bars는 compartment contribution을 보여 준다.</li>
+<li><strong>결과와 의미</strong>: MERTK+ macrophage·IL1B+ myeloid cells는 tissue-enriched이며 SPP1+ macrophages는 SFMC에서도 풍부하다.</li>
+</ul>
+<p><strong>B · T/NK/ILC states</strong></p>
+<ul>
+<li><strong>목적</strong>: Major lineage 안의 세부 state와 compartment 분포를 구분한다.</li>
+<li><strong>Data &amp; method</strong>: Integrated scRNA-seq subclustering 및 RNA/protein marker annotation (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 왼쪽 UMAP의 색은 subcluster, 오른쪽 stacked bars는 compartment contribution을 보여 준다.</li>
+<li><strong>결과와 의미</strong>: Memory T states는 joint compartments에, naive T cells는 PBMC에 풍부하며 GZMK+ CD8 및 KLRB1+ CD4 memory states가 tissue에서 두드러진다.</li>
+</ul>
+<p><strong>C · B and plasma states</strong></p>
+<ul>
+<li><strong>목적</strong>: Major lineage 안의 세부 state와 compartment 분포를 구분한다.</li>
+<li><strong>Data &amp; method</strong>: Integrated scRNA-seq subclustering 및 RNA/protein marker annotation (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 왼쪽 UMAP의 색은 subcluster, 오른쪽 stacked bars는 compartment contribution을 보여 준다.</li>
+<li><strong>결과와 의미</strong>: Tissue는 plasma-cell 및 germinal-center-like B states를 포함하며 naive/transitional B states 중심의 blood와 다르다.</li>
+</ul>
+<p><strong>D · Stromal map</strong></p>
+<ul>
+<li><strong>목적</strong>: Tissue stromal diversity를 구분한다.</li>
+<li><strong>Data &amp; method</strong>: JIA tissue n=10의 stromal reclustering (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: UMAP 색과 label로 fibroblast·vascular·pericyte states를 구분한다.</li>
+<li><strong>결과와 의미</strong>: 8 fibroblast, 1 pericyte, 4 vascular subclusters가 구분되어 stroma를 하나의 cell type으로 취급하기 어렵다.</li>
+</ul>
+<p><strong>E · Stromal functions</strong></p>
+<ul>
+<li><strong>목적</strong>: Stromal state별 program 차이를 본다.</li>
+<li><strong>Data &amp; method</strong>: Stromal marker genes와 GO enrichment (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 색은 odds ratio, 점 크기는 pathway gene 수다.</li>
+<li><strong>결과와 의미</strong>: Lining/MMP fibroblasts에는 matrix-disassembly, POSTN/CD34 fibroblasts에는 collagen organization 등 구별되는 programs가 있다.</li>
+</ul>
+<p><strong>F · Predicted communication</strong></p>
+<ul>
+<li><strong>목적</strong>: Tissue 내 signaling source와 receiver 후보를 찾는다.</li>
+<li><strong>Data &amp; method</strong>: scRNA-seq ligand–receptor expression의 CellChat; &gt;300 tissue cells인 cluster 표시 (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: x축 outgoing, y축 incoming interaction strength이며 실측 secretion·receptor activation 값은 아니다.</li>
+<li><strong>결과와 의미</strong>: 여러 fibroblast states가 강한 outgoing signal을 보이고 GZMB/GZMK CD8 states가 incoming signal을 보이지만 interaction은 예측이다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Immune diversity와 함께 stromal diversity가 tissue microenvironment를 규정하며, communication 예측은 spatial 검증의 출발점이다.</p>
+</blockquote>
+<h2 id="figure-4-·-seven-spatial-niches">Figure 4 · Seven spatial niches</h2>
+<p><strong>Context</strong> · Expression에서 예측된 interaction이 가능하려면 해당 cell이 실제로 가까이 있어야 한다. Targeted spatial RNA로 cell state를 조직 내 위치에 배치하고 seven niches를 정의한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2025-bolton-jia-synovial-atlas-fig4.png" alt="2025 Bolton - JIA Synovial Atlas Fig4" loading="lazy"><span class="figure-credit">Figure: Bolton et al., Science Translational Medicine (2025) · CC BY 4.0</span></span></p>
+<p><em>Figure: Bolton et al., Science Translational Medicine (2025), author accepted manuscript · CC BY 4.0; legend 제외 original figure.</em></p>
+<p><strong>A · Spatial niche map</strong></p>
+<ul>
+<li><strong>목적</strong>: 조직에서 반복되는 cell neighborhoods를 찾는다.</li>
+<li><strong>Data &amp; method</strong>: Xenium n=8; 377 genes, 365,279 cells/413 FOV (<a href="#method-overview-·-spatial-and-imaging">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 각 polygon은 cell, 색은 niche이며 아래 heatmap은 major cell composition이다.</li>
+<li><strong>결과와 의미</strong>: Lining, myeloid–lymphoid, plasma-rich, stromal, vascular, perivascular, adipose-rich niches가 구분된다.</li>
+</ul>
+<p><strong>B · Fine-state composition</strong></p>
+<ul>
+<li><strong>목적</strong>: 각 niche를 이루는 fine cell states를 확인한다.</li>
+<li><strong>Data &amp; method</strong>: Spatial RNA cell annotations의 niche별 composition (<a href="#method-overview-·-spatial-and-imaging">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 행은 niche, 열은 fine state이며 색의 높낮이를 비교한다.</li>
+<li><strong>결과와 의미</strong>: 같은 major lineage도 niche별로 다른 state 구성을 가지며 SPP1+ macrophages는 lining niche에 위치한다.</li>
+</ul>
+<p><strong>C · Spatial and protein examples</strong></p>
+<ul>
+<li><strong>목적</strong>: RNA 기반 niche 해석을 tissue morphology/protein과 비교한다.</li>
+<li><strong>Data &amp; method</strong>: Representative Xenium sections와 multiplexed immunofluorescence (<a href="#method-overview-·-spatial-and-imaging">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 좌측 polygon map과 우측 protein image는 같은 section의 matched image가 아님에 주의한다.</li>
+<li><strong>결과와 의미</strong>: Lining macrophages/fibroblasts, plasma-rich region, vascular 및 adipose region의 공간 배치가 orthogonal imaging과 부합한다.</li>
+</ul>
+<p><strong>D · Niche signaling hypotheses</strong></p>
+<ul>
+<li><strong>목적</strong>: 같은 niche를 구성하는 cells 사이의 signaling 후보를 좁힌다.</li>
+<li><strong>Data &amp; method</strong>: Tissue scRNA-seq CellChat 결과를 niche별로 묶은 pathway analysis (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 행은 pathway, 열은 niche이고 incoming/outgoing을 따로 본다.</li>
+<li><strong>결과와 의미</strong>: Lining의 SPP1, plasma-rich의 BAFF/APRIL, vascular의 NOTCH 등 niche-specific 후보가 보이지만 기능적 인과를 증명하지 않는다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Niche는 위치와 cell composition을 함께 해석하는 단위이며, proximity가 signaling의 실행을 직접 증명하지는 않는다.</p>
+</blockquote>
+<h2 id="figure-5-·-protein-based-spatial-validation">Figure 5 · Protein-based spatial validation</h2>
+<p><strong>Context</strong> · Spatial RNA의 제한된 gene panel과 annotation에 의존하지 않는 증거가 필요하다. Protein imaging으로 cell identity와 nearest-neighbor 관계를 확인한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2025-bolton-jia-synovial-atlas-fig5.png" alt="2025 Bolton - JIA Synovial Atlas Fig5" loading="lazy"><span class="figure-credit">Figure: Bolton et al., Science Translational Medicine (2025) · CC BY 4.0</span></span></p>
+<p><em>Figure: Bolton et al., Science Translational Medicine (2025), author accepted manuscript · CC BY 4.0; legend 제외 original figure.</em></p>
+<p><strong>A · Imaging workflow</strong></p>
+<ul>
+<li><strong>목적</strong>: Protein-based cell localization이 어떻게 얻어졌는지 이해한다.</li>
+<li><strong>Data &amp; method</strong>: Cell DIVE imaging n=7; segmentation→marker quantification→annotation (<a href="#method-overview-·-spatial-and-imaging">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 왼쪽부터 tissue fragment, fluorescence, segmentation, cell annotation 순서다.</li>
+<li><strong>결과와 의미</strong>: 이미지의 위치 정보와 marker profile을 함께 이용해 spatial RNA와 별도 modality의 근거를 얻는다.</li>
+</ul>
+<p><strong>B · Marker-based annotation</strong></p>
+<ul>
+<li><strong>목적</strong>: Imaging cell identity의 근거를 본다.</li>
+<li><strong>Data &amp; method</strong>: 21 nuclear/cytoplasmic markers의 cell-level fluorescence (<a href="#method-overview-·-spatial-and-imaging">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 점 크기는 marker-positive fraction, 색은 relative mean expression이다.</li>
+<li><strong>결과와 의미</strong>: Marker combinations로 stromal/immune populations를 구분하되 RNA fine states와 완전한 일대일 대응은 아니다.</li>
+</ul>
+<p><strong>C · Nearest-neighbor groups</strong></p>
+<ul>
+<li><strong>목적</strong>: 어떤 cell types가 서로 가까이 있는지 정량화한다.</li>
+<li><strong>Data &amp; method</strong>: Imaging cell coordinates의 nearest-neighbor proximity analysis (<a href="#method-overview-·-spatial-and-imaging">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: Heatmap 색은 co-localization frequency이며 hierarchical clustering으로 group을 묶는다.</li>
+<li><strong>결과와 의미</strong>: 주요 spatial neighborhoods와 대응하는 여섯 co-localizing groups가 확인되고 fibrin-associated grouping도 드러난다.</li>
+</ul>
+<p><strong>D · Representative neighborhoods</strong></p>
+<ul>
+<li><strong>목적</strong>: Proximity group의 실제 조직 배치를 확인한다.</li>
+<li><strong>Data &amp; method</strong>: 대표 biopsy의 computational annotation과 원본 fluorescence (<a href="#method-overview-·-spatial-and-imaging">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 같은 group의 위 annotation과 아래 protein image를 비교한다.</li>
+<li><strong>결과와 의미</strong>: Lining·myeloid–lymphoid·vascular·stromal·adipose organization이 보이며 protein imaging이 cellular zonation을 보완한다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · 두 modality는 spatial architecture를 상호 보완하지만 완전히 동일한 sample·동일한 cell-state resolution의 반복 측정은 아니다.</p>
+</blockquote>
+<h2 id="figure-6-·-disease-associated-myeloid-niches">Figure 6 · Disease-associated myeloid niches</h2>
+<p><strong>Context</strong> · 공간적으로 확인한 niches가 질환 관련성도 가지는지 묻는다. Fibrin-associated myeloid cells의 위치와 기존 severity/GWAS gene sets의 expression을 연결한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2025-bolton-jia-synovial-atlas-fig6.png" alt="2025 Bolton - JIA Synovial Atlas Fig6" loading="lazy"><span class="figure-credit">Figure: Bolton et al., Science Translational Medicine (2025) · CC BY 4.0</span></span></p>
+<p><em>Figure: Bolton et al., Science Translational Medicine (2025), author accepted manuscript · CC BY 4.0; legend 제외 original figure.</em></p>
+<p><strong>A · Fibrin-associated cells</strong></p>
+<ul>
+<li><strong>목적</strong>: Fibrin deposit과 lining tissue를 구별한다.</li>
+<li><strong>Data &amp; method</strong>: Representative multiplexed protein imaging (<a href="#method-overview-·-spatial-and-imaging">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: CLU-rich fibrin과 PDPN+ lining 위치, 동반 myeloid markers를 비교한다.</li>
+<li><strong>결과와 의미</strong>: Fibrin deposits 주변에 myeloid cells가 모여 있는 spatial evidence를 제시한다.</li>
+</ul>
+<p><strong>B · Histological corroboration</strong></p>
+<ul>
+<li><strong>목적</strong>: Fibrin-associated myeloid localization을 독립 staining으로 본다.</li>
+<li><strong>Data &amp; method</strong>: CD68 immunohistochemistry tissue section (<a href="#method-overview-·-spatial-and-imaging">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: Fibrin과 synovial membrane 경계의 CD68 staining을 본다.</li>
+<li><strong>결과와 의미</strong>: Histological evidence도 fibrin-associated myeloid population 해석을 뒷받침한다.</li>
+</ul>
+<p><strong>C · Spatial myeloid distribution</strong></p>
+<ul>
+<li><strong>목적</strong>: S100A8+ monocytes와 SPP1+ macrophages의 위치를 확인한다.</li>
+<li><strong>Data &amp; method</strong>: Xenium representative regions (<a href="#method-overview-·-spatial-and-imaging">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 색별 cell annotation으로 lining과 주변 fibrin-like fragment를 비교한다.</li>
+<li><strong>결과와 의미</strong>: 두 myeloid populations가 lining 및 fibrin-associated regions에서 인접하지만 이동 방향을 직접 추적한 자료는 아니다.</li>
+</ul>
+<p><strong>D · Monocyte neighbors</strong></p>
+<ul>
+<li><strong>목적</strong>: S100A8+ monocyte 근접 cell type을 정량화한다.</li>
+<li><strong>Data &amp; method</strong>: Spatial transcriptomics n=8의 nearest-neighbor analysis (<a href="#method-overview-·-spatial-and-imaging">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 막대 길이는 proximity score이고 cell type별로 비교한다.</li>
+<li><strong>결과와 의미</strong>: SPP1+ macrophages가 가까운 neighbor로 나타나 localized myeloid niche를 지지한다.</li>
+</ul>
+<p><strong>E · Severe-course gene set</strong></p>
+<ul>
+<li><strong>목적</strong>: 기존 severe-course-associated genes를 발현하는 cell을 찾는다.</li>
+<li><strong>Data &amp; method</strong>: 기존 extended oligoarticular n=8 vs persistent n=13의 gene set을 현 SFMC n=9에 mapping (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 열은 disease-course-associated genes, 행은 높은 expression을 보이는 cell types다.</li>
+<li><strong>결과와 의미</strong>: Severe-course genes는 SPP1+ macrophages 등에 풍부하나 현재 cohort의 prospective prognosis를 직접 예측한 결과는 아니다.</li>
+</ul>
+<p><strong>F · Limited-course gene set</strong></p>
+<ul>
+<li><strong>목적</strong>: Persistent-course-associated genes의 위치를 대비한다.</li>
+<li><strong>Data &amp; method</strong>: 동일 외부 severity comparison의 반대 방향 gene set을 SFMC에 mapping (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: Figure 6E와 같은 expression heatmap이며 다른 gene set이다.</li>
+<li><strong>결과와 의미</strong>: Limited-course genes는 여러 T-cell states와 DC populations에 나타나 서로 다른 immune programs를 제안한다.</li>
+</ul>
+<p><strong>G · GWAS gene expression</strong></p>
+<ul>
+<li><strong>목적</strong>: Genetic susceptibility와 tissue cell states를 연결한다.</li>
+<li><strong>Data &amp; method</strong>: 기존 JIA GWAS-associated loci의 gene expression을 tissue n=10에서 집계 (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 각 gene에 expression이 높은 cell types와 hierarchical groups를 본다.</li>
+<li><strong>결과와 의미</strong>: Myeloid·stromal·T-cell subsets에 서로 다른 risk-gene expression이 나타나지만 causal variant나 causal cell type을 확정하지 않는다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Disease-associated genes가 특정 niche의 cells에 집중된다는 근거이며, validated prognostic biomarker나 therapeutic response predictor는 아니다.</p>
+</blockquote>
+<h2 id="figure-7-·-pediatric-jia-versus-adult-ra">Figure 7 · Pediatric JIA versus adult RA</h2>
+<p><strong>Context</strong> · JIA atlas의 특징이 모든 inflammatory arthritis에 공통인지 소아 disease context에서 다른지 비교한다. 가능한 한 joint, DMARD exposure와 disease duration을 맞추지만 age와 diagnosis는 완전히 분리되지 않는다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2025-bolton-jia-synovial-atlas-fig7.png" alt="2025 Bolton - JIA Synovial Atlas Fig7" loading="lazy"><span class="figure-credit">Figure: Bolton et al., Science Translational Medicine (2025) · CC BY 4.0</span></span></p>
+<p><em>Figure: Bolton et al., Science Translational Medicine (2025), author accepted manuscript · CC BY 4.0; legend 제외 original figure.</em></p>
+<p><strong>A · Restricted cohort comparison</strong></p>
+<ul>
+<li><strong>목적</strong>: 초기 untreated knee tissue에서 major composition을 비교한다.</li>
+<li><strong>Data &amp; method</strong>: JIA n=7/RA n=12, duration&lt;1 year, DMARD-naïve; non-arthritic adult n=3 (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: Pie chart는 각 cohort의 major cell-type proportion이다.</li>
+<li><strong>결과와 의미</strong>: JIA에는 myeloid·vascular·NK/ILC, RA에는 T/B cells가 상대적으로 풍부하다.</li>
+</ul>
+<p><strong>B · Participant heterogeneity</strong></p>
+<ul>
+<li><strong>목적</strong>: 평균 composition이 개인차를 가리지 않는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Duration 제한 없는 tissue JIA n=10/RA n=13/non-arthritic n=3 (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 막대 하나는 participant이며 아래 disease duration/classification을 함께 읽는다.</li>
+<li><strong>결과와 의미</strong>: JIA sample들에서도 차이는 있지만 RA의 composition heterogeneity가 더 크게 나타난다.</li>
+</ul>
+<p><strong>C · Composition PCA</strong></p>
+<ul>
+<li><strong>목적</strong>: Disease groups의 composition 구조를 요약한다.</li>
+<li><strong>Data &amp; method</strong>: Sample-level tissue cell proportions의 PCA (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 점은 sample, 화살표는 composition 변수의 PC 기여 방향이다.</li>
+<li><strong>결과와 의미</strong>: JIA와 RA가 분리되며 myeloid/vascular 및 lymphocyte proportions가 차이에 기여한다.</li>
+</ul>
+<p><strong>D · Imaging comparison</strong></p>
+<ul>
+<li><strong>목적</strong>: RNA-based composition 차이를 protein images에서도 본다.</li>
+<li><strong>Data &amp; method</strong>: JIA 및 RA representative multiplexed immunofluorescence (<a href="#method-overview-·-spatial-and-imaging">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 왼쪽 fluorescence와 오른쪽 computational annotation을 같은 sample 안에서 비교한다.</li>
+<li><strong>결과와 의미</strong>: Representative images가 vascular architecture 차이를 보여 주며 정량 결론은 E에서 확인한다.</li>
+</ul>
+<p><strong>E · Imaging quantification</strong></p>
+<ul>
+<li><strong>목적</strong>: 혈관/lymphatic 차이를 cohort 수준에서 검증한다.</li>
+<li><strong>Data &amp; method</strong>: Imaging JIA n=7 vs RA n=6; t-test 또는 Wilcoxon (<a href="#method-overview-·-spatial-and-imaging">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 점은 participant이고 boxplot과 unadjusted P를 함께 본다.</li>
+<li><strong>결과와 의미</strong>: JIA에서 vascular/lymphatic proportion 증가가 확인되지만 myeloid imaging 차이는 같은 정도로 뒷받침되지 않는다.</li>
+</ul>
+<p><strong>F · Cross-disease label concordance</strong></p>
+<ul>
+<li><strong>목적</strong>: 어떤 fine states가 두 disease atlas에서 대응하는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Full adult RA reference n=69→JIA tissue n=10 label transfer (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 색은 label overlap fraction, 검은 사각형은 &gt;50% concordance다.</li>
+<li><strong>결과와 의미</strong>: Tph 및 plasma-cell 등 여러 states가 공유되지만 label similarity가 동일한 기능이나 disease mechanism을 뜻하지 않는다.</li>
+</ul>
+<p><strong>G · Fine-state abundance</strong></p>
+<ul>
+<li><strong>목적</strong>: Shared annotation 아래 disease-enriched states를 찾는다.</li>
+<li><strong>Data &amp; method</strong>: Figure 7A의 restricted cohorts; JIA→RA label transfer 후 abundance test (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 초록은 JIA-enriched, 보라는 RA-enriched, 회색은 non-significant다.</li>
+<li><strong>결과와 의미</strong>: Capillary/venous, ILC, SOX5+ fibroblast 등 JIA-enriched states가 드러나 age-specific tissue 연구 필요성을 제안한다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · JIA는 adult RA의 축소판이 아니지만 이 비교만으로 차이를 순수한 age effect와 disease effect로 나눌 수 없다.</p>
+</blockquote>
+<h2 id="figure-8-·-sox5-positive-stromal-state">Figure 8 · SOX5-positive stromal state</h2>
+<p><strong>Context</strong> · Figure 7의 SOX5+ fibroblast enrichment가 label-transfer artifact인지 확인하고 기능적 단서를 찾는다. Joint reclustering, trajectory, proximity와 별도 perturbation evidence를 차례로 연결한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2025-bolton-jia-synovial-atlas-fig8.png" alt="2025 Bolton - JIA Synovial Atlas Fig8" loading="lazy"><span class="figure-credit">Figure: Bolton et al., Science Translational Medicine (2025) · CC BY 4.0</span></span></p>
+<p><em>Figure: Bolton et al., Science Translational Medicine (2025), author accepted manuscript · CC BY 4.0; legend 제외 original figure.</em></p>
+<p><strong>A · Joint stromal clustering</strong></p>
+<ul>
+<li><strong>목적</strong>: SOX5+ state가 joint analysis에서도 구분되는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Restricted JIA n=7/RA n=12 stromal integration 및 re-annotation (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: UMAP을 disease별로 나누되 동일한 cluster 색을 사용한다.</li>
+<li><strong>결과와 의미</strong>: Joint integration에서도 pediatric-enriched stromal state가 식별되어 단방향 label-transfer만의 결과는 아니다.</li>
+</ul>
+<p><strong>B · Disease contributions</strong></p>
+<ul>
+<li><strong>목적</strong>: Re-annotated state의 disease enrichment를 확인한다.</li>
+<li><strong>Data &amp; method</strong>: Figure 8A clusters의 disease별 normalized proportion (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 각 bar의 JIA/RA contribution을 비교한다.</li>
+<li><strong>결과와 의미</strong>: SOX5+ fibroblast 및 FLI1+ capillary state enrichment가 다시 관찰된다.</li>
+</ul>
+<p><strong>C · Shared stromal programs</strong></p>
+<ul>
+<li><strong>목적</strong>: SOX5 fibroblast와 capillary state의 program 공통점을 찾는다.</li>
+<li><strong>Data &amp; method</strong>: JIA tissue n=10의 stromal DEG modules (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: Heatmap의 module별 expression과 GO term을 함께 본다.</li>
+<li><strong>결과와 의미</strong>: SOX5+ fibroblast와 FLI1+ capillary cells가 WNT/HIPPO 관련 modules를 공유한다.</li>
+</ul>
+<p><strong>D · Pseudotime hypothesis</strong></p>
+<ul>
+<li><strong>목적</strong>: Fibroblast states의 transcriptomic 연결을 탐색한다.</li>
+<li><strong>Data &amp; method</strong>: JIA n=10 stromal data의 Monocle trajectory (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 왼쪽은 state label, 오른쪽은 inferred pseudotime이며 실제 시간축이 아니다.</li>
+<li><strong>결과와 의미</strong>: SOX5+ state를 progenitor-like origin으로 해석할 수 있으나 lineage tracing이나 분화 방향의 실증은 아니다.</li>
+</ul>
+<p><strong>E · SOX5-neighbor analysis</strong></p>
+<ul>
+<li><strong>목적</strong>: Trajectory에서 연결된 states가 공간적으로도 가까운지 본다.</li>
+<li><strong>Data &amp; method</strong>: Xenium n=8의 SOX5+CDH11+ fibroblast proximity (<a href="#method-overview-·-spatial-and-imaging">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 막대는 nearest-neighbor score다.</li>
+<li><strong>결과와 의미</strong>: CD34+, POSTN+, lining fibroblasts가 가까워 state association을 보강하지만 분화 증거는 아니다.</li>
+</ul>
+<p><strong>F · SOX5 spatial example</strong></p>
+<ul>
+<li><strong>목적</strong>: Proximity 결과의 실제 조직 배치를 확인한다.</li>
+<li><strong>Data &amp; method</strong>: Representative Xenium cell-coordinate map (<a href="#method-overview-·-spatial-and-imaging">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: Cell-state 색과 SOX5+CDH11+ cell 위치를 비교한다.</li>
+<li><strong>결과와 의미</strong>: SOX5+ fibroblasts와 주변 stromal states의 근접성을 시각적으로 보여 준다.</li>
+</ul>
+<p><strong>G · Incoming pathway candidates</strong></p>
+<ul>
+<li><strong>목적</strong>: SOX5+ state에 영향을 줄 signaling 후보를 찾는다.</li>
+<li><strong>Data &amp; method</strong>: Tissue n=10의 CellChat stromal incoming pathway analysis (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 열은 pathway, 색은 summarized communication probability다.</li>
+<li><strong>결과와 의미</strong>: EGF·PDGF·TGF-β 등이 후보로 나타나며 expression-based hypothesis다.</li>
+</ul>
+<p><strong>H · Perturbation design</strong></p>
+<ul>
+<li><strong>목적</strong>: TGF-β 후보를 별도 data로 검토하는 설계를 확인한다.</li>
+<li><strong>Data &amp; method</strong>: JIA-derived fibroblasts 3 donors, stimulation/control bulk RNA-seq (<a href="#method-overview-·-perturbation-evidence">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 도식은 culture-derived fibroblast의 비교를 보여 주며 tissue in vivo 실험은 아니다.</li>
+<li><strong>결과와 의미</strong>: Transcriptomic response를 실측하는 검증이지만 작은 donor 수와 culture context를 고려해야 한다.</li>
+</ul>
+<p><strong>I · Response-marker overlap</strong></p>
+<ul>
+<li><strong>목적</strong>: Stimulation response가 atlas state markers와 겹치는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Adjusted P&lt;0.05 upregulated bulk genes와 scRNA-seq stromal markers의 overlap (<a href="#method-overview-·-perturbation-evidence">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: x축은 겹치는 gene 수, y축은 marker 중 겹치는 proportion이다.</li>
+<li><strong>결과와 의미</strong>: SOX5+ fibroblast/FLI1+ capillary markers 및 POSTN+ program과 overlap해 TGF-β responsiveness를 지지하지만 cell identity 전환을 입증하지 않는다.</li>
+</ul>
+<p><strong>J · Outgoing pathway candidates</strong></p>
+<ul>
+<li><strong>목적</strong>: SOX5+ state가 microenvironment에 줄 signal을 탐색한다.</li>
+<li><strong>Data &amp; method</strong>: Tissue stromal CellChat outgoing pathway analysis (<a href="#method-overview-·-computational-analysis">Method overview</a>).</li>
+<li><strong>그림 읽기</strong>: 각 state의 pathway별 predicted probability를 비교한다.</li>
+<li><strong>결과와 의미</strong>: SOX5+ fibroblasts의 PDGF-related signal이 vascularization hypothesis와 연결되지만 직접적인 angiogenesis 증명은 아니다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · SOX5+ state의 enrichment와 TGF-β-responsive program은 뒷받침되지만 progenitor lineage와 in vivo therapeutic benefit은 미검증이다.</p>
+</blockquote>
+<h2 id="method-overview-·-study-design">Method overview · Study design</h2>
+<p>Disease-atlas 연구이므로 별도 tool/model Pipeline은 만들지 않았다. Figure별 Data &amp; method는 이 same-page method overview에 연결한다. Recruitment, modality별 sample 수, clinical comparison은 AAM Materials and Methods와 Figure legends를 기준으로 했다. DMARD-naïve는 모든 약제에 한 번도 노출되지 않았다는 뜻으로 확대하지 않는다.</p>
+<h2 id="method-overview-·-computational-analysis">Method overview · Computational analysis</h2>
+<p>CellRanger alignment 이후 SoupX ambient RNA correction, Scrublet doublet filtering, Seurat integration/reclustering을 사용했고 필요한 subtype에는 Harmony를 추가했다. Supplementary Methods의 gene-count exclusion은 &lt;200 또는 &gt;7,000 detected genes이며 mitochondrial fraction 기준은 일반 cell &lt;12.5%, ILC &lt;20%였다. Gene/protein markers로 annotation을 검토했다.</p>
+<p>Compartment DEG는 sample-pseudobulk DESeq2로 분석했고 Figure 2의 threshold는 |log2FC|&gt;1 및 adjusted P&lt;0.01이다. Differential abundance는 Fisher test와 10,000 permutations, FDR&lt;0.01 및 |log2FC|&gt;0.58을 사용했다. CellChat은 aggregate ligand/receptor expression 기반 예측이며 ligand secretion, receptor activation 또는 functional dependency의 직접 측정이 아니다. Monocle DDRTree pseudotime은 expression-space ordering이지 관찰된 biological time이나 clonal ancestry가 아니다.</p>
+<h2 id="method-overview-·-spatial-and-imaging">Method overview · Spatial and imaging</h2>
+<p>Xenium은 whole transcriptome이 아니라 377-gene targeted panel이다. Baysor segmentation과 Seurat/Harmony 처리를 이용했고 spatial Methods에는 &lt;15 genes 및 &lt;20 transcripts cell 제거가 기재되어 있다. Nearest-neighbor proximity로 co-localization을 분석했다. Multiplexed protein imaging은 QuPath segmentation 및 cell-level marker intensity를 사용했고, anti-CD138 staining이 성공하지 않아 plasma-cell localization을 confocal microscopy로 보완했다. Protein과 RNA modalities의 resolution·sample overlap 차이를 고려한다.</p>
+<h2 id="method-overview-·-perturbation-evidence">Method overview · Perturbation evidence</h2>
+<p>JIA biopsy-derived fibroblast의 TGF-β exposure/control bulk RNA-seq를 atlas marker sets와 비교했다. 이 페이지는 실험 조작법이 아니라 연구 설계와 결과의 해석만 정리한다. Figure 8H–I는 3 donor의 한 independent experiment로, stromal program의 responsiveness는 지지하지만 tissue 내 lineage conversion이나 치료효과를 검증하지 않는다.</p>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li><strong>Clinical translation</strong>: Atlas와 pathway association은 hypothesis-generating evidence다. 특정 niche를 겨냥하면 환자 outcome이 좋아진다는 randomized/prospective validation은 없다.</li>
+<li><strong>Age versus disease</strong>: Healthy pediatric tissue control이 없고 adult RA의 seropositivity도 다르므로 JIA–RA 차이를 순수한 age effect라고 단정할 수 없다.</li>
+<li><strong>Sampling and power</strong>: 19명 모집과 분석별 n은 다르며 knee 중심, 작은 cohort, variable tissue recovery와 sample attrition의 영향을 받는다. Cell 수는 독립 patient 수가 아니다.</li>
+<li><strong>Compartment comparison</strong>: Figure 2B–C n=7과 Supplementary Methods n=6 문구는 일치하지 않아 확인이 필요하다. Unadjusted correlation P-values를 confirmatory biomarker evidence로 읽지 않는다.</li>
+<li><strong>Spatial evidence</strong>: Targeted panel, segmentation, annotation 및 biopsy fragment 선택에 따라 관찰 가능한 niche가 제한된다. Proximity는 signaling 또는 migration direction의 증거가 아니다.</li>
+<li><strong>Causal interpretation</strong>: GWAS-gene expression mapping은 causal variant 기능 검증이 아니고, pseudotime은 lineage tracing이 아니다. CellChat prediction과 ex vivo program overlap을 임상 효능으로 확대하지 않는다.</li>
+</ul>
+<h2 id="supplementary-evidence-and-coverage">Supplementary evidence and coverage</h2>
+<p>Authorized AAM에 포함된 Supplementary Methods와 Figure S1–S10 legends를 확인했다. S1/S3은 annotation, S2/S4는 adult non-arthritic comparison, S5는 age association, S6/S7은 spatial annotation·signaling·histology/proximity, S8/S9는 adult comparison, S10은 SOX5+ stromal-state 해석을 보완한다. Supplementary figure는 규칙대로 별도 이미지로 삽입하지 않았다. Supplementary Tables S1–S12와 data file S1의 원자료 전체를 독립 재계산하지 않았으며, 이 노트의 수치는 main text/legend/Methods에서 확인한 값에 한정한다.</p>
+<h2 id="data-and-code">Data &amp; Code</h2>
+<ul>
+<li><a href="https://doi.org/10.1126/scitranslmed.adt6050">Primary article DOI</a></li>
+<li><a href="https://pure-oai.bham.ac.uk/ws/portalfiles/portal/269514110/BoltonC2025Synovial_AAM.pdf">Authorized author accepted manuscript, Birmingham</a>: 본문·main figures·Supplementary Methods/figure legends 확인; published typeset version이 아니라 accepted manuscript 기준이다.</li>
+<li><a href="https://ora.ox.ac.uk/objects/uuid%3Af23b212f-6951-4606-9b5c-a3bffeb24e72">Oxford repository record</a></li>
+<li>Newly sequenced data: <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE278962">GSE278962</a>, <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE278968">GSE278968</a>, <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE278969">GSE278969</a>; accession별 assay correspondence는 이 노트에서 추정하지 않았다.</li>
+<li><a href="https://github.com/crissi-b/MAPJAG">Analysis code</a> · <a href="https://doi.org/10.5281/zenodo.15352478">Archived code</a></li>
+<li><a href="https://mdv.molbiol.ox.ac.uk/projects/mdv_project/7536">Processed scRNA-seq viewer</a>: manuscript에 registration required로 명시.</li>
+<li><strong>Figure rights</strong>: AAM CC BY 4.0. Figures 1–8은 해당 PDF의 original figure image를 legend 없이 추출했다; Figure 1의 Servier Medical Art 부분도 CC BY 4.0로 명시되어 있다. 원본 PDF는 저장소에 추가하지 않았다.</li>
+</ul>
+<h2 id="related-concepts">Related concepts</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/rheumatoid-arthritis/">Rheumatoid Arthritis</a> · <a class="wikilink wikilink-concept" href="/concepts/single-cell-rna-seq/">Single-cell RNA-seq</a> · <a class="wikilink wikilink-concept" href="/concepts/cellchat/">CellChat</a> · <a class="wikilink wikilink-concept" href="/concepts/trajectory-analysis/">Pseudotime</a> · <a class="wikilink wikilink-concept" href="/concepts/spatial-transcriptomics/">Spatial Transcriptomics</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2024-dunlap-ra-synovium-clonal-associations/">2024 Dunlap - RA Synovium Clonal Associations</a> · <a class="wikilink wikilink-paper" href="/papers/2025-kim-age-associated-b-cells-in-ra/">2025 Kim - Age-associated B Cells in RA</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#background">Background</a></li><li class="toc-l2"><a href="#data">Data</a></li><li class="toc-l2"><a href="#figure-1-·-matched-compartments">Figure 1 · Matched compartments</a></li><li class="toc-l2"><a href="#figure-2-·-compartment-specific-immune-programs">Figure 2 · Compartment-specific immune programs</a></li><li class="toc-l2"><a href="#figure-3-·-fine-immune-and-stromal-states">Figure 3 · Fine immune and stromal states</a></li><li class="toc-l2"><a href="#figure-4-·-seven-spatial-niches">Figure 4 · Seven spatial niches</a></li><li class="toc-l2"><a href="#figure-5-·-protein-based-spatial-validation">Figure 5 · Protein-based spatial validation</a></li><li class="toc-l2"><a href="#figure-6-·-disease-associated-myeloid-niches">Figure 6 · Disease-associated myeloid niches</a></li><li class="toc-l2"><a href="#figure-7-·-pediatric-jia-versus-adult-ra">Figure 7 · Pediatric JIA versus adult RA</a></li><li class="toc-l2"><a href="#figure-8-·-sox5-positive-stromal-state">Figure 8 · SOX5-positive stromal state</a></li><li class="toc-l2"><a href="#method-overview-·-study-design">Method overview · Study design</a></li><li class="toc-l2"><a href="#method-overview-·-computational-analysis">Method overview · Computational analysis</a></li><li class="toc-l2"><a href="#method-overview-·-spatial-and-imaging">Method overview · Spatial and imaging</a></li><li class="toc-l2"><a href="#method-overview-·-perturbation-evidence">Method overview · Perturbation evidence</a></li><li class="toc-l2"><a href="#limitations">Limitations</a></li><li class="toc-l2"><a href="#supplementary-evidence-and-coverage">Supplementary evidence and coverage</a></li><li class="toc-l2"><a href="#data-and-code">Data &amp;amp; Code</a></li><li class="toc-l2"><a href="#related-concepts">Related concepts</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/cellchat/"><span class="kind-dot kind-concept"></span>CellChat</a></li><li><a href="/concepts/rheumatoid-arthritis/"><span class="kind-dot kind-concept"></span>Rheumatoid Arthritis (RA)</a></li><li><a href="/concepts/single-cell-rna-seq/"><span class="kind-dot kind-concept"></span>Single-cell RNA-seq</a></li><li><a href="/concepts/spatial-transcriptomics/"><span class="kind-dot kind-concept"></span>Spatial Transcriptomics</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

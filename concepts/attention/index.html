@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Attention · Study Wiki</title>
+<meta name="description" content="정보를 모을 때 어떤 입력이 지금 나에게 중요한지 점수(attention score)를 매겨 가중 평균하는 메커니즘. 가중치가 고정이 아니라 데이터 내용에 따라 그때그때 계산된다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/statistics-and-ml/">Statistics &amp; ML</a></p>
+    <h1 class="note-title">Attention</h1>
+    <p class="lead">정보를 모을 때 어떤 입력이 지금 나에게 중요한지 점수(attention score)를 매겨 가중 평균하는 메커니즘. 가중치가 고정이 아니라 데이터 내용에 따라 그때그때 계산된다.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#deep-learning</span><span class="chip chip-tag">#transformer</span><span class="chip chip-tag">#attention</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p><a class="wikilink wikilink-concept" href="/concepts/graph-convolutional-network/">GCN</a>이 주변 사람 말을 거리만 보고 비슷한 볼륨으로 듣는 <strong>확성기</strong>라면, attention은 내 관심사와 맞는 사람 말만 골라 듣는 <strong>노이즈 캔슬링 이어폰</strong>입니다.</p>
+<p>언어에서는 &quot;배가 고프다&quot;와 &quot;배가 바다에 떠 있다&quot;의 '배'를 주변 단어를 보고 구분하는 능력, 즉 <strong>맥락을 읽는 능력</strong>입니다. 유전자도 같은 gene이 함께 발현되는 다른 gene에 따라 분화에 관여하기도 하고 염증에 관여하기도 합니다.</p>
+<h2 id="자세히">자세히</h2>
+<h3 id="query-key-value">Query, Key, Value</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>비유</th>
+<th>역할</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Query (Q)</strong></td>
+<td>내가 던지는 질문</td>
+<td>&quot;나는 이런 특징이야, 나랑 관련 있는 건 누구니?&quot;</td>
+</tr>
+<tr>
+<td><strong>Key (K)</strong></td>
+<td>각 이웃의 명함</td>
+<td>&quot;내 특징은 이거야&quot;</td>
+</tr>
+<tr>
+<td><strong>Value (V)</strong></td>
+<td>이웃이 줄 수 있는 정보</td>
+<td>실제로 전달되는 내용</td>
+</tr>
+</tbody>
+</table></div>
+<ol>
+<li>내 Q와 각 이웃의 K를 비교해 유사도를 계산한다.</li>
+<li>Softmax로 정규화해 attention score를 만든다.</li>
+<li>Score를 가중치로 이웃의 V를 합친다.</li>
+</ol>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>Attention</mtext><mo stretchy="false">(</mo><mi>Q</mi><mo separator="true">,</mo><mi>K</mi><mo separator="true">,</mo><mi>V</mi><mo stretchy="false">)</mo><mo>=</mo><mtext>softmax</mtext><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><mfrac><mrow><mi>Q</mi><msup><mi>K</mi><mi mathvariant="normal">⊤</mi></msup></mrow><msqrt><msub><mi>d</mi><mi>k</mi></msub></msqrt></mfrac><mo fence="true">)</mo></mrow><mi>V</mi></mrow><annotation encoding="application/x-tex">\text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right) V
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">Attention</span></span><span class="mopen">(</span><span class="mord mathnormal">Q</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">K</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.2222em;">V</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4761em;vertical-align:-0.95em;"></span><span class="mord text"><span class="mord">softmax</span></span><span class="mspace" style="margin-right:-0.1667em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.5261em;"><span style="top:-2.2528em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8572em;"><span class="svg-align" style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord" style="padding-left:0.833em;"><span class="mord"><span class="mord mathnormal">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.8172em;"><span class="pstrut" style="height:3em;"></span><span class="hide-tail" style="min-width:0.853em;height:1.08em;"><svg xmlns="http://www.w3.org/2000/svg" width="400em" height="1.08em" viewBox="0 0 400000 1080" preserveAspectRatio="xMinYMin slice"><path d="M95,702
+c-2.7,0,-7.17,-2.7,-13.5,-8c-5.8,-5.3,-9.5,-10,-9.5,-14
+c0,-2,0.3,-3.3,1,-4c1.3,-2.7,23.83,-20.7,67.5,-54
+c44.2,-33.3,65.8,-50.3,66.5,-51c1.3,-1.3,3,-2,5,-2c4.7,0,8.7,3.3,12,10
+s173,378,173,378c0.7,0,35.3,-71,104,-213c68.7,-142,137.5,-285,206.5,-429
+c69,-144,104.5,-217.7,106.5,-221
+l0 -0
+c5.3,-9.3,12,-14,20,-14
+H400000v40H845.2724
+s-225.272,467,-225.272,467s-235,486,-235,486c-2.7,4.7,-9,7,-19,7
+c-6,0,-10,-1,-12,-3s-194,-422,-194,-422s-65,47,-65,47z
+M834 80h400000v40h-400000z"/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1828em;"><span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">Q</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">K</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">⊤</span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.93em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.2222em;">V</span></span></span></span></span></p>
+<p>(<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msqrt><msub><mi>d</mi><mi>k</mi></msub></msqrt></mrow><annotation encoding="application/x-tex">\sqrt{d_k}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.04em;vertical-align:-0.1828em;"></span><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8572em;"><span class="svg-align" style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord" style="padding-left:0.833em;"><span class="mord"><span class="mord mathnormal">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.8172em;"><span class="pstrut" style="height:3em;"></span><span class="hide-tail" style="min-width:0.853em;height:1.08em;"><svg xmlns="http://www.w3.org/2000/svg" width="400em" height="1.08em" viewBox="0 0 400000 1080" preserveAspectRatio="xMinYMin slice"><path d="M95,702
+c-2.7,0,-7.17,-2.7,-13.5,-8c-5.8,-5.3,-9.5,-10,-9.5,-14
+c0,-2,0.3,-3.3,1,-4c1.3,-2.7,23.83,-20.7,67.5,-54
+c44.2,-33.3,65.8,-50.3,66.5,-51c1.3,-1.3,3,-2,5,-2c4.7,0,8.7,3.3,12,10
+s173,378,173,378c0.7,0,35.3,-71,104,-213c68.7,-142,137.5,-285,206.5,-429
+c69,-144,104.5,-217.7,106.5,-221
+l0 -0
+c5.3,-9.3,12,-14,20,-14
+H400000v40H845.2724
+s-225.272,467,-225.272,467s-235,486,-235,486c-2.7,4.7,-9,7,-19,7
+c-6,0,-10,-1,-12,-3s-194,-422,-194,-422s-65,47,-65,47z
+M834 80h400000v40h-400000z"/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1828em;"><span></span></span></span></span></span></span></span></span>로 나누는 것은 차원이 클 때 값이 너무 커지는 것을 막기 위함. 일반 지식)</p>
+<h3 id="gcn-vs-attention">GCN vs Attention</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>GCN</th>
+<th>Attention (GAT 등)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>이웃 가중치</td>
+<td>미리 정해짐 (graph의 edge weight)</td>
+<td>데이터 내용을 보고 실시간 계산</td>
+</tr>
+<tr>
+<td>판단 기준</td>
+<td>관계의 유무와 거리</td>
+<td>특징의 관련성</td>
+</tr>
+<tr>
+<td>비유</td>
+<td>&quot;가까이 사니까 친하겠지&quot;</td>
+<td>&quot;관심사가 같으니까 친하네&quot;</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Single-cell 예</strong>: Tumor cell과 T cell이 물리적으로 붙어 있으면 GCN은 거리만 보고 tumor 정보를 T cell에 섞을 수 있습니다. Attention은 Key를 보고 &quot;나와 너무 다르다&quot;며 score를 낮춰, T cell은 같은 T cell 정보로만 보정합니다.</p>
+<h3 id="단순-거리euclidean와의-차이">단순 거리(Euclidean)와의 차이</h3>
+<ul>
+<li>거리는 모든 gene 차이를 <strong>똑같이</strong> 더합니다. Cell type과 무관한 gene의 미세한 차이도 거리에 반영됩니다.</li>
+<li>Attention은 맥락에 따라 <strong>중요한 gene에 가중치</strong>를 줍니다. 전체 발현은 비슷해도 특정 signaling pathway gene 몇 개가 다르면 서로 다른 상태로 구분할 수 있습니다.</li>
+<li>Gene 사이의 **조합(interaction)**과 비선형 관계를 포착합니다.</li>
+</ul>
+<h3 id="쓰임">쓰임</h3>
+<ul>
+<li><strong>GAT (Graph Attention Network)</strong>: GCN의 adjacency 대신 attention 계수로 이웃을 섞는다.</li>
+<li><strong>Transformer</strong> (scBERT, scGPT 등 single-cell foundation model): cell끼리뿐 아니라 <strong>gene과 gene 사이</strong>에도 attention을 적용해 gene regulatory 관계를 학습한다.</li>
+</ul>
+<h2 id="논문별-활용">논문별 활용</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2025-sheinin-scnet/">2025 Sheinin - scNET</a>: gene과 cell embedding을 학습할 때 attention으로 이웃의 중요도를 조절했다.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/graph-convolutional-network/">Graph Convolutional Network</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/integrated-gradients/">Integrated Gradients</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l3"><a href="#query-key-value">Query, Key, Value</a></li><li class="toc-l3"><a href="#gcn-vs-attention">GCN vs Attention</a></li><li class="toc-l3"><a href="#단순-거리euclidean와의-차이">단순 거리(Euclidean)와의 차이</a></li><li class="toc-l3"><a href="#쓰임">쓰임</a></li><li class="toc-l2"><a href="#논문별-활용">논문별 활용</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/graph-convolutional-network/"><span class="kind-dot kind-concept"></span>Graph Convolutional Network (GCN)</a></li><li><a href="/concepts/integrated-gradients/"><span class="kind-dot kind-concept"></span>Integrated Gradients (IG)</a></li><li><a href="/concepts/knn-graph/"><span class="kind-dot kind-concept"></span>KNN Graph</a></li><li><a href="/papers/2025-sheinin-scnet/"><span class="kind-dot kind-paper"></span>scNET (Sheinin 2025)</a></li><li><a href="/papers/2025-sheinin-scnet-pipeline/"><span class="kind-dot kind-pipeline"></span>scNET Pipeline (Sheinin 2025)</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

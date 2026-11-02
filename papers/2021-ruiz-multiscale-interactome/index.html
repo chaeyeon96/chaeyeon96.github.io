@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multiscale Interactome (Ruiz 2021) · Study Wiki</title>
+<meta name="description" content="Protein interactions와 biological-function hierarchy를 함께 diffusion해 drug–disease treatment를 예측하고 관련 gene/function을 설명한다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a></p>
+    <div class="paper-meta">
+      
+      <span class="badge">Nature Communications</span>
+      <span>2021</span>
+      <span class="muted">method</span>
+      
+    </div>
+    <h1 class="note-title">Multiscale Interactome (Ruiz 2021)</h1>
+    <p class="paper-full-title">Identification of disease treatment mechanisms through the multiscale interactome — Ruiz et al.</p>
+    <p class="lead">Protein interactions와 biological-function hierarchy를 함께 diffusion해 drug–disease treatment를 예측하고 관련 gene/function을 설명한다.</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1038/s41467-021-21770-8" rel="noopener">원문 (DOI)</a>
+      <a class="btn btn-small btn-soft" href="/papers/2021-ruiz-multiscale-interactome-pipeline/">Pipeline 따라가기</a>
+      
+      <span class="license">License · CC BY 4.0</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/ai-drug-discovery/">AI Drug Discovery</a><a class="chip chip-link" href="/sections/statistics-and-ml/">Statistics &amp; ML</a></div>
+    <div class="note-body"><div class="callout callout-tip">
+<div class="callout-title"><span class="callout-icon" aria-hidden="true">✦</span>Pipeline</div>
+<div class="callout-body">
+<p><a class="wikilink wikilink-pipeline" href="/papers/2021-ruiz-multiscale-interactome-pipeline/">2021 Ruiz - Multiscale Interactome (Pipeline)</a>에서 network construction, type-biased transition, restart, ranking과 treatment importance를 따라간다.</p>
+</div></div>
+<h2 id="background">Background</h2>
+<p>Drug target과 disease-associated protein이 PPI에서 가깝다는 가정만으로는 모든 treatment를 설명하기 어렵다. 서로 먼 protein도 같은 biological function에 기여할 수 있으므로, 이 논문은 GO hierarchy를 함께 연결한 network에서 drug와 disease의 propagated profiles를 비교한다.</p>
+<h2 id="data">Data</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Input / source</th>
+<th>Scope</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DrugBank / Drug Repurposing Hub</td>
+<td>1,661 drugs, 8,568 drug–protein edges</td>
+<td>Drug targets</td>
+</tr>
+<tr>
+<td>Curated DisGeNET</td>
+<td>840 diseases, 25,212 disease–protein edges</td>
+<td>Disease-associated proteins; therapeutic associations excluded</td>
+</tr>
+<tr>
+<td>Experimental PPI sources</td>
+<td>17,660 proteins, 387,626 interactions</td>
+<td>Physical interaction network</td>
+</tr>
+<tr>
+<td>GO biological processes</td>
+<td>9,798 functions; 34,777 protein–function and 22,545 function–function edges</td>
+<td>Functional hierarchy</td>
+</tr>
+<tr>
+<td>Approved-treatment databases</td>
+<td>5,926 approved drug–disease pairs</td>
+<td>Supervision/evaluation; drug-level 5-fold CV</td>
+</tr>
+<tr>
+<td>LINCS/CMap Level 5</td>
+<td>QC-filtered measured landmark signatures</td>
+<td>Independent expression-pattern comparison, Figure 2F</td>
+</tr>
+<tr>
+<td>PharmGKB clinical annotations</td>
+<td>1,223 drug–disease–gene triplets</td>
+<td>Treatment-altering gene evaluation, Figure 3</td>
+</tr>
+</tbody>
+</table></div>
+<p>위 자료는 기존 curated/experimental databases다. Diffusion profile와 TI는 model output이며 expression이나 drug efficacy를 새로 측정한 값이 아니다. 필터와 ID mapping은 <a class="wikilink wikilink-pipeline" href="/papers/2021-ruiz-multiscale-interactome-pipeline/#1-network-and-labels">Pipeline Step 1</a>을 참고한다.</p>
+<h2 id="figure-1-·-modeling-across-biological-scales">Figure 1 · Modeling across biological scales</h2>
+<p><strong>Context</strong> · PPI proximity만으로 설명이 부족한 이유를 먼저 정리한다. Function hierarchy를 추가했을 때 어떤 입력과 출력이 달라지는지 보여 준다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2021-ruiz-multiscale-interactome-fig1.webp" alt="2021 Ruiz - Multiscale Interactome Fig1" loading="lazy"><span class="figure-credit">Figure: Ruiz et al., Nature Communications (2021) · CC BY 4.0</span></span></p>
+<p><strong>A–B · Network representation</strong></p>
+<ul>
+<li><strong>목적</strong>: 직접 가까운 target만 치료에 중요할까?</li>
+<li><strong>Data &amp; method</strong>: Curated target/disease/PPI/GO 관계를 통합한다; <a class="wikilink wikilink-pipeline" href="/papers/2021-ruiz-multiscale-interactome-pipeline/#1-network-and-labels">Step 1</a>.</li>
+<li><strong>그림 읽기</strong>: Protein-only network와 function layer가 추가된 network를 비교한다.</li>
+<li><strong>결과와 의미</strong>: Functional connection은 PPI shortest path만으로 포착하지 못하는 관계를 담는다.</li>
+</ul>
+<p><strong>C · Diffusion profile</strong></p>
+<ul>
+<li><strong>목적</strong>: Drug와 disease의 network-wide effect를 어떻게 표현하는가?</li>
+<li><strong>Data &amp; method</strong>: Type-biased random walk의 steady visitation frequency를 계산한다; <a class="wikilink wikilink-pipeline" href="/papers/2021-ruiz-multiscale-interactome-pipeline/#2-biased-transition-and-restart">Step 2</a>.</li>
+<li><strong>그림 읽기</strong>: 방문 빈도는 확률적 network summary이며 실측 활성량이 아니다.</li>
+<li><strong>결과와 의미</strong>: 서로 다른 종류의 node를 통합한 vector를 얻는다.</li>
+</ul>
+<p><strong>D · Three tasks</strong></p>
+<ul>
+<li><strong>목적</strong>: 같은 profile로 어떤 질문에 답할 수 있는가?</li>
+<li><strong>Data &amp; method</strong>: Drug–disease similarity와 node-wise overlap을 계산한다; <a class="wikilink wikilink-pipeline" href="/papers/2021-ruiz-multiscale-interactome-pipeline/#3-ranking-and-evaluation">Step 3</a>.</li>
+<li><strong>그림 읽기</strong>: Treatment ranking, explanatory subgraph, altering-gene prediction을 분리한다.</li>
+<li><strong>결과와 의미</strong>: 예측과 explanation을 같은 representation에 연결한다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Function layer를 더하는 것은 단순히 PPI edge를 더 많이 넣는 것과 다르다.</p>
+</blockquote>
+<h2 id="figure-2-·-treatment-prediction-and-explanation">Figure 2 · Treatment prediction and explanation</h2>
+<p><strong>Context</strong> · 표현을 만들었으므로 실제 approved treatment를 얼마나 잘 회수하는지 평가한다. 성능뿐 아니라 expression과 case-study coherence도 따로 점검한다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2021-ruiz-multiscale-interactome-fig2.webp" alt="2021 Ruiz - Multiscale Interactome Fig2" loading="lazy"><span class="figure-credit">Figure: Ruiz et al., Nature Communications (2021) · CC BY 4.0</span></span></p>
+<p><strong>A–C · Predictive evaluation</strong></p>
+<ul>
+<li><strong>목적</strong>: Multiscale network가 baseline보다 유용한가?</li>
+<li><strong>Data &amp; method</strong>: Approved pairs의 drug-heldout CV와 ATC class comparison을 수행했다; <a class="wikilink wikilink-pipeline" href="/papers/2021-ruiz-multiscale-interactome-pipeline/#3-ranking-and-evaluation">Step 3</a>.</li>
+<li><strong>그림 읽기</strong>: AUROC/AP/Recall@50와 drug-class별 차이를 읽는다.</li>
+<li><strong>결과와 의미</strong>: Function integration이 ranking을 개선하지만 approved-label recovery는 prospective clinical efficacy와 다르다.</li>
+</ul>
+<p><strong>D–E · Explanatory subgraph</strong></p>
+<ul>
+<li><strong>목적</strong>: 어떤 protein/function을 통해 연결되는가?</li>
+<li><strong>Data &amp; method</strong>: 두 profile의 상위 node들로 induced subgraph를 만들었다; <a class="wikilink wikilink-pipeline" href="/papers/2021-ruiz-multiscale-interactome-pipeline/#4-explanation-and-expression-check">Step 4</a>.</li>
+<li><strong>그림 읽기</strong>: 관련 node와 서로 연결된 경로를 읽고 고립 component 제거를 고려한다.</li>
+<li><strong>결과와 의미</strong>: Model이 prioritization한 explanation이며 새로운 causal pathway의 실험적 발견으로 읽지 않는다.</li>
+</ul>
+<p><strong>F · Expression concordance</strong></p>
+<ul>
+<li><strong>목적</strong>: Profile similarity가 측정된 drug response와 맞물리는가?</li>
+<li><strong>Data &amp; method</strong>: 동일 cell/dose/time의 CMap signatures와 diffusion similarity를 비교했다; <a class="wikilink wikilink-pipeline" href="/papers/2021-ruiz-multiscale-interactome-pipeline/#4-explanation-and-expression-check">Step 4</a>.</li>
+<li><strong>그림 읽기</strong>: 점은 비교 가능한 drug pair이고 두 similarity의 관계를 본다.</li>
+<li><strong>결과와 의미</strong>: Spearman ρ=0.392의 association은 biological relevance를 지지하나 expression을 정확히 예측했다는 뜻은 아니다.</li>
+</ul>
+<p><strong>G–H · Treatment examples</strong></p>
+<ul>
+<li><strong>목적</strong>: PPI proximity만으로 부족한 사례를 어떻게 설명하는가?</li>
+<li><strong>Data &amp; method</strong>: Rosuvastatin–hyperlipoproteinemia III, anakinra–CAPS의 profile subgraphs를 해석했다; <a class="wikilink wikilink-pipeline" href="/papers/2021-ruiz-multiscale-interactome-pipeline/#4-explanation-and-expression-check">Step 4</a>.</li>
+<li><strong>그림 읽기</strong>: 각 drug target에서 disease-related function으로 이어지는 연결을 따른다.</li>
+<li><strong>결과와 의미</strong>: Cholesterol metabolism와 IL-1-mediated inflammation의 알려진 맥락과 부합한다; 전체 PPI에 경로가 전혀 없다는 주장과 구분한다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · Prediction benchmark, expression association, known-mechanism case study는 별도의 검증이다.</p>
+</blockquote>
+<h2 id="figure-3-·-genes-altering-treatment">Figure 3 · Genes altering treatment</h2>
+<p><strong>Context</strong> · 치료의 평균적 적합성 다음에는 gene variation에 따라 효과가 달라질 가능성을 묻는다. Drug와 disease 양쪽에 중요한 node가 후보가 된다.</p>
+<p><span class="note-figure"><img class="note-img" src="/files/2021-ruiz-multiscale-interactome-fig3.webp" alt="2021 Ruiz - Multiscale Interactome Fig3" loading="lazy"><span class="figure-credit">Figure: Ruiz et al., Nature Communications (2021) · CC BY 4.0</span></span></p>
+<p><strong>A–C · Treatment importance</strong></p>
+<ul>
+<li><strong>목적</strong>: 어떤 gene이 efficacy/toxicity와 연관되는가?</li>
+<li><strong>Data &amp; method</strong>: PharmGKB의 1,223 positive triplets와 동수 sampled unknown triplets에 TI를 평가했다; <a class="wikilink wikilink-pipeline" href="/papers/2021-ruiz-multiscale-interactome-pipeline/#5-treatment-importance">Step 5</a>.</li>
+<li><strong>그림 읽기</strong>: B의 importance percentile 분포와 C의 AUROC/AP를 구분한다.</li>
+<li><strong>결과와 의미</strong>: Known altering genes를 우선순위화하지만 unknown negative에는 아직 발견되지 않은 positive가 있을 수 있다.</li>
+</ul>
+<p><strong>D–F · Drug-specific effects</strong></p>
+<ul>
+<li><strong>목적</strong>: 같은 disease의 두 drug에 gene importance가 다른가?</li>
+<li><strong>Data &amp; method</strong>: Benazepril/diltiazem과 AGT를 포함한 비교를 수행했다; <a class="wikilink wikilink-pipeline" href="/papers/2021-ruiz-multiscale-interactome-pipeline/#5-treatment-importance">Step 5</a>.</li>
+<li><strong>그림 읽기</strong>: AGT rank 45 vs 418와 renin–angiotensin 관련 subgraph를 읽는다.</li>
+<li><strong>결과와 의미</strong>: Drug별 functional context가 variant association의 차이를 설명하는 가설을 제공한다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · TI는 patient-specific dosage나 adverse-event 확률을 직접 산출하는 지표가 아니다.</p>
+</blockquote>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li>Unknown indication을 negative로 간주하므로 label incompleteness가 성능에 영향을 줄 수 있다.</li>
+<li>Network는 annotation·research-density bias를 가지며 tissue, dose, time, activation/inhibition의 방향을 모두 직접 모델링하지 않는다.</li>
+<li>Top-k subgraph는 압축된 explanation이지 해당 node가 필요충분하다는 검증이 아니다.</li>
+<li>Human proteins 중심이므로 microbial targets에 의존하는 infectious-disease treatment는 평가에서 제외했다.</li>
+<li>‘최대 40% 개선’은 metric과 baseline에 의존하는 상대 개선이며 모든 질환에서 40 percentage-point 향상이라는 뜻이 아니다.</li>
+</ul>
+<h2 id="data-and-code">Data &amp; Code</h2>
+<ul>
+<li><a href="https://www.nature.com/articles/s41467-021-21770-8">Article and Methods</a></li>
+<li><a href="https://github.com/snap-stanford/multiscale-interactome">Code and processed data</a></li>
+<li>Methods와 Supplementary Notes/figure map을 대조했다. 전체 database row와 release code를 재실행한 것은 아니다.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/network-propagation/">Network Propagation</a> (random walk with restart) · <a class="wikilink wikilink-concept" href="/concepts/mechanism-of-action/">Mechanism of Action</a> · <a class="wikilink wikilink-concept" href="/concepts/drug-repurposing/">Drug Repurposing</a> · <a class="wikilink wikilink-concept" href="/concepts/connectivity-map/">Connectivity Map</a> · <a class="wikilink wikilink-concept" href="/concepts/gene-set-enrichment-analysis/">Gene Set Enrichment Analysis</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#background">Background</a></li><li class="toc-l2"><a href="#data">Data</a></li><li class="toc-l2"><a href="#figure-1-·-modeling-across-biological-scales">Figure 1 · Modeling across biological scales</a></li><li class="toc-l2"><a href="#figure-2-·-treatment-prediction-and-explanation">Figure 2 · Treatment prediction and explanation</a></li><li class="toc-l2"><a href="#figure-3-·-genes-altering-treatment">Figure 3 · Genes altering treatment</a></li><li class="toc-l2"><a href="#limitations">Limitations</a></li><li class="toc-l2"><a href="#data-and-code">Data &amp;amp; Code</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/connectivity-map/"><span class="kind-dot kind-concept"></span>Connectivity Map (CMap)</a></li><li><a href="/concepts/drug-repurposing/"><span class="kind-dot kind-concept"></span>Drug Repurposing</a></li><li><a href="/concepts/gene-set-enrichment-analysis/"><span class="kind-dot kind-concept"></span>Gene Set Enrichment Analysis</a></li><li><a href="/concepts/mechanism-of-action/"><span class="kind-dot kind-concept"></span>Mechanism of Action (MoA)</a></li><li><a href="/concepts/network-propagation/"><span class="kind-dot kind-concept"></span>Network Propagation</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

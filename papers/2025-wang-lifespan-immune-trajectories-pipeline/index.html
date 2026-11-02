@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>siAge · Pipeline · Study Wiki</title>
+<meta name="description" content="2025 Wang - Lifespan Immune Trajectories의 방법을 구현 단계로 나눈 노트다. 숫자는 원문 Methods에서 확인한 설정과 설명용 toy example을 구분한다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a> › <a href="/papers/2025-wang-lifespan-immune-trajectories/">Lifespan Immune Trajectories (Wang 2025)</a></p>
+    <div class="paper-meta">
+      <span class="badge badge-sage">Pipeline</span>
+      <span class="badge">Nature Immunology</span>
+      <span>2025</span>
+      <span class="muted">atlas</span>
+      
+    </div>
+    <h1 class="note-title">siAge · Pipeline</h1>
+    <p class="paper-full-title">Integrating single-cell RNA and T cell/B cell receptor sequencing with mass cytometry reveals dynamic trajectories of human peripheral immune cells from birth to old age — Wang et al.</p>
+    <p class="lead">2025 Wang - Lifespan Immune Trajectories의 방법을 구현 단계로 나눈 노트다. 숫자는 원문 Methods에서 확인한 설정과 설명용 toy example을 구분한다.</p>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1038/s41590-024-02059-6" rel="noopener">원문 (DOI)</a>
+      
+      <a class="btn btn-small btn-soft" href="/papers/2025-wang-lifespan-immune-trajectories/">논문 정리로</a>
+      <span class="license">License · CC BY-NC-ND 4.0</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/single-cell-analysis/">Single-cell Analysis</a></div>
+    <div class="note-body"><div class="callout callout-warning">
+<div class="callout-title"><span class="callout-icon" aria-hidden="true">!</span>Reading boundary</div>
+<div class="callout-body">
+<p>Main Methods와 figure legend를 확인했으나 별도 Supplementary 전체를 끝까지 검증한 완전 재현 문서는 아니다. 확인하지 못한 설정은 명시하며 실행 가능성을 실제 data로 검증하지 않았다.</p>
+</div></div>
+<h2 id="0-·-overview">0 · Overview</h2>
+<pre class="mermaid">flowchart LR
+ A[&quot;PBMC age atlas&quot;] --&gt; B[&quot;Cell-type-specific age DEGs&quot;]
+ B --&gt; C[&quot;25 subset models + integrated RF&quot;]
+ C --&gt; D[&quot;rfcv / IncMSE / 21 features&quot;]
+ D --&gt; E[&quot;siAge prediction&quot;]
+ E --&gt; F[&quot;Healthy validation / disease application&quot;]
+</pre>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Question</th>
+<th>Paper terminology</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Clock의 development와 validation 표본은 누구인가?</td>
+<td>Lifespan atlas / independent cohorts</td>
+</tr>
+<tr>
+<td>2</td>
+<td>어떤 expression을 age feature로 쓰는가?</td>
+<td>Cell-type-specific DEGs</td>
+</tr>
+<tr>
+<td>3</td>
+<td>어떤 genes를 남길 것인가?</td>
+<td>Random forest / rfcv / IncMSE</td>
+</tr>
+<tr>
+<td>4</td>
+<td>새 donor에서도 맞는가?</td>
+<td>siAge / fit index</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="step-1-·-inputs">Step 1 · Inputs</h2>
+<p><strong>하는 일</strong> · Atlas의 여러 assay와 clock model의 sample 수를 구분한다.</p>
+<p><strong>Input → Output</strong> · PBMC expression, cell labels, donor age → development/validation tables.</p>
+<p><strong>쉽게 말하면</strong> · Atlas 전체 참여자 수가 age model의 training 수는 아니다.</p>
+<p><strong>Details</strong> · Main study 220은 scRNA+paired TCR/BCR 61, CyTOF 70, bulk RNA 34, flow 55로 구성된다. Figure 7C의 model training 표본은 56이다. 61→56 제외 사유는 이번 검토에서 확인하지 못했으므로 추정하지 않는다. Independent healthy validation은 33(공개 21+신규 12), disease application은 56(SLE 40,NPC 10,KD 6)이다. Assay/cohort의 donor 중복 여부를 확인하지 않고 모두 독립 인원으로 합산하면 안 된다.</p>
+<p><strong>Toy example</strong> · 설명용 donor A를 RNA와 flow에서 각각 측정해도 unique donor는 1명이다.</p>
+<p><strong>Figures</strong> · Main Figure 1/7.</p>
+<h2 id="step-2-·-representation">Step 2 · Representation</h2>
+<p><strong>하는 일</strong> · Cell-type-specific age-associated expression을 model feature로 만든다.</p>
+<p><strong>Input → Output</strong> · Annotated donor expression → candidate cell-type/gene feature matrix.</p>
+<p><strong>쉽게 말하면</strong> · 같은 gene도 어느 cell type에서 측정했는지가 다르면 다른 정보일 수 있다.</p>
+<p><strong>Details</strong> · 논문은 cell-type-specific DEGs를 independent variables로 사용한다. 25 subset-specific models와 integrated model을 비교한다. 정확한 donor aggregation, scaling, missing-subtype 처리와 feature identifier는 공개 code에서 추가 확인해야 하며 일반적인 pseudobulk recipe를 논문 설정으로 대체하지 않는다. Feature discovery에 validation age/labels가 섞이지 않는지 점검한다.</p>
+<p><strong>Toy example</strong> · 설명용 donor matrix의 <code>CD4:G</code>와 <code>Mono:G</code>는 gene 이름 G가 같아도 열 두 개다. 평균내어 하나로 만들면 cell-type specificity를 잃는다.</p>
+<p><strong>Figures</strong> · Main Figure 7A–B/G–I.</p>
+<h2 id="step-3-·-feature-selection">Step 3 · Feature selection</h2>
+<p><strong>하는 일</strong> · Predictive features를 줄여 final random forest를 만든다.</p>
+<p><strong>Input → Output</strong> · Candidate features + chronological age → 21-feature siAge model.</p>
+<p><strong>쉽게 말하면</strong> · 여러 decision tree의 예측을 모으되, 덜 유용한 입력을 줄인다.</p>
+<p><strong>Details</strong> · R <code>randomForest</code> 4.7-1.1, <code>rfcv</code> 10-fold CV를 사용한다. IncMSE importance를 기준으로 top 21 genes를 선택한다. 총 26 models는 25 cell-subset-specific models와 integrated model이다. Tree 수, mtry, seed, feature selection/CV nesting의 상세 구현은 본 노트에서 검증하지 못했다. Package default를 저자가 명시한 값처럼 적지 않는다.</p>
+<p>일반적 regression forest의 prediction은 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi>y</mi><mo stretchy="true">^</mo></mover><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><msup><mi>B</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><msubsup><mo>∑</mo><mrow><mi>b</mi><mo>=</mo><mn>1</mn></mrow><mi>B</mi></msubsup><msub><mi>T</mi><mi>b</mi></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\widehat y(x)=B^{-1}\sum_{b=1}^{B}T_b(x)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.6706em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span></span><span class="svg-align" style="width:calc(100% - 0.1111em);margin-left:0.1111em;top:-3.4306em;"><span class="pstrut" style="height:3em;"></span><span style="height:0.24em;"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="0.24em" viewBox="0 0 1062 239" preserveAspectRatio="none"><path d="M529 0h5l519 115c5 1 9 5 9 10 0 1-1 2-1 3l-4 22
+c-1 5-5 9-11 9h-2L532 67 19 159h-2c-5 0-9-4-11-9l-5-22c-1-6 2-12 8-13z"/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.2809em;vertical-align:-0.2997em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9812em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">b</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.2029em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0502em;">B</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2997em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">b</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span></span></span></span>다. <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>b</mi></msub></mrow><annotation encoding="application/x-tex">T_b</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">b</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>는 tree b의 prediction, B는 trees 수이며 이 수식은 원리를 설명한 것이다. IncMSE는 feature를 교란했을 때 prediction error 증가를 평가하며 causal effect size가 아니다.</p>
+<p><strong>Toy example</strong> · 설명용 3 trees가 30,36,39세를 예측하면 평균 prediction은 35세다(Python 검산). 이는 논문의 tree 수가 3이라는 뜻이 아니다.</p>
+<p><strong>Figures</strong> · <a class="wikilink wikilink-paper" href="/papers/2025-wang-lifespan-immune-trajectories/#figure-7-·-single-cell-immune-age-siage-prediction-model">Figure 7</a>; exact heading은 논문 페이지의 Figure 7 참조.</p>
+<h2 id="step-4-·-validation">Step 4 · Validation</h2>
+<p><strong>하는 일</strong> · Training fit, independent prediction, disease deviation을 별도로 평가한다.</p>
+<p><strong>Input → Output</strong> · Fixed model + new donor features → siAge, error, fit index.</p>
+<p><strong>쉽게 말하면</strong> · 배운 사람을 다시 맞히는 시험과 처음 보는 사람의 나이를 맞히는 시험을 구분한다.</p>
+<p><strong>Details</strong> · Figure 7의 PCC는 training 0.9940, healthy validation 0.8894, disease application 0.6526이다. Training PCC를 외부 성능으로 인용하지 않는다. Fit index는 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mrow><mi>log</mi><mo>⁡</mo></mrow><mn>2</mn></msub><mo stretchy="false">(</mo><mi>s</mi><mi>i</mi><mi>A</mi><mi>g</mi><mi>e</mi><mi mathvariant="normal">/</mi><mi>c</mi><mi>A</mi><mi>g</mi><mi>e</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\log_2(siAge/cAge)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop"><span class="mop">lo<span style="margin-right:0.0139em;">g</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">s</span><span class="mord mathnormal">i</span><span class="mord mathnormal">A</span><span class="mord mathnormal" style="margin-right:0.0359em;">g</span><span class="mord mathnormal">e</span><span class="mord">/</span><span class="mord mathnormal">c</span><span class="mord mathnormal">A</span><span class="mord mathnormal" style="margin-right:0.0359em;">g</span><span class="mord mathnormal">e</span><span class="mclose">)</span></span></span></span>다. 양수는 chronological age보다 높은 prediction, 음수는 낮은 prediction이다. Disease deviation이 prognosis나 causal immune aging임을 자동으로 의미하지 않는다. cAge=0에서는 정의되지 않으며 매우 어린 age에서 ratio가 불안정할 수 있다.</p>
+<p><strong>Toy example</strong> · 설명용 cAge=40,siAge=50이면 fit index=0.321928; cAge=40,siAge=20이면 −1이다(Python 검산). 같은 +10세 차이도 cAge=10이면 index=1이므로 연령에 따른 해석이 다르다.</p>
+<p><strong>Figures</strong> · Main Figure 7C training / 7D healthy / 7E–F disease.</p>
+<h2 id="explanation-figure">Explanation figure</h2>
+<img class="note-img" src="/files/2025-wang-lifespan-immune-trajectories-pipeline-example.png" alt="2025 Wang - Lifespan Immune Trajectories Pipeline Example" loading="lazy" style="max-width:720px">
+<p>설명 그림 (직접 작성); 숫자는 설명용이다. 논문 실측 결과가 아니다.</p>
+<h2 id="reproduction-checklist">Reproduction checklist</h2>
+<ol>
+<li>Donor overlap·cohort leakage·age range를 확인한다.</li>
+<li>Training에서만 feature discovery/selection과 calibration을 적합한다(재현 audit 권고이며 원문에서 모두 입증한 사실은 아님).</li>
+<li>PCC와 함께 MAE, bias, age-stratified residual을 확인한다.</li>
+<li>실제 model 실행과 supplementary 전체 검증은 미완료다.</li>
+</ol>
+<h2 id="data-and-code">Data &amp; Code</h2>
+<ul>
+<li><a href="https://www.nature.com/articles/s41590-024-02059-6">Original article and Methods</a></li>
+<li><a href="https://github.com/shanzha9/siAgeModel">siAgeModel code</a>, <a href="https://pu-lab.sjtu.edu.cn/shiny/siage-model">siAge application</a></li>
+<li>Raw HRA009014; processed RNA syn61609846; bulk syn61853526; CyTOF syn61765870.</li>
+<li>External healthy: GSE158055, GSE168732, HRA000150; NPC GSE162025; KD GSE168732; SLE GSE135779. Accession overlap alone는 동일 sample 재사용을 확정하지 않으므로 sample identifiers로 점검한다.</li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#0-·-overview">0 · Overview</a></li><li class="toc-l2"><a href="#step-1-·-inputs">Step 1 · Inputs</a></li><li class="toc-l2"><a href="#step-2-·-representation">Step 2 · Representation</a></li><li class="toc-l2"><a href="#step-3-·-feature-selection">Step 3 · Feature selection</a></li><li class="toc-l2"><a href="#step-4-·-validation">Step 4 · Validation</a></li><li class="toc-l2"><a href="#explanation-figure">Explanation figure</a></li><li class="toc-l2"><a href="#reproduction-checklist">Reproduction checklist</a></li><li class="toc-l2"><a href="#data-and-code">Data &amp;amp; Code</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/papers/2025-wang-lifespan-immune-trajectories/"><span class="kind-dot kind-paper"></span>Lifespan Immune Trajectories (Wang 2025)</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

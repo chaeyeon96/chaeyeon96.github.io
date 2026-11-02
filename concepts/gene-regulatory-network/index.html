@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gene Regulatory Network · Study Wiki</title>
+<meta name="description" content="Transcription factor와 target gene 사이의 regulatory relationship을 표현하는 network이다. 추정 edge와 실험으로 확인된 regulation은 구분한다. (일반 지식)">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/single-cell-analysis/">Single-cell Analysis</a></p>
+    <h1 class="note-title">Gene Regulatory Network</h1>
+    <p class="lead">Transcription factor와 target gene 사이의 regulatory relationship을 표현하는 network이다. 추정 edge와 실험으로 확인된 regulation은 구분한다. (일반 지식)</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#network</span><span class="chip chip-tag">#regulation</span><span class="chip chip-tag">#TF</span></div>
+    <div class="note-body"><h2 id="intuition">Intuition</h2>
+<p>같이 움직이는 두 gene을 연결하는 지도와, 어느 TF가 어느 gene의 조절에 관여하는지 그리는 지도는 질문이 다르다.</p>
+<h2 id="details">Details</h2>
+<ul>
+<li>Co-expression은 함께 변하는 정도이다. TF binding motif는 가능한 binding의 prior이며 실제 binding이나 regulatory effect를 보장하지 않는다.</li>
+<li>Expression, motif prior, TF–TF interaction을 통합하는 방법이 있으며, edge weight의 정의는 algorithm마다 다르다.</li>
+<li>Regulatory edge의 sign, confidence, direction을 구분해야 한다. 양의 score가 곧 activation이고 음의 score가 곧 repression인 것은 아니다.</li>
+<li>Differential network는 조건별 network의 차이이며, sample 수와 cell 수를 분리하고 donor 간 variation을 평가해야 한다. (일반 지식)</li>
+</ul>
+<h2 id="why-it-matters">Why it matters</h2>
+<p>Expression 차이가 작은 regulator도 network 차이에서 드러날 수 있다. 다만 inferred edge는 perturbation이나 binding validation 없이 causal effect로 읽지 않는다.</p>
+<h2 id="paper-specific-use">Paper-specific use</h2>
+<p>PANDA는 세 network의 일관성을 message passing으로 조정한다. SCORPION은 sample×cell-type network를 만들어 비교하며 PANDA 원논문과 update/convergence 설정이 다르다. <a class="wikilink wikilink-pipeline" href="/papers/2013-glass-panda-pipeline/">2013 Glass - PANDA (Pipeline)</a>와 <a class="wikilink wikilink-pipeline" href="/papers/2024-osorio-scorpion-pipeline/">2024 Osorio - SCORPION (Pipeline)</a>의 설정을 서로 섞지 않는다.</p>
+<h2 id="related-concepts">Related concepts</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/co-expression-network-analysis/">Co-expression Network Analysis</a> · <a class="wikilink wikilink-concept" href="/concepts/scenic/">SCENIC</a> · <a class="wikilink wikilink-concept" href="/concepts/network-propagation/">Network Propagation</a></li>
+</ul>
+<h2 id="papers">Papers</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2013-glass-panda/">2013 Glass - PANDA</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2024-osorio-scorpion/">2024 Osorio - SCORPION</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#intuition">Intuition</a></li><li class="toc-l2"><a href="#details">Details</a></li><li class="toc-l2"><a href="#why-it-matters">Why it matters</a></li><li class="toc-l2"><a href="#paper-specific-use">Paper-specific use</a></li><li class="toc-l2"><a href="#related-concepts">Related concepts</a></li><li class="toc-l2"><a href="#papers">Papers</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/papers/2013-glass-panda/"><span class="kind-dot kind-paper"></span>PANDA (2013 Glass)</a></li><li><a href="/papers/2024-osorio-scorpion/"><span class="kind-dot kind-paper"></span>SCORPION</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

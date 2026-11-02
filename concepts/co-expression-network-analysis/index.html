@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Co-expression Network Analysis · Study Wiki</title>
+<meta name="description" content="Cell(또는 metacell)들에 걸쳐 함께 오르내리는 gene들을 module로 묶는 분석. Module은 공통 기능이나 조절을 공유하는 gene program 후보다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/single-cell-analysis/">Single-cell Analysis</a></p>
+    <h1 class="note-title">Co-expression Network Analysis</h1>
+    <p class="lead">Cell(또는 metacell)들에 걸쳐 함께 오르내리는 gene들을 module로 묶는 분석. Module은 공통 기능이나 조절을 공유하는 gene program 후보다.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#single-cell</span><span class="chip chip-tag">#network</span><span class="chip chip-tag">#co-expression</span><span class="chip chip-tag">#gene-module</span></div>
+    <div class="note-body"><h2 id="쉽게-말하면">쉽게 말하면</h2>
+<p>DE가 gene 하나하나를 보는 것이라면, co-expression은 &quot;이 gene들은 항상 같이 움직인다&quot;는 <strong>팀</strong>을 찾는 것입니다. 팀 단위로 보면 개별 gene보다 noise에 강하고 해석도 쉽습니다.</p>
+<h2 id="자세히">자세히</h2>
+<h3 id="방법-지도">방법 지도</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>방법</th>
+<th>접근</th>
+<th>특징</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>hdWGCNA</strong></td>
+<td><strong>metacell</strong> 위에서 WGCNA (correlation → soft threshold → TOM → module)</td>
+<td>single-cell sparsity를 metacell로 완화. module eigengene, hub gene</td>
+</tr>
+<tr>
+<td><strong>CS-CORE</strong></td>
+<td>sequencing depth와 측정 오차를 고려한 <strong>cell type 특이적 co-expression</strong> 추정</td>
+<td>단순 correlation의 편향 보정, 공변량 조정 가능</td>
+</tr>
+<tr>
+<td><strong><a class="wikilink wikilink-concept" href="/concepts/cnmf/">cNMF</a></strong></td>
+<td>행렬 분해로 gene <strong>program</strong>과 cell별 usage</td>
+<td>cell이 여러 program을 동시에 쓸 수 있음 (identity + activity)</td>
+</tr>
+<tr>
+<td><strong>scNET</strong></td>
+<td>PPI network와 발현을 GNN으로 통합한 gene embedding</td>
+<td>기능적 맥락 주입 → <a class="wikilink wikilink-paper" href="/papers/2025-sheinin-scnet/">2025 Sheinin - scNET</a></td>
+</tr>
+<tr>
+<td>scLink, scINSIGHT 등</td>
+<td>sparse network, 조건 간 공통·특이 module</td>
+<td>(정리 예정)</td>
+</tr>
+<tr>
+<td><strong><a class="wikilink wikilink-concept" href="/concepts/scenic/">SCENIC</a></strong></td>
+<td>TF 중심 regulatory network (motif 검증)</td>
+<td>GRN, co-expression보다 방향성</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="hdwgcna-흐름">hdWGCNA 흐름</h3>
+<pre class="mermaid">flowchart TD
+    A[&quot;Cell filtering, gene selection&lt;br/&gt;(pseudobulk 검출률 기준, RP/MT/VDJ gene 제외)&quot;] --&gt; B[&quot;Metacell 생성&lt;br/&gt;sample × cell type 안에서 KNN으로 이웃 cell 평균&quot;]
+    B --&gt; C[&quot;Soft power β 선택&lt;br/&gt;scale-free fit&quot;]
+    C --&gt; D[&quot;Adjacency = |corr|^β&quot;]
+    D --&gt; E[&quot;TOM (topological overlap)&quot;]
+    E --&gt; F[&quot;1 − TOM 거리로 hierarchical clustering&quot;]
+    F --&gt; G[&quot;Dynamic Tree Cut → module&quot;]
+    G --&gt; H[&quot;유사 module 병합 (ME corr &gt; 0.75)&quot;]
+    H --&gt; I[&quot;Module eigengene (ME), batch 보정한 hME&quot;]
+    I --&gt; J[&quot;kME로 hub gene, 그룹 비교&quot;]
+</pre>
+<p><em>설명 그림 (직접 작성)</em></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>개념</th>
+<th>뜻</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Correlation</strong></td>
+<td>두 gene의 직접적인 동조</td>
+</tr>
+<tr>
+<td><strong>Adjacency</strong></td>
+<td>correlation을 soft power <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.0528em;">β</span></span></span></span>로 거듭제곱해 강한 연결만 부각한 edge</td>
+</tr>
+<tr>
+<td><strong>TOM</strong></td>
+<td>직접 연결 + <strong>공통 이웃</strong>까지 반영한 network 유사도 (noise에 강함)</td>
+</tr>
+<tr>
+<td><strong>Dendrogram</strong></td>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mtext>TOM</mtext></mrow><annotation encoding="application/x-tex">1 - \text{TOM}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord text"><span class="mord">TOM</span></span></span></span></span> 거리로 gene을 계층적으로 배열한 tree</td>
+</tr>
+<tr>
+<td><strong>Dynamic Tree Cut</strong></td>
+<td>dendrogram 가지를 잘라 module 결정</td>
+</tr>
+<tr>
+<td><strong>ME (module eigengene)</strong></td>
+<td>module gene들의 첫 번째 주성분 = module 대표 발현</td>
+</tr>
+<tr>
+<td><strong>kME</strong></td>
+<td>gene과 ME의 상관 = module 소속도. 높으면 <strong>hub gene</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Metacell을 쓰는 이유</strong>: 개별 cell은 0이 너무 많아 correlation이 불안정하다. 같은 sample, 같은 cell type 안에서 비슷한 cell 수십 개(예: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>25</mn></mrow><annotation encoding="application/x-tex">k = 25</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.0315em;">k</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">25</span></span></span></span>)를 평균 내 metacell을 만들면 correlation이 안정된다. Sample을 넘나들며 섞지 않도록 sample × cell type 단위로 만든다.</p>
+<p><strong>Gene 선택 예</strong>: cell-level HVG 대신 sample × cell type pseudobulk의 logCPM 검출률(예: 자격 donor의 50% 이상에서 logCPM &gt; 4)로 고르고, ribosomal, mitochondrial, IG/TCR V(D)J gene은 뺀다. 이런 gene은 module을 기술적 신호로 오염시킨다 → <a class="wikilink wikilink-concept" href="/concepts/batch-correction/#보정-전에-빼는-gene">Batch Correction › 보정 전에 빼는 gene</a></p>
+<h3 id="시나리오별-선택">시나리오별 선택</h3>
+<ul>
+<li><strong>Cell type 안 case vs control</strong>: cell type별 network를 만들고 module 보존도(preservation)나 ME 차이 비교</li>
+<li><strong>종단(longitudinal)</strong>: ME나 program usage를 sample 단위로 요약해 <a class="wikilink wikilink-concept" href="/concepts/mixed-effects-model/">Mixed Effects Model</a>로 시간 효과 검정</li>
+<li><strong>반응군 비교</strong>: 위와 같고 group × time interaction</li>
+</ul>
+<h3 id="통계-주의">통계 주의</h3>
+<p>Module 점수(ME, usage)는 cell 단위로 많지만, 그룹 비교는 <strong>sample 단위</strong>로 요약하거나 sample random effect를 넣는다. Batch는 입력 단계 보정과 별개로 통계 모델에서도 다시 다룬다.</p>
+<h2 id="measurement-model-and-inference">Measurement model and inference</h2>
+<p><a class="wikilink wikilink-paper" href="/papers/2023-su-cs-core/">2023 Su - CS-CORE</a>는 raw UMI count와 depth에서 biological latent covariance를 추정한다. Log-normalized expression의 Pearson correlation과 같은 quantity가 아니다. Correlation estimate, independence test, condition 간 differential co-expression을 구분하고, cell-level resampling이 donor-level 독립성을 대신하지 않는지 확인한다. 구체적인 observation model은 <a class="wikilink wikilink-pipeline" href="/papers/2023-su-cs-core-pipeline/#step-1-·-input-and-measurement-model">CS-CORE measurement model</a> 참고.</p>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/cnmf/">cNMF</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/scenic/">SCENIC</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/modularity/">Modularity</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/network-propagation/">Network Propagation</a></li>
+</ul>
+<h2 id="나온-논문">나온 논문</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2026-jo-psoriasis-gwas-scdrs/">2026 Jo - Psoriasis GWAS scDRS</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2025-kock-aida/">2025 Kock - AIDA</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2023-su-cs-core/">2023 Su - CS-CORE</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2023-yamada-ra-pre-dc-treatment-resistance/">2023 Yamada - RA pre-DC Treatment Resistance</a></li>
+<li><a class="wikilink wikilink-paper" href="/papers/2013-glass-panda/">2013 Glass - PANDA</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l3"><a href="#방법-지도">방법 지도</a></li><li class="toc-l3"><a href="#hdwgcna-흐름">hdWGCNA 흐름</a></li><li class="toc-l3"><a href="#시나리오별-선택">시나리오별 선택</a></li><li class="toc-l3"><a href="#통계-주의">통계 주의</a></li><li class="toc-l2"><a href="#measurement-model-and-inference">Measurement model and inference</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/papers/2025-kock-aida/"><span class="kind-dot kind-paper"></span>AIDA (Kock 2025)</a></li><li><a href="/concepts/cnmf/"><span class="kind-dot kind-concept"></span>cNMF (Consensus Non-negative Matrix Factorization)</a></li><li><a href="/papers/2023-su-cs-core/"><span class="kind-dot kind-paper"></span>CS-CORE</a></li><li><a href="/concepts/gene-regulatory-network/"><span class="kind-dot kind-concept"></span>Gene Regulatory Network</a></li><li><a href="/concepts/knn-graph/"><span class="kind-dot kind-concept"></span>KNN Graph</a></li><li><a href="/papers/2013-glass-panda/"><span class="kind-dot kind-paper"></span>PANDA (2013 Glass)</a></li><li><a href="/papers/2026-jo-psoriasis-gwas-scdrs/"><span class="kind-dot kind-paper"></span>Psoriasis GWAS scDRS (Jo 2026)</a></li><li><a href="/papers/2023-yamada-ra-pre-dc-treatment-resistance/"><span class="kind-dot kind-paper"></span>RA pre-DC Treatment Resistance (Yamada 2023)</a></li><li><a href="/concepts/scenic/"><span class="kind-dot kind-concept"></span>SCENIC</a></li><li><a href="/papers/2025-sheinin-scnet/"><span class="kind-dot kind-paper"></span>scNET (Sheinin 2025)</a></li><li><a href="/papers/2025-sheinin-scnet-pipeline/"><span class="kind-dot kind-pipeline"></span>scNET Pipeline (Sheinin 2025)</a></li><li><a href="/concepts/scrna-seq-workflow/"><span class="kind-dot kind-concept"></span>scRNA-seq Workflow</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>
