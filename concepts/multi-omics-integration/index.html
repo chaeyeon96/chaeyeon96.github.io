@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-omics Integration · Study Wiki</title>
+<meta name="description" content="서로 다른 biological measurement를 연결해 하나의 phenotype이나 system을 분석하는 방법.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link">Papers</a>
+      <a href="/concepts/" class="nav-link is-active">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/concepts/">Concepts</a> › <a href="/sections/statistics-and-ml/">Statistics &amp; ML</a></p>
+    <h1 class="note-title">Multi-omics Integration</h1>
+    <p class="lead">서로 다른 biological measurement를 연결해 하나의 phenotype이나 system을 분석하는 방법.</p>
+    <div class="chips tag-row"><span class="chip chip-tag">#multi-omics</span><span class="chip chip-tag">#integration</span><span class="chip chip-tag">#machine-learning</span><span class="chip chip-tag">#study-design</span></div>
+    <div class="note-body"><h2 id="intuition">Intuition</h2>
+<p>(일반 지식) 같은 사람의 stool microbiome, plasma metabolites, immune profile은 서로 다른 검사표다. 검사표를 합칠 때는 사람·visit를 맞추고, 단위·결측·feature 수 차이를 고려해야 한다.</p>
+<h2 id="details">Details</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Strategy</th>
+<th>합치는 대상</th>
+<th>주의점 (일반 지식)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Feature-level</td>
+<td>정렬·전처리한 raw/selected feature를 concatenate</td>
+<td>Feature 수가 큰 modality, scale, missing data의 영향</td>
+</tr>
+<tr>
+<td>Representation-level</td>
+<td>Modality별 latent representation</td>
+<td>무엇을 공유하고 무엇을 보존하는지 확인</td>
+</tr>
+<tr>
+<td>Decision-level</td>
+<td>Model별 score 또는 prediction</td>
+<td>모든 modality의 raw feature가 동시에 사용된 것은 아님</td>
+</tr>
+<tr>
+<td>Association-level</td>
+<td>Module·feature 사이 correlation network</td>
+<td>Prediction model의 내부 architecture와 구분; association은 causation이 아님</td>
+</tr>
+</tbody>
+</table></div>
+<p>(일반 지식) Sample key로 alignment한 뒤에도 modality별 availability가 달라 complete-case subset이 다른 cohort처럼 될 수 있다. Imputation, normalization과 feature selection은 training data에서 정하고 evaluation data에는 같은 transformation을 적용한다.</p>
+<h2 id="significance">Significance</h2>
+<p>(일반 지식) 한 assay가 놓치는 정보를 다른 assay가 보완할 수 있다. 하지만 feature 수가 늘었다는 사실만으로 biological mechanism이나 generalization이 좋아졌다고 결론낼 수 없다.</p>
+<h2 id="paper-use">Paper use</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2025-xiong-biomapai/#data">BioMapAI Data</a>: Modality별 모델을 만든 뒤 important feature 154개를 concatenate하여 별도 integrated model을 학습했다.</li>
+<li><a class="wikilink wikilink-paper" href="/papers/2025-xiong-biomapai/#fig4a">BioMapAI Figure 4A</a>: 별도 WGCNA module eigengene 사이의 association network도 만들었다. 이 network는 multi-output DNN의 내부 edge가 아니다.</li>
+<li><a class="wikilink wikilink-pipeline" href="/papers/2025-xiong-biomapai-pipeline/#8-selected-feature-multi-omics-integration">Feature selection and integration</a> · <a class="wikilink wikilink-pipeline" href="/papers/2025-xiong-biomapai-pipeline/#9-wgcna-modules">Module integration</a>.</li>
+</ul>
+<h2 id="related-concepts">Related concepts</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/multi-task-learning/">Multi-task Learning</a> · <a class="wikilink wikilink-concept" href="/concepts/cross-validation/">Cross-validation</a> · <a class="wikilink wikilink-concept" href="/concepts/co-expression-network-analysis/">Co-expression Network Analysis</a> · <a class="wikilink wikilink-concept" href="/concepts/mixed-effects-model/">Mixed Effects Model</a></li>
+</ul>
+<h2 id="papers">Papers</h2>
+<ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2025-xiong-biomapai/">2025 Xiong - BioMapAI</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#intuition">Intuition</a></li><li class="toc-l2"><a href="#details">Details</a></li><li class="toc-l2"><a href="#significance">Significance</a></li><li class="toc-l2"><a href="#paper-use">Paper use</a></li><li class="toc-l2"><a href="#related-concepts">Related concepts</a></li><li class="toc-l2"><a href="#papers">Papers</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/papers/2025-xiong-biomapai-pipeline/"><span class="kind-dot kind-pipeline"></span>BioMapAI - Pipeline (Xiong 2025)</a></li><li><a href="/papers/2025-xiong-biomapai/"><span class="kind-dot kind-paper"></span>BioMapAI (Xiong 2025)</a></li><li><a href="/concepts/cross-validation/"><span class="kind-dot kind-concept"></span>Cross-validation</a></li><li><a href="/concepts/multi-task-learning/"><span class="kind-dot kind-concept"></span>Multi-task Learning</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>

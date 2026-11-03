@@ -67,6 +67,11 @@
 <li>모든 조합을 다 계산하면 feature 수에 대해 지수적으로 비싸다.</li>
 <li><strong>Tree SHAP</strong>은 random forest, gradient boosting 같은 <strong>트리 기반 모델</strong>의 구조를 따라 내려가며 이 값을 빠르고 정확하게 계산하는 알고리즘이다.</li>
 </ul>
+<h3 id="kernel-shap">Kernel SHAP</h3>
+<ul>
+<li>(일반 지식) Model-agnostic 방식으로 background data를 사용해 feature contribution을 근사한다. Tree SHAP과 달리 tree 구조가 필요하지 않지만 feature 수와 background 크기에 따라 계산량이 커질 수 있다.</li>
+<li>(일반 지식) Contribution은 지정한 model output과 background distribution에 대한 값이다. 양의 SHAP이 항상 disease risk 증가를 뜻하지 않으며, output 방향을 먼저 확인한다. Correlated features 사이의 attribution과 causal effect도 구분한다.</li>
+</ul>
 <h3 id="해석-순서">해석 순서</h3>
 <ol>
 <li>샘플(환자) 하나하나에 대해 feature별 SHAP value를 계산</li>
@@ -75,6 +80,7 @@
 </ol>
 <h2 id="논문별-활용">논문별 활용</h2>
 <ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2025-xiong-biomapai/#fig3a">BioMapAI Figure 3</a>: 12개 symptom별 submodel에 Kernel SHAP을 적용했다. 이 연구의 positive SHAP은 더 높은 predicted symptom severity에 기여하며, 75% 이상의 output에서 중요한 feature를 shared/disease-specific category로 분류했다. Held-out biomarker validation과는 구분한다. 계산 예시는 <a class="wikilink wikilink-pipeline" href="/papers/2025-xiong-biomapai-pipeline/#7-shap-and-biomarker-categories">BioMapAI SHAP</a>.</li>
 <li><a class="wikilink wikilink-paper" href="/papers/2025-zaslavsky-mal-id/">2025 Zaslavsky - Mal-ID</a> (Model 3): 서열 단위 점수를 V gene × isotype 그룹별로 평균 낸 값이 2단계 random forest의 입력이었고, 이 2단계 모델에 Tree SHAP을 적용했다.
 <ul>
 <li>COVID-19: <strong>IGHV1-24</strong>, IGHV2-70과 <strong>IgG</strong> 그룹의 기여도가 가장 컸다.</li>
@@ -90,13 +96,14 @@
 </ul>
 <h2 id="나온-논문">나온 논문</h2>
 <ul>
+<li><a class="wikilink wikilink-paper" href="/papers/2025-xiong-biomapai/">2025 Xiong - BioMapAI</a></li>
 <li><a class="wikilink wikilink-paper" href="/papers/2025-heimberg-scimilarity/">2025 Heimberg - SCimilarity</a></li>
 </ul>
 </div>
   </article>
   <aside class="note-side">
-    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l3"><a href="#원리">원리</a></li><li class="toc-l3"><a href="#tree-shap">Tree SHAP</a></li><li class="toc-l3"><a href="#해석-순서">해석 순서</a></li><li class="toc-l2"><a href="#논문별-활용">논문별 활용</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
-    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/concepts/confusion-matrix/"><span class="kind-dot kind-concept"></span>Confusion Matrix</a></li><li><a href="/concepts/integrated-gradients/"><span class="kind-dot kind-concept"></span>Integrated Gradients (IG)</a></li><li><a href="/papers/2025-zaslavsky-mal-id/"><span class="kind-dot kind-paper"></span>Mal-ID (Zaslavsky 2025)</a></li><li><a href="/papers/2025-heimberg-scimilarity/"><span class="kind-dot kind-paper"></span>SCimilarity (Heimberg 2025)</a></li></ul></div>
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#쉽게-말하면">쉽게 말하면</a></li><li class="toc-l2"><a href="#자세히">자세히</a></li><li class="toc-l3"><a href="#원리">원리</a></li><li class="toc-l3"><a href="#tree-shap">Tree SHAP</a></li><li class="toc-l3"><a href="#kernel-shap">Kernel SHAP</a></li><li class="toc-l3"><a href="#해석-순서">해석 순서</a></li><li class="toc-l2"><a href="#논문별-활용">논문별 활용</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li><li class="toc-l2"><a href="#나온-논문">나온 논문</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/papers/2025-xiong-biomapai-pipeline/"><span class="kind-dot kind-pipeline"></span>BioMapAI - Pipeline (Xiong 2025)</a></li><li><a href="/papers/2025-xiong-biomapai/"><span class="kind-dot kind-paper"></span>BioMapAI (Xiong 2025)</a></li><li><a href="/concepts/confusion-matrix/"><span class="kind-dot kind-concept"></span>Confusion Matrix</a></li><li><a href="/concepts/cross-validation/"><span class="kind-dot kind-concept"></span>Cross-validation</a></li><li><a href="/concepts/integrated-gradients/"><span class="kind-dot kind-concept"></span>Integrated Gradients (IG)</a></li><li><a href="/papers/2025-zaslavsky-mal-id/"><span class="kind-dot kind-paper"></span>Mal-ID (Zaslavsky 2025)</a></li><li><a href="/concepts/multi-task-learning/"><span class="kind-dot kind-concept"></span>Multi-task Learning</a></li><li><a href="/papers/2025-heimberg-scimilarity/"><span class="kind-dot kind-paper"></span>SCimilarity (Heimberg 2025)</a></li></ul></div>
   </aside>
 </div>
 </main>

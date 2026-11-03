@@ -53,17 +53,19 @@
     <div class="paper-meta">
       
       <span class="badge">Nature Genetics</span>
-      <span>2023</span>
+      <span class="paper-year">2023</span>
       <span class="muted">method</span>
       
     </div>
     <h1 class="note-title">Healthy Reference Design (Dann 2023)</h1>
     <p class="paper-full-title">Precise identification of cell states altered in disease using healthy single-cell references — Dann et al.</p>
     <p class="lead">Disease data를 healthy reference와 비교할 때, embedding은 큰 healthy atlas로 학습하고 differential analysis는 cohort가 맞는 control로 하는 ACR design이 disease-specific cell state를 비교한 benchmark에서 더 안정적으로 찾는다. False positive가 없어지는 보장은 아니다.</p>
+    <nav class="paper-links paper-view-nav" aria-label="논문 읽기 방식">
+      <a class="btn btn-small" data-paper-view="paper" href="/papers/2023-dann-healthy-reference-design/" aria-current="page">논문 정리 보기</a>
+<a class="btn btn-small btn-soft" data-paper-view="pipeline" href="/papers/2023-dann-healthy-reference-design-pipeline/">Pipeline 따라가기</a>
+    </nav>
     <div class="paper-facts">
       <a class="btn btn-small" href="https://doi.org/10.1038/s41588-023-01523-7" rel="noopener">원문 (DOI)</a>
-      <a class="btn btn-small btn-soft" href="/papers/2023-dann-healthy-reference-design-pipeline/">Pipeline 따라가기</a>
-      
       <span class="license">License · CC BY 4.0</span>
     </div>
     <div class="chips tag-row"><a class="chip chip-link" href="/sections/single-cell-analysis/">Single-cell Analysis</a></div>
@@ -126,7 +128,7 @@
 <li><strong>결과와 의미</strong>: ACR는 atlas로 학습하고 disease 대 matched control로 검정한다.</li>
 </ul>
 <h3 id="panel-observations">Panel observations</h3>
-<p><span class="note-figure"><img class="note-img" src="/files/2023-dann-healthy-reference-design-fig1.webp" alt="2023 Dann - Healthy Reference Design Fig1" loading="lazy" style="max-width:1000px"><span class="figure-credit">Figure: Dann et al., Nature Genetics (2023) · CC BY 4.0</span></span>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-dann-healthy-reference-design-fig1.webp" alt="2023 Dann - Healthy Reference Design Fig1" loading="lazy" style="width:1000px"><span class="figure-credit">Figure: Dann et al., Nature Genetics (2023) · CC BY 4.0</span></span>
 분석은 세 단계다 (Fig. 1b).</p>
 <ol>
 <li><strong>Embedding reference</strong> · Healthy data로 scVI 같은 차원 축소 model을 학습한다. Phenotype 구조는 보존하고 batch 같은 기술적 변이는 줄인다.</li>
@@ -178,7 +180,7 @@
 <li><strong>결과와 의미</strong>: 같은 latent-space 외형이라도 detection false positives는 다르다.</li>
 </ul>
 <h3 id="panel-observations-1">Panel observations</h3>
-<p><span class="note-figure"><img class="note-img" src="/files/2023-dann-healthy-reference-design-fig2.webp" alt="2023 Dann - Healthy Reference Design Fig2" loading="lazy" style="max-width:1000px"><span class="figure-credit">Figure: Dann et al., Nature Genetics (2023) · CC BY 4.0</span></span></p>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-dann-healthy-reference-design-fig2.webp" alt="2023 Dann - Healthy Reference Design Fig2" loading="lazy" style="width:1000px"><span class="figure-credit">Figure: Dann et al., Nature Genetics (2023) · CC BY 4.0</span></span></p>
 <ul>
 <li><strong>Data</strong> · 실제 healthy PBMC scRNA-seq 13개 study, donor 1,248명. 한 study의 donor를 무작위로 나눠 pseudo-disease와 control을 만든다. 같은 study라 cohort와 protocol이 완전히 같고, donor effect와 library effect 같은 실제 특성은 남는다. 나머지 12개 study(donor 1,219명)가 atlas다.</li>
 <li><strong>OOR state</strong> · Annotation된 cell type 일부를 control과 atlas에서 지우고 pseudo-disease에만 남긴다. &quot;Healthy reference에는 없고 disease에만 있는&quot; population이다.</li>
@@ -186,7 +188,7 @@
 <li>ACR에서 atlas는 latent model 학습에만 쓰이고, mapping 뒤 DA에는 disease와 control만 쓴다.</li>
 <li><strong>Milo의 spatial FDR</strong> · Neighborhood끼리 cell을 공유하고 graph상 이웃해 있어 독립이 아니다. 일반 Benjamini–Hochberg는 이를 무시하므로, Milo는 neighborhood의 겹침을 반영해 각 test의 가중치를 조정한 spatial FDR을 쓴다.</li>
 </ul>
-<p><span class="note-figure"><img class="note-img" src="/files/2023-dann-healthy-reference-design-fig2-integration.webp" alt="2023 Dann - Healthy Reference Design Fig2 integration" loading="lazy" style="max-width:500px"><span class="figure-credit">Figure: Dann et al., Nature Genetics (2023) · CC BY 4.0</span></span></p>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-dann-healthy-reference-design-fig2-integration.webp" alt="2023 Dann - Healthy Reference Design Fig2 integration" loading="lazy" style="width:500px"><span class="figure-credit">Figure: Dann et al., Nature Genetics (2023) · CC BY 4.0</span></span></p>
 <ul>
 <li>Design 간 integration quality(batch correction, embedding 품질)는 비슷했다 (Extended Data Fig. 2). <strong>UMAP에서 잘 섞여 보여도 disease state 검출 성능은 같지 않다.</strong></li>
 </ul>
@@ -200,7 +202,7 @@
 <li><strong>결과와 의미</strong>: ACR의 장점은 disease/control 검정과 풍부한 representation을 결합하는 데 있다.</li>
 </ul>
 <h3 id="panel-observations-2">Panel observations</h3>
-<p><span class="note-figure"><img class="note-img" src="/files/2023-dann-healthy-reference-design-fig3.webp" alt="2023 Dann - Healthy Reference Design Fig3" loading="lazy" style="max-width:1000px"><span class="figure-credit">Figure: Dann et al., Nature Genetics (2023) · CC BY 4.0</span></span></p>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-dann-healthy-reference-design-fig3.webp" alt="2023 Dann - Healthy Reference Design Fig3" loading="lazy" style="width:1000px"><span class="figure-credit">Figure: Dann et al., Nature Genetics (2023) · CC BY 4.0</span></span></p>
 <ul>
 <li>점 = 서로 다른 OOR state 8개의 simulation (split 후 OOR cell이 250개 미만인 경우 제외). 같은 data의 test는 선으로 연결.</li>
 <li><strong>a, b · Single OOR state</strong>
@@ -241,7 +243,7 @@
 <li><strong>결과와 의미</strong>: ACR도 control 부족의 영향을 받으므로 atlas가 biological replication을 대신하지 않는다.</li>
 </ul>
 <h3 id="panel-observations-3">Panel observations</h3>
-<p><span class="note-figure"><img class="note-img" src="/files/2023-dann-healthy-reference-design-fig4.webp" alt="2023 Dann - Healthy Reference Design Fig4" loading="lazy" style="max-width:1000px"><span class="figure-credit">Figure: Dann et al., Nature Genetics (2023) · CC BY 4.0</span></span></p>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-dann-healthy-reference-design-fig4.webp" alt="2023 Dann - Healthy Reference Design Fig4" loading="lazy" style="width:1000px"><span class="figure-credit">Figure: Dann et al., Nature Genetics (2023) · CC BY 4.0</span></span></p>
 <ul>
 <li><strong>a · Control 수</strong> · Control donor를 3–11명으로 바꿔 봤다. Control이 작아지면 모든 design의 sensitivity가 떨어지지만, ACR이 항상 CR 두 가지보다 AUPRC가 높았다 (t-test P &lt; 0.01). Disease cohort까지 작으면 CR이 더 나빠졌다 (Supplementary Fig. 1). Matched control을 많이 모으기 어려운 현실에서 ACR이 유리하다.</li>
 <li><strong>b · Atlas 크기</strong> · Atlas에 넣는 study 수를 늘려 가며 비교했다. Study 하나를 빼도 크게 무너지지 않았다 (Supplementary Note 2.2.1). Atlas가 10,000 cells 이상이면 ACR의 AUPRC는 거의 안정적이었다. AR은 atlas 크기에 훨씬 크게 의존했다 (AUPRC vs atlas cell 수: AR R² = 0.69, P = 7.2×10⁻⁷, ACR R² = 0.4, P = 0.0017). Atlas가 작을수록 AR의 FPR이 늘었다 (Supplementary Fig. 2).</li>
@@ -258,7 +260,7 @@
 <li><strong>결과와 의미</strong>: IFN signature는 평가 proxy이며 IFN-low disease state도 존재한다.</li>
 </ul>
 <h3 id="panel-observations-4">Panel observations</h3>
-<p><span class="note-figure"><img class="note-img" src="/files/2023-dann-healthy-reference-design-fig5.webp" alt="2023 Dann - Healthy Reference Design Fig5" loading="lazy" style="max-width:1000px"><span class="figure-credit">Figure: Dann et al., Nature Genetics (2023) · CC BY 4.0</span></span></p>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-dann-healthy-reference-design-fig5.webp" alt="2023 Dann - Healthy Reference Design Fig5" loading="lazy" style="width:1000px"><span class="figure-credit">Figure: Dann et al., Nature Genetics (2023) · CC BY 4.0</span></span></p>
 <ul>
 <li><strong>Data</strong> · COVID-19 PBMC 90명(여러 중증도), 같은 연구의 matched healthy control 23명, healthy PBMC atlas 12개 study 1,219명 (513k cells).</li>
 <li>CR(COVID + control joint scVI) vs ACR(atlas로 학습, COVID와 control mapping, COVID vs control로 Milo).</li>
@@ -288,7 +290,7 @@
 <li><strong>결과와 의미</strong>: KRT17-high aberrant basal과 basaloid는 동일한 state가 아니며 ACR가 이를 구분한다.</li>
 </ul>
 <h3 id="panel-observations-5">Panel observations</h3>
-<p><span class="note-figure"><img class="note-img" src="/files/2023-dann-healthy-reference-design-fig6.webp" alt="2023 Dann - Healthy Reference Design Fig6" loading="lazy" style="max-width:1000px"><span class="figure-credit">Figure: Dann et al., Nature Genetics (2023) · CC BY 4.0</span></span></p>
+<p><span class="note-figure"><img class="note-img" src="/files/2023-dann-healthy-reference-design-fig6.webp" alt="2023 Dann - Healthy Reference Design Fig6" loading="lazy" style="width:1000px"><span class="figure-credit">Figure: Dann et al., Nature Genetics (2023) · CC BY 4.0</span></span></p>
 <ul>
 <li><strong>Data</strong> · IPF 32명 (144k cells), control 28명, COPD 18명. Atlas = Human Lung Cell Atlas (HLCA) core (약 58만 cells).</li>
 <li><strong>b · SPP1+ profibrotic macrophage</strong> · Macrophage에서 profibrotic signature의 neighborhood 평균을 정답으로, Milo logFC를 score로 AUPRC. ACR이 AR, CR보다 가장 높았다. CR은 진짜 profibrotic state보다 donor 수가 적은 neighborhood를 우선시했다. Batch나 sample 구성의 잔여 효과로 보인다 (Supplementary Fig. 3).</li>

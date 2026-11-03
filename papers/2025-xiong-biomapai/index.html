@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BioMapAI (Xiong 2025) · Study Wiki</title>
+<meta name="description" content="여러 omics로 12개 symptom score를 함께 예측하는 DNN을 만들고, symptom별 feature contribution과 microbiome–immune–metabolome association network로 ME/CFS의 이질성을 해석했다.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/pages.css">
+<script>
+  window.SITE_BASE = ""
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t } catch (e) {}
+</script>
+
+
+<link rel="stylesheet" href="/assets/katex/katex.min.css">
+<script type="module">
+  if (document.querySelector("pre.mermaid")) {
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs")
+    const root = document.documentElement
+    const dark = root.dataset.theme === "dark" || (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches)
+    mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "neutral", fontFamily: "Pretendard, sans-serif" })
+    await mermaid.run({ querySelector: "pre.mermaid" })
+  }
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">✎</span>Study Wiki</a>
+    <nav class="nav">
+      <a href="/#sections" class="nav-link">Sections</a>
+      <a href="/papers/" class="nav-link is-active">Papers</a>
+      <a href="/concepts/" class="nav-link">Concepts</a>
+      
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" type="button" data-open-search aria-label="검색 열기" title="검색 ( / )">⌕</button>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환" title="다크 모드">◐</button>
+      
+    </div>
+  </div>
+</header>
+<main>
+
+<div class="note-wrap">
+  <article class="note">
+    
+    <p class="crumb"><a href="/papers/">Papers</a></p>
+    <div class="paper-meta">
+      
+      <span class="badge">Nature Medicine</span>
+      <span class="paper-year">2025</span>
+      <span class="muted">method</span>
+      
+    </div>
+    <h1 class="note-title">BioMapAI (Xiong 2025)</h1>
+    <p class="paper-full-title">AI-driven multi-omics modeling of myalgic encephalomyelitis/chronic fatigue syndrome — Xiong et al.</p>
+    <p class="lead">여러 omics로 12개 symptom score를 함께 예측하는 DNN을 만들고, symptom별 feature contribution과 microbiome–immune–metabolome association network로 ME/CFS의 이질성을 해석했다.</p>
+    <nav class="paper-links paper-view-nav" aria-label="논문 읽기 방식">
+      <a class="btn btn-small" data-paper-view="paper" href="/papers/2025-xiong-biomapai/" aria-current="page">논문 정리 보기</a>
+<a class="btn btn-small btn-soft" data-paper-view="pipeline" href="/papers/2025-xiong-biomapai-pipeline/">Pipeline 따라가기</a>
+    </nav>
+    <div class="paper-facts">
+      <a class="btn btn-small" href="https://doi.org/10.1038/s41591-025-03788-3" rel="noopener">원문 (DOI)</a>
+      <span class="license">License · Springer Nature exclusive licence (2025); not CC</span>
+    </div>
+    <div class="chips tag-row"><a class="chip chip-link" href="/sections/immunology/">Immunology</a><a class="chip chip-link" href="/sections/statistics-and-ml/">Statistics &amp; ML</a></div>
+    <div class="note-body"><div class="callout callout-tip">
+<div class="callout-title"><span class="callout-icon" aria-hidden="true">✦</span>Pipeline</div>
+<div class="callout-body">
+<p>입력 data에서 confounder 처리, multi-output DNN, ScoreLayer, SHAP, WGCNA와 subgroup network 비교까지: <a class="wikilink wikilink-pipeline" href="/papers/2025-xiong-biomapai-pipeline/">2025 Xiong - BioMapAI (Pipeline)</a>.</p>
+</div></div>
+<div class="callout callout-info">
+<div class="callout-title"><span class="callout-icon" aria-hidden="true">ℹ</span>Figure access</div>
+<div class="callout-body">
+<p>사용자 승인(2026-11-03)에 따라 원문 그림은 비공개 위키에서만 사용한다. 이 논문은 CC 라이선스가 아니며, 공개 사이트에는 원문 그림을 싣지 않는다. Figure 1a·2a·5에는 별도 BioRender credit도 있다.</p>
+</div></div>
+<h2 id="background">Background</h2>
+<p>ME/CFS는 fatigue, pain, cognitive impairment, sleep disturbance, orthostatic intolerance, gastrointestinal symptoms가 사람마다 다르게 조합되는 질환이다. Disease/control 하나만 예측하면 어떤 생물학적 feature가 어느 symptom과 연결되는지 놓치기 쉽다.</p>
+<p>BioMapAI는 omics matrix <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>X</mi></mrow><annotation encoding="application/x-tex">X</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span></span></span></span>에서 symptom matrix <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi></mrow><annotation encoding="application/x-tex">Y</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.2222em;">Y</span></span></span></span>를 먼저 예측한다. Shared layer는 여러 symptom에 공통된 pattern을, symptom별 branch는 각 outcome에 특화된 pattern을 학습한다. 이어 예측된 symptom score를 disease classification으로 연결하고, SHAP과 별도의 WGCNA network로 생물학적 가설을 만든다. 이는 <a class="wikilink wikilink-concept" href="/concepts/multi-task-learning/">Multi-task Learning</a>과 <a class="wikilink wikilink-concept" href="/concepts/multi-omics-integration/">Multi-omics Integration</a>의 사례다.</p>
+<h2 id="data">Data</h2>
+<p><strong>대상은 249명이며, 515개 visit를 서로 다른 515명으로 세면 안 된다.</strong> ME/CFS 153명(short-term &lt;4년 75명, long-term &gt;10년 78명)과 control 96명을 추적했다. Methods의 visit 구성은 baseline 249, 1년 뒤 168, 2년 뒤 94, 4년 뒤 4개다. 모든 participant에게 모든 modality·모든 visit가 있는 것은 아니다 (Figure 1, Extended Data Fig. 1a; PDF pp. 2, 12, 20).</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Data / source</th>
+<th>실측과 원래 규모</th>
+<th>BioMapAI 입력</th>
+<th>연구에서의 용도</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Clinical assessments, Bateman Horne Center</td>
+<td>Questionnaire, DANA Brain Vital, NASA Lean Test 등을 12개 score로 요약</td>
+<td>각 score를 0–1로 변환; <strong>1이 더 심한 symptom</strong></td>
+<td>DNN의 supervised target <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi></mrow><annotation encoding="application/x-tex">Y</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.2222em;">Y</span></span></span></span>; disease classification 기준과도 연결</td>
+</tr>
+<tr>
+<td>PBMC immune profiling</td>
+<td>Flow cytometry; 489개 sample, 본문상 443개 immune/cytokine feature</td>
+<td>451 rows × 311 features</td>
+<td>Symptom prediction, biomarker, immune network; <strong>scRNA-seq가 아님</strong></td>
+</tr>
+<tr>
+<td>Plasma metabolomics</td>
+<td>Untargeted UPLC-MS/MS; 414개 sample, 본문상 958 metabolites</td>
+<td>376 × 730</td>
+<td>Symptom prediction과 plasma metabolite association</td>
+</tr>
+<tr>
+<td>Stool metagenomics: species</td>
+<td>Shotgun DNA sequencing; 479개 sample, 본문상 1,293 species 검출</td>
+<td>441 × 118</td>
+<td>Microbial composition 입력; MetaPhlAn 4 기반</td>
+</tr>
+<tr>
+<td>Stool metagenomics: KEGG</td>
+<td>DNA reads의 KO mapping; 본문 9,993 genes와 Methods 9,452 annotated genes 표기가 다름</td>
+<td>441 × 3,959</td>
+<td>Microbial functional potential 입력; 실제 pathway flux의 직접 측정이 아님</td>
+</tr>
+<tr>
+<td>Quest blood laboratory</td>
+<td>503개 sample, 48 measurements</td>
+<td>465 × 48</td>
+<td>Routine blood measurement 기반 비교 모델</td>
+</tr>
+<tr>
+<td>Integrated Omics</td>
+<td>위 개별 모델에서 고른 feature를 결합한 파생 data</td>
+<td>154 features = immune 50 + species 32 + KEGG 30 + metabolites 42</td>
+<td>별도의 DeepMECFS-Omics 모델; 전체 modality를 처음부터 하나의 raw tensor로 넣은 구조가 아님</td>
+</tr>
+</tbody>
+</table></div>
+<p>규모는 Results/PDF p. 2와 Methods/PDF p. 15의 <strong>서로 다른 처리 단계</strong>를 구분한 것이다. Integrated matrix의 최종 row 수와 각 단계에서 줄어드는 모든 filtering 조건은 이 두 PDF만으로 완전히 연결되지 않아 확인이 필요하다.</p>
+<p>WGCNA에는 별도의 입력을 썼다: species 479 × 373, KEGG 479 × 4,462, metabolome 414 × 395, immune 489 × 311 (Methods/PDF p. 17). DNN 입력 크기를 network 분석에 그대로 대입하면 안 된다.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Evaluation data</th>
+<th>역할과 범위</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>In-cohort 10-fold CV</td>
+<td>내부에서 symptom reconstruction과 classification 평가; 10% held-out을 별도로 뒀다고 기술</td>
+</tr>
+<tr>
+<td>Held-out cohort subset</td>
+<td>같은 모집 cohort 안에서 따로 남긴 data; 외부 기관 validation과 구분</td>
+</tr>
+<tr>
+<td>Guo / Raijmakers microbiome cohorts</td>
+<td>Species와 KEGG 모델의 external disease classification 평가</td>
+</tr>
+<tr>
+<td>Germain / Che metabolome cohorts</td>
+<td>Metabolome 모델의 external disease classification 평가</td>
+</tr>
+<tr>
+<td>SHAP / WGCNA / pathway association</td>
+<td>관찰·학습 data의 해석; symptom-specific biomarker 전체의 독립 검증을 뜻하지 않음</td>
+</tr>
+</tbody>
+</table></div>
+<p>모든 external cohort에 12개 symptom score가 갖춰진 것은 아니므로 외부 검증은 <strong>binary classification</strong>에 한정된다 (Methods/PDF p. 16). 정확한 cohort별 N과 상세 metrics는 별도 Supplementary Tables 3·6 확인이 필요하다.</p>
+<h2 id="figure-1-·-cohort-design-and-heterogeneous-trajectories">Figure 1 · Cohort design and heterogeneous trajectories</h2>
+<p><strong>Context</strong> · 먼저 같은 disease label 아래 symptom과 omics가 얼마나 다양한지 확인한다. 이 차이가 커야 단일 disease/control outcome을 넘어 여러 symptom을 함께 학습하려는 이유가 분명해진다.</p>
+<p><span class="figure-hidden">이 그림은 저작권 때문에 싣지 않았습니다 · <a href="https://doi.org/10.1038/s41591-025-03788-3" rel="noopener">원문에서 보기 →</a></span></p>
+<p><em>Figure: Xiong et al., Nature Medicine (2025); restricted licence. Panel a includes BioRender.</em></p>
+<p><strong>A · Longitudinal multi-omics cohort</strong> <span class="block-id" id="fig1a"></span></p>
+<ul>
+<li><strong>목적</strong>: 어떤 participant와 modality로 연구했는지 보여 준다.</li>
+<li><strong>Data &amp; method</strong>: ME/CFS 153명과 control 96명에게서 clinical assessment·blood·PBMC·stool을 수집했다 → <a class="wikilink wikilink-pipeline" href="/papers/2025-xiong-biomapai-pipeline/#1-cohort-and-assays">Cohort and assays</a>.</li>
+<li><strong>그림 읽기</strong>: 왼쪽 participant와 가운데 assay 종류를 오른쪽 sample × feature matrix에 대응시킨다.</li>
+<li><strong>결과와 의미</strong>: Microbiome, metabolome, immune profiling과 symptom을 연결할 수 있는 cohort를 만들었지만, modality별 결측과 반복측정 구조를 함께 다뤄야 한다.</li>
+</ul>
+<p><strong>B · Within-person and between-person heterogeneity</strong> <span class="block-id" id="fig1b"></span></p>
+<ul>
+<li><strong>목적</strong>: 환자 간 차이와 같은 환자의 시간에 따른 변화가 일정한지 본다.</li>
+<li><strong>Data &amp; method</strong>: 3–4개 visit가 있는 대표 환자 20명의 12개 symptom score와 integrated omics ordination을 표시했다 → <a class="wikilink wikilink-pipeline" href="/papers/2025-xiong-biomapai-pipeline/#3-longitudinal-structure-and-validation">Longitudinal structure</a>.</li>
+<li><strong>그림 읽기</strong>: 위는 symptom별 평균·범위이고 아래 같은 색 점들은 같은 사람의 여러 visit이며, 회색 점은 전체 cohort다.</li>
+<li><strong>결과와 의미</strong>: 사람마다 symptom 조합과 trajectory가 달라 공통된 단순 시간 추세로 요약하기 어렵다. 시간 추세가 약하다는 사실이 visit 간 통계적 독립성을 증명하지는 않는다 → <a class="wikilink wikilink-paper" href="/papers/2025-xiong-biomapai/#limitations">Limitations</a>.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · 질환의 heterogeneity를 담기 위해 disease label 하나뿐 아니라 symptom matrix를 예측한다.</p>
+</blockquote>
+<h2 id="figure-2-·-multi-output-architecture-and-predictive-performance">Figure 2 · Multi-output architecture and predictive performance</h2>
+<p><strong>Context</strong> · Cohort의 이질성을 확인했으므로, omics로 여러 symptom을 동시에 복원할 수 있는지 평가한다. Symptom reconstruction과 disease classification은 서로 다른 평가이므로 그림에서도 구분해 읽는다.</p>
+<p><span class="figure-hidden">이 그림은 저작권 때문에 싣지 않았습니다 · <a href="https://doi.org/10.1038/s41591-025-03788-3" rel="noopener">원문에서 보기 →</a></span></p>
+<p><em>Figure: Xiong et al., Nature Medicine (2025); restricted licence. Panel a includes BioRender.</em></p>
+<p><strong>A · Shared representation and symptom-specific heads</strong> <span class="block-id" id="fig2a"></span></p>
+<ul>
+<li><strong>목적</strong>: 여러 clinical outcome을 하나의 모델에서 학습하는 구조를 보여 준다.</li>
+<li><strong>Data &amp; method</strong>: 개별 omics 또는 selected 154-feature matrix를 BatchNormalization → shared 64/32 nodes → outcome별 8-node branch → 12개 score로 연결한다 → <a class="wikilink wikilink-pipeline" href="/papers/2025-xiong-biomapai-pipeline/#4-shared-layers-and-outcome-specific-heads">Architecture</a>.</li>
+<li><strong>그림 읽기</strong>: Shared layer 두 개와 여러 갈래로 나뉜 세 번째 layer를 구분하며, 그림의 입력별 row 수는 서로 다르다.</li>
+<li><strong>결과와 의미</strong>: 공통 pattern과 outcome별 pattern을 함께 학습하는 설계이며, BioMapAI는 framework, DeepMECFS는 이 cohort에서 학습한 모델 이름이다.</li>
+</ul>
+<p><strong>B · Reconstructed clinical score distributions</strong> <span class="block-id" id="fig2b"></span></p>
+<ul>
+<li><strong>목적</strong>: 예측 score가 실제 symptom의 분포와 group 차이를 어느 정도 복원하는지 본다.</li>
+<li><strong>Data &amp; method</strong>: Physical health, social functioning, pain의 실측 score와 omics별 예측 score를 비교한다 → <a class="wikilink wikilink-pipeline" href="/papers/2025-xiong-biomapai-pipeline/#5-loss-functions-and-training">Loss and training</a>.</li>
+<li><strong>그림 읽기</strong>: 첫 열의 실제 분포를 뒤의 모델별 분포와 비교하고, 색 밀도와 mean/IQR 표시를 본다.</li>
+<li><strong>결과와 의미</strong>: 건강군과 환자군의 차이는 상당 부분 복원되지만 예측값의 분산은 압축된다. 분포가 비슷하다는 것과 개인별 prediction이 정확하다는 것은 구분한다.</li>
+</ul>
+<p><strong>C · Omics-specific strengths across symptoms</strong> <span class="block-id" id="fig2c"></span></p>
+<ul>
+<li><strong>목적</strong>: 어떤 modality가 어떤 symptom prediction에 유리한지 비교한다.</li>
+<li><strong>Data &amp; method</strong>: 12개 실측·예측 score 사이의 normalized MSE를 계산했다 → <a class="wikilink wikilink-pipeline" href="/papers/2025-xiong-biomapai-pipeline/#6-scorelayer-and-evaluation">Evaluation metrics</a>.</li>
+<li><strong>그림 읽기</strong>: 반지름은 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mrow><mi mathvariant="normal">n</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">z</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">d</mi><mtext> </mtext><mi mathvariant="normal">M</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">E</mi></mrow></mrow><annotation encoding="application/x-tex">1-\mathrm{normalized\ MSE}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord"><span class="mord mathrm">normalized</span><span class="mspace"> </span><span class="mord mathrm">MSE</span></span></span></span></span>이며 바깥쪽일수록 error가 작고, accuracy나 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>R</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">R^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0077em;">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span>로 읽지 않는다.</li>
+<li><strong>결과와 의미</strong>: Immune profile은 여러 symptom, microbiome은 gastrointestinal·일부 emotional/sleep symptom에서 비교적 유리했다. Feature 수와 sample 구성이 다른 modality 간 순위라 assay 자체의 절대 우열로 일반화하지 않는다.</li>
+</ul>
+<p><strong>D · In-cohort classification</strong> <span class="block-id" id="fig2d"></span></p>
+<ul>
+<li><strong>목적</strong>: 예측 symptom score로 ME/CFS와 control을 구분할 수 있는지 평가한다.</li>
+<li><strong>Data &amp; method</strong>: 예측된 12개 score를 보조 binary ScoreLayer에 넣어 10-fold CV와 별도 10% held-out에서 ROC를 평가했다 → <a class="wikilink wikilink-pipeline" href="/papers/2025-xiong-biomapai-pipeline/#6-scorelayer-and-evaluation">ScoreLayer</a>.</li>
+<li><strong>그림 읽기</strong>: 왼쪽 CV와 오른쪽 held-out ROC를 나누어 보고, 축은 FPR/TPR이며 범례의 수치는 AUROC다.</li>
+<li><strong>결과와 의미</strong>: Integrated Omics의 AUROC는 그림에서 CV 약 <strong>0.91</strong>, held-out 약 <strong>0.82</strong>다. 이는 91%의 환자를 맞혔다는 accuracy 표현과 다르다.</li>
+</ul>
+<p><strong>E · External disease classification</strong> <span class="block-id" id="fig2e"></span></p>
+<ul>
+<li><strong>목적</strong>: 다른 연구에서 수집된 data에도 모델이 적용되는지 확인한다.</li>
+<li><strong>Data &amp; method</strong>: 외부 4개 cohort의 species·KEGG·metabolome feature를 맞추고 없는 feature는 0으로 채워 pretrained 모델을 평가했다 → <a class="wikilink wikilink-pipeline" href="/papers/2025-xiong-biomapai-pipeline/#6-scorelayer-and-evaluation">External validation</a>.</li>
+<li><strong>그림 읽기</strong>: 각 행은 특정 cohort와 특정 입력 모델의 조합이며, integrated 154-feature 모델 전체의 외부 성능표가 아니다.</li>
+<li><strong>결과와 의미</strong>: 내부 CV보다 AUROC가 낮아 cohort·assay·feature coverage 차이의 영향을 보여 준다. 외부 cohort에서 12개 symptom prediction 전체를 검증한 것은 아니다.</li>
+</ul>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>External input / cohort</th>
+<th style="text-align:right">Figure 2E AUROC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Species / Guo</td>
+<td style="text-align:right">0.719</td>
+</tr>
+<tr>
+<td>Species / Raijmakers (그림 표기 Ruud)</td>
+<td style="text-align:right">0.630</td>
+</tr>
+<tr>
+<td>KEGG / Guo</td>
+<td style="text-align:right">0.591</td>
+</tr>
+<tr>
+<td>KEGG / Raijmakers</td>
+<td style="text-align:right">0.606</td>
+</tr>
+<tr>
+<td>Metabolome / Germain</td>
+<td style="text-align:right">0.681</td>
+</tr>
+<tr>
+<td>Metabolome / Che</td>
+<td style="text-align:right">0.613</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>Takeaway</strong> · Multi-output modeling의 유용성을 보였지만, 외부 성능은 내부 성능보다 낮고 clinical deployment를 뒷받침하는 검증과는 거리가 있다.</p>
+</blockquote>
+<h2 id="figure-3-·-disease-shared-and-symptom-specific-feature-contributions">Figure 3 · Disease-shared and symptom-specific feature contributions</h2>
+<p><strong>Context</strong> · 다음 질문은 모델이 왜 특정 symptom을 높게 예측했는지다. SHAP은 feature의 모델 기여도를 분해하며, 원인이나 치료 효과를 검증하는 실험은 아니다.</p>
+<p><span class="figure-hidden">이 그림은 저작권 때문에 싣지 않았습니다 · <a href="https://doi.org/10.1038/s41591-025-03788-3" rel="noopener">원문에서 보기 →</a></span></p>
+<p><em>Figure: Xiong et al., Nature Medicine (2025); restricted licence.</em></p>
+<p><strong>A · Species contributions across twelve symptoms</strong> <span class="block-id" id="fig3a"></span></p>
+<ul>
+<li><strong>목적</strong>: 여러 symptom에 공통된 feature와 symptom마다 다른 feature를 구분한다.</li>
+<li><strong>Data &amp; method</strong>: Symptom별 submodel에 Kernel SHAP을 적용하고 top contributor가 75% 이상의 output에서 반복되면 shared biomarker로 분류했다 → <a class="wikilink wikilink-pipeline" href="/papers/2025-xiong-biomapai-pipeline/#7-shap-and-biomarker-categories">SHAP categories</a>.</li>
+<li><strong>그림 읽기</strong>: 원형의 각 구간은 symptom, 구간 안 x축은 sample이며 여러 ring은 SHAP·cohort/demography·실측/예측 score를 보여 준다.</li>
+<li><strong>결과와 의미</strong>: 공통 feature만으로 설명되지 않는 symptom별 contribution이 있다. 이 그림의 biomarker는 held-out에서 별도로 검증하지 않았다고 legend에 명시돼 있다.</li>
+</ul>
+<p><strong>B · Pain-specific contributions</strong> <span class="block-id" id="fig3b"></span></p>
+<ul>
+<li><strong>목적</strong>: Pain prediction에서 species와 immune feature가 어떻게 다르게 기여하는지 비교한다.</li>
+<li><strong>Data &amp; method</strong>: Pain output의 sample별 SHAP과 실측·예측 score를 species/immune model별로 정리했다 → <a class="wikilink wikilink-pipeline" href="/papers/2025-xiong-biomapai-pipeline/#7-shap-and-biomarker-categories">Sample-level attribution</a>.</li>
+<li><strong>그림 읽기</strong>: 보라색 symptom-specific contribution과 회색 shared contribution을 구분하고, SHAP의 양수는 더 높은 predicted severity를 뜻한다.</li>
+<li><strong>결과와 의미</strong>: CD4 memory, CD1c+ DC와 F. prausnitzii 등의 contribution이 사람마다 달랐다. 모델의 contribution을 실험적 effect size로 해석하지 않는다.</li>
+</ul>
+<p><strong>C · Monotonic, biphasic and dispersed patterns</strong> <span class="block-id" id="fig3c"></span></p>
+<ul>
+<li><strong>목적</strong>: Feature와 symptom의 관계가 단순한 일방향 association인지 확인한다.</li>
+<li><strong>Data &amp; method</strong>: Feature abundance와 pain score의 관계를 그리고 sample을 SHAP 값으로 색칠했다 → <a class="wikilink wikilink-pipeline" href="/papers/2025-xiong-biomapai-pipeline/#7-shap-and-biomarker-categories">Response patterns</a>.</li>
+<li><strong>그림 읽기</strong>: x축은 feature abundance, y축은 pain severity, 파랑/빨강은 negative/positive SHAP이며, 점들의 분포와 추세선을 함께 본다.</li>
+<li><strong>결과와 의미</strong>: Immune feature는 monotonic, F. prausnitzii·일부 metabolite는 biphasic, KEGG는 sparse/dispersed pattern을 보인다. 그림의 모든 예가 유의한 monotonic correlation을 가진 것은 아니다.</li>
+</ul>
+<p><strong>D · Individual species attribution</strong> <span class="block-id" id="fig3d"></span></p>
+<ul>
+<li><strong>목적</strong>: 같은 species가 사람마다 예측을 다른 방향으로 움직이는지 보여 준다.</li>
+<li><strong>Data &amp; method</strong>: 두 sample의 species model pain prediction을 SHAP waterfall로 분해했다 → <a class="wikilink wikilink-pipeline" href="/papers/2025-xiong-biomapai-pipeline/#7-shap-and-biomarker-categories">Additive decomposition</a>.</li>
+<li><strong>그림 읽기</strong>: Expected baseline에서 시작해 positive/negative contribution을 누적하면 해당 sample의 prediction <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">f(x)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.1076em;">f</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span></span></span></span>에 도달한다.</li>
+<li><strong>결과와 의미</strong>: F. prausnitzii의 contribution 방향이 sample context에 따라 달라 단일한 beneficial/harmful label로 요약하기 어렵다.</li>
+</ul>
+<p><strong>E · Individual immune attribution</strong> <span class="block-id" id="fig3e"></span></p>
+<ul>
+<li><strong>목적</strong>: Pain prediction을 바꾸는 immune feature의 sample별 조합을 보여 준다.</li>
+<li><strong>Data &amp; method</strong>: Immune model의 두 sample에 대해 상위 feature contribution을 분해했다 → <a class="wikilink wikilink-pipeline" href="/papers/2025-xiong-biomapai-pipeline/#7-shap-and-biomarker-categories">Immune attribution</a>.</li>
+<li><strong>그림 읽기</strong>: 빨강은 predicted pain을 높이고 파랑은 낮추며, 비교하는 두 model의 baseline은 다를 수 있다.</li>
+<li><strong>결과와 의미</strong>: Prediction은 여러 immune feature contribution의 합이며 특정 cell 하나의 인과적 역할이나 drug target 타당성을 입증하지 않는다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · ‘Disease-specific’은 여기서 여러 symptom output에 공통된 모델 feature라는 operational definition이다. 다른 질환과 구분되는 임상적 specificity를 뜻하지 않는다.</p>
+</blockquote>
+<h2 id="figure-4-·-cross-omics-association-networks-and-subgroup-differences">Figure 4 · Cross-omics association networks and subgroup differences</h2>
+<p><strong>Context</strong> · Symptom prediction을 설명한 뒤, 서로 다른 omics의 변화가 어떤 module 수준 association으로 연결되는지 조사한다. 이 단계는 DNN의 layer를 edge로 그린 것이 아니라, 별도로 수행한 WGCNA와 correlation 분석이다.</p>
+<p><span class="figure-hidden">이 그림은 저작권 때문에 싣지 않았습니다 · <a href="https://doi.org/10.1038/s41591-025-03788-3" rel="noopener">원문에서 보기 →</a></span></p>
+<p><em>Figure: Xiong et al., Nature Medicine (2025); restricted licence.</em></p>
+<p><strong>A · Healthy reference network</strong> <span class="block-id" id="fig4a"></span></p>
+<ul>
+<li><strong>목적</strong>: Healthy cohort의 microbiome–blood association을 기준으로 정한다.</li>
+<li><strong>Data &amp; method</strong>: Modality별 WGCNA module eigengene 사이의 adjusted Spearman correlation로 network를 만들었다 → <a class="wikilink wikilink-pipeline" href="/papers/2025-xiong-biomapai-pipeline/#9-wgcna-modules">WGCNA</a> · <a class="wikilink wikilink-pipeline" href="/papers/2025-xiong-biomapai-pipeline/#10-cross-omics-network-comparison">Cross-omics network</a>.</li>
+<li><strong>그림 읽기</strong>: Node는 species·KEGG·immune·metabolite module이며 크기는 구성 feature 수, 빨강/파랑 edge는 positive/negative correlation이다.</li>
+<li><strong>결과와 의미</strong>: Pyruvate, microbial community, Th17-related immune 및 plasma metabolite module 사이의 association이 건강군의 비교 기준이 된다.</li>
+</ul>
+<p><strong>B · Patient subgroup network changes</strong> <span class="block-id" id="fig4b"></span></p>
+<ul>
+<li><strong>목적</strong>: Age, sex, weight, IBS/infection 상태에 따라 association 변화가 다른지 본다.</li>
+<li><strong>Data &amp; method</strong>: 각 patient subgroup를 대응하는 healthy subgroup와 비교해 correlation difference를 표시했다 → <a class="wikilink wikilink-pipeline" href="/papers/2025-xiong-biomapai-pipeline/#10-cross-omics-network-comparison">Matched subgroup comparison</a>.</li>
+<li><strong>그림 읽기</strong>: 이 panel의 빨강/파랑은 <strong>healthy 대비 correlation 증가/감소</strong>이며, A의 positive/negative correlation 부호와 동일한 뜻이 아니다.</li>
+<li><strong>결과와 의미</strong>: Pyruvate 관련 연결의 약화와 inflammatory/mucosal immune module 관련 변화가 subgroup에 따라 달랐다. 여기서 network edge는 물질 이동이나 세포 간 직접 신호전달의 증거가 아니다.</li>
+</ul>
+<p><strong>C · Pathway–host associations and symptom contribution</strong> <span class="block-id" id="fig4c"></span></p>
+<ul>
+<li><strong>목적</strong>: 특정 microbial metabolic pathway 변화가 어떤 host feature 및 symptom prediction과 연결되는지 본다.</li>
+<li><strong>Data &amp; method</strong>: KEGG gene abundance의 group 차이, host feature association, symptom별 aggregated SHAP을 결합하고 일부 microbial 변화는 외부 cohort와 비교했다 → <a class="wikilink wikilink-pipeline" href="/papers/2025-xiong-biomapai-pipeline/#10-cross-omics-network-comparison">Pathway integration</a>.</li>
+<li><strong>그림 읽기</strong>: 왼쪽은 control 대비 gene abundance, 중앙 Sankey는 correlation, 오른쪽은 host feature 변화와 symptom별 SHAP contribution이며 화살표로 된 causal flow가 아니다.</li>
+<li><strong>결과와 의미</strong>: Butyrate/BCAA-related potential 감소와 tryptophan/benzoate 관련 변화가 immune·plasma feature 및 symptom과 연결되는 가설을 제시한다. 외부 microbial 변화 확인이 전체 cross-omics network의 외부 검증을 대신하지 않는다.</li>
+</ul>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Pathway</th>
+<th>이 그림과 본문에서 강조한 association</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tryptophan</td>
+<td>Th22-related negative association 소실과 γδT·IFN-γ/GzA-associated immune feature 연결 변화</td>
+</tr>
+<tr>
+<td>Butyrate</td>
+<td>여러 synthesis route와 Th17/Treg/MAIT association이 control·short-term·long-term에서 다름</td>
+</tr>
+<tr>
+<td>BCAA biosynthesis</td>
+<td>감소한 microbial pathway feature와 plasma lipid·inflammatory immune feature의 association 변화</td>
+</tr>
+<tr>
+<td>Benzoate</td>
+<td>Hippurate 및 lipid/steroid 관련 association 변화와 fatigue·social/sleep/emotional symptom contribution</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>Takeaway</strong> · 질병 여부뿐 아니라 covariate context에 따라 cross-omics association이 달라진다는 관찰이다. Cross-sectional duration group 차이를 같은 사람의 disease progression으로 읽으면 안 된다.</p>
+</blockquote>
+<h2 id="figure-5-·-integrated-biological-hypothesis">Figure 5 · Integrated biological hypothesis</h2>
+<p><strong>Context</strong> · 마지막 그림은 앞선 분석을 하나의 biological model로 요약한다. 실측한 항목, 계산한 association, 저자가 제안한 mechanism을 구분하면서 읽어야 한다.</p>
+<p><span class="figure-hidden">이 그림은 저작권 때문에 싣지 않았습니다 · <a href="https://doi.org/10.1038/s41591-025-03788-3" rel="noopener">원문에서 보기 →</a></span></p>
+<p><em>Figure: Xiong et al., Nature Medicine (2025); restricted licence; includes BioRender.</em></p>
+<p><strong>Healthy and ME/CFS · Proposed host–microbiome model</strong> <span class="block-id" id="fig5"></span></p>
+<ul>
+<li><strong>목적</strong>: Microbial metabolism, plasma metabolome, immune activation과 symptom 사이의 종합 가설을 제시한다.</li>
+<li><strong>Data &amp; method</strong>: 새 실험이 아니라 Figure 1–4의 관찰, SHAP과 network association을 기존 biological knowledge와 함께 종합했다 → <a class="wikilink wikilink-pipeline" href="/papers/2025-xiong-biomapai-pipeline/#10-cross-omics-network-comparison">Interpretation boundary</a>.</li>
+<li><strong>그림 읽기</strong>: Healthy/ME/CFS 두 영역에서 pathway·cell·metabolite를 비교하고, 실제 biochemical conversion을 그린 화살표와 단순 association line을 구분한다.</li>
+<li><strong>결과와 의미</strong>: Altered microbial functional potential과 inflammatory MAIT/γδT-related feature가 heterogeneous symptom과 연결된다는 검증 가능한 가설이다. 이 그림만으로 butyrate·probiotic·immune intervention의 치료 효과를 결론내릴 수 없다.</li>
+</ul>
+<blockquote>
+<p><strong>Takeaway</strong> · BioMapAI의 최종 산출물은 prediction과 mechanism 후보이며, causal mechanism이나 치료 효과의 확정이 아니다.</p>
+</blockquote>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li><strong>Population and controls</strong> · 단일 geographic center, 주로 white population, 여성과 고연령 참가자 비중이라는 한계가 있다. Healthy와의 구분은 fibromyalgia 등 symptom이 겹치는 disease control과의 구분보다 쉬울 수 있다 (Discussion/PDF pp. 8–10).</li>
+<li><strong>Repeated measures and data leakage</strong> · 저자는 각 visit를 독립 data point로 사용했다 (Methods/PDF p. 18). Participant 단위로 CV/held-out을 분리했는지는 해당 서술에서 명확하지 않다. 같은 사람의 visit가 train/test에 나뉘면 성능이 높아질 수 있다는 <strong>방법론적 점검 사항</strong>이며, 실제 leakage가 발생했다고 단정하지 않는다 → <a class="wikilink wikilink-concept" href="/concepts/cross-validation/#grouped-validation">Grouped validation</a>.</li>
+<li><strong>Feature selection and preprocessing</strong> · SHAP-selected 154-feature integration과 confounder/feature filtering이 각 training fold 안에서만 수행됐는지 전체 분석 script로 확인해야 한다. CV 전에 전체 cohort의 outcome을 보고 feature를 고르면 selection leakage 위험이 있다 (일반 지식).</li>
+<li><strong>Independent biomarker validation</strong> · Figure 3와 Extended Data Fig. 4는 biomarkers가 held-out에서 검증되지 않았다고 명시한다. 일부 외부 microbial/metabolite signal 확인, classifier의 외부 평가, symptom-specific marker 전체의 독립 검증은 서로 다른 주장이다.</li>
+<li><strong>External transportability</strong> · 외부 AUROC는 0.591–0.719이며, metabolite feature coverage가 약 79% 또는 19%인 cohort도 있다. Missing feature의 zero fill과 assay 차이가 영향을 줄 수 있다 (Results/PDF p. 5, Methods/PDF p. 16).</li>
+<li><strong>Association and functional potential</strong> · KEGG는 microbial DNA 기반 functional potential이며 실제 metabolite 생산 flux가 아니다. WGCNA/Spearman/SHAP은 직접적 molecular interaction이나 인과관계를 입증하지 않는다.</li>
+<li><strong>Time and disease duration</strong> · 추적 기간은 수십 년의 질환 진행을 포괄하지 못하며, short-term과 long-term군은 동일 사람을 4년에서 10년 이상까지 추적한 비교가 아니다.</li>
+<li><strong>Reporting and implementation</strong> · Learning rate, layer formula, continuous output activation, normalization 등 논문과 공개 코드의 차이는 <a class="wikilink wikilink-pipeline" href="/papers/2025-xiong-biomapai-pipeline/#reporting-and-implementation-notes">Reporting and implementation notes</a>에 구분했다. 별도 Supplementary Tables workbook은 첨부되지 않아 그 표 전체를 확인했다고 주장하지 않는다.</li>
+</ul>
+<h2 id="data-and-code">Data &amp; Code</h2>
+<ul>
+<li>원문: <span class="link-missing" title="아직 사이트에 없는 페이지">2025 Xiong - BioMapAI.pdf</span> · Main Figure 1–5 = PDF pp. 3, 4, 6, 7, 9; Methods = pp. 12–18; Extended Data = pp. 19–29.</li>
+<li>제공된 서플: <span class="link-missing" title="아직 사이트에 없는 페이지">2025 Xiong - BioMapAI Supplementary.pdf</span> · Supplementary Fig. 1 = pp. 2–3; Supplementary Fig. 2 = pp. 4–5. Hyperparameter tuning과 flow cytometry gating을 확인했다; 서플 그림은 노트에 별도로 복제하지 않았다.</li>
+<li><a href="https://doi.org/10.1038/s41591-025-03788-3">Publisher / DOI</a>, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12416096/">PMC author manuscript</a>.</li>
+<li><a href="https://github.com/ohlab/BioMapAI">Author repository</a>, <a href="https://github.com/ohlab/BioMapAI/blob/main/data/Omics_Dataset.zip">processed Omics Dataset</a>, <a href="https://www.ncbi.nlm.nih.gov/bioproject/PRJNA1125469">raw metagenomics PRJNA1125469</a>.</li>
+<li>Code inspection: <a href="https://github.com/ohlab/BioMapAI/blob/dd6ac30f3cb08b4d85eace7be0b28a37febb7c1b/BioMapAI.py">BioMapAI.py, commit dd6ac30</a>, <a href="https://github.com/ohlab/BioMapAI/blob/main/BioMapAI_Training_Tutorial.ipynb">training tutorial</a>, <a href="https://github.com/ohlab/BioMapAI/blob/main/Pretrained_DeepMECFS_Tutorial.ipynb">pretrained tutorial</a>. Code와 README는 2026-11-03에 열람했으며 실제 data로 training/inference를 재현한 것은 아니다.</li>
+</ul>
+<h2 id="관련-개념">관련 개념</h2>
+<ul>
+<li><a class="wikilink wikilink-concept" href="/concepts/multi-task-learning/">Multi-task Learning</a> · <a class="wikilink wikilink-concept" href="/concepts/multi-omics-integration/">Multi-omics Integration</a> · <a class="wikilink wikilink-concept" href="/concepts/cross-validation/">Cross-validation</a></li>
+<li><a class="wikilink wikilink-concept" href="/concepts/shap/">SHAP</a> · <a class="wikilink wikilink-concept" href="/concepts/co-expression-network-analysis/">Co-expression Network Analysis</a> · <a class="wikilink wikilink-concept" href="/concepts/mixed-effects-model/">Mixed Effects Model</a> · <a class="wikilink wikilink-concept" href="/concepts/confusion-matrix/">Confusion Matrix</a></li>
+</ul>
+</div>
+  </article>
+  <aside class="note-side">
+    <nav class="toc" aria-label="목차"><p class="toc-title">On this page</p><ul><li class="toc-l2"><a href="#background">Background</a></li><li class="toc-l2"><a href="#data">Data</a></li><li class="toc-l2"><a href="#figure-1-·-cohort-design-and-heterogeneous-trajectories">Figure 1 · Cohort design and heterogeneous trajectories</a></li><li class="toc-l2"><a href="#figure-2-·-multi-output-architecture-and-predictive-performance">Figure 2 · Multi-output architecture and predictive performance</a></li><li class="toc-l2"><a href="#figure-3-·-disease-shared-and-symptom-specific-feature-contributions">Figure 3 · Disease-shared and symptom-specific feature contributions</a></li><li class="toc-l2"><a href="#figure-4-·-cross-omics-association-networks-and-subgroup-differences">Figure 4 · Cross-omics association networks and subgroup differences</a></li><li class="toc-l2"><a href="#figure-5-·-integrated-biological-hypothesis">Figure 5 · Integrated biological hypothesis</a></li><li class="toc-l2"><a href="#limitations">Limitations</a></li><li class="toc-l2"><a href="#data-and-code">Data &amp;amp; Code</a></li><li class="toc-l2"><a href="#관련-개념">관련 개념</a></li></ul></nav>
+    <div class="side-card"><p class="side-title">이 페이지를 링크한 곳</p><ul class="side-links"><li><a href="/papers/2025-xiong-biomapai-pipeline/"><span class="kind-dot kind-pipeline"></span>BioMapAI - Pipeline (Xiong 2025)</a></li><li><a href="/concepts/co-expression-network-analysis/"><span class="kind-dot kind-concept"></span>Co-expression Network Analysis</a></li><li><a href="/concepts/confusion-matrix/"><span class="kind-dot kind-concept"></span>Confusion Matrix</a></li><li><a href="/concepts/cross-validation/"><span class="kind-dot kind-concept"></span>Cross-validation</a></li><li><a href="/concepts/mixed-effects-model/"><span class="kind-dot kind-concept"></span>Mixed Effects Model</a></li><li><a href="/concepts/multi-omics-integration/"><span class="kind-dot kind-concept"></span>Multi-omics Integration</a></li><li><a href="/concepts/multi-task-learning/"><span class="kind-dot kind-concept"></span>Multi-task Learning</a></li><li><a href="/concepts/shap/"><span class="kind-dot kind-concept"></span>SHAP (Shapley Additive Explanations)</a></li><li><a href="/concepts/t-cell-and-tcr/"><span class="kind-dot kind-concept"></span>T Cell and TCR</a></li></ul></div>
+  </aside>
+</div>
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>Study Wiki · 연구실 공부를 하며 차곡차곡 정리하는 노트</span>
+    <span class="muted">논문 figure는 Creative Commons 라이선스 논문만, 출처와 함께 실었습니다.</span>
+  </div>
+</footer>
+<div class="search-modal" data-search-modal hidden>
+  <div class="search-panel" role="dialog" aria-label="검색">
+    <input class="search-input" type="search" placeholder="개념, 논문, 용어 검색 (예: RGES, LINCS)" data-search-input autocomplete="off">
+    <ul class="search-results" data-search-results></ul>
+  </div>
+</div>
+<script src="/assets/site.js" defer></script>
+<script src="/assets/filter.js" defer></script>
+</body>
+</html>
